@@ -12,7 +12,7 @@ import './wm/wm.css'
 
 export default function App(): React.JSX.Element {
   const { state, setPreferences, wake } = useEnvironment()
-  const { windows, openApp, focus, close, move, minimize } = useWindowManager()
+  const { windows, openApp, focus, close, move, minimize, maximize } = useWindowManager()
 
   useEffect(() => {
     let last = 0
@@ -48,6 +48,7 @@ export default function App(): React.JSX.Element {
           onFocus={() => focus(win.id)}
           onClose={() => close(win.id)}
           onMinimize={() => minimize(win.id)}
+          onMaximize={() => maximize(win.id)}
           onMove={(x, y) => move(win.id, x, y)}
         >
           <AppHost

@@ -7,16 +7,18 @@ type Props = {
   onFocus: () => void
   onClose: () => void
   onMinimize: () => void
+  onMaximize: () => void
   onMove: (x: number, y: number) => void
   children: React.ReactNode
 }
 
-/** Concept-style glass frame — no Apple traffic lights. */
+/** Concept glass chrome with real window controls (not Apple traffic lights). */
 export default function FloatingWindow({
   win,
   onFocus,
   onClose,
   onMinimize,
+  onMaximize,
   onMove,
   children
 }: Props): React.JSX.Element | null {
@@ -26,20 +28,25 @@ export default function FloatingWindow({
 
   return (
     <section
-      className="float-win"
-      style={{
-        left: win.x,
-        top: win.y,
-        width: win.w,
-        height: win.h,
-        zIndex: win.z
-      }}
+      className={`float-win ${win.maximized ? 'maximized' : ''}`}
+      style={
+        win.maximized
+          ? { inset: '12px 12px 96px', width: 'auto', height: 'auto', zIndex: win.z }
+          : {
+              left: win.x,
+              top: win.y,
+              width: win.w,
+              height: win.h,
+              zIndex: win.z
+            }
+      }
       onMouseDown={onFocus}
     >
       <header
         className="float-bar"
+        onDoubleClick={onMaximize}
         onMouseDown={(e) => {
-          if ((e.target as HTMLElement).closest('button')) return
+          if ((e.target as HTMLElement).closest('button') || win.maximized) return
           onFocus()
           drag.current = { ox: e.clientX, oy: e.clientY, sx: win.x, sy: win.y }
           const move = (ev: MouseEvent): void => {
@@ -60,10 +67,19 @@ export default function FloatingWindow({
       >
         <div className="float-title">{win.title}</div>
         <div className="float-actions">
-          <button type="button" className="fa min" aria-label="Minimize" onClick={onMinimize}>
+          <button type="button" className="fa" aria-label="Minimize" title="Minimize" onClick={onMinimize}>
             −
           </button>
-          <button type="button" className="fa close" aria-label="Close" onClick={onClose}>
+          <button
+            type="button"
+            className="fa"
+            aria-label={win.maximized ? 'Restore' : 'Maximize'}
+            title={win.maximized ? 'Restore' : 'Maximize'}
+            onClick={onMaximize}
+          >
+            {win.maximized ? '❐' : '□'}
+          </button>
+          <button type="button" className="fa close" aria-label="Close" title="Close" onClick={onClose}>
             ×
           </button>
         </div>

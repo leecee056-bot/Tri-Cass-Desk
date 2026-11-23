@@ -28,6 +28,8 @@ export type DeskWindow = {
   h: number
   z: number
   minimized?: boolean
+  maximized?: boolean
+  restore?: { x: number; y: number; w: number; h: number }
   payload?: Record<string, string>
 }
 

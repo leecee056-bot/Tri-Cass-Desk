@@ -21,6 +21,7 @@ export const IPC = {
   chatHistory: 'desk:chat-history',
   chatSend: 'desk:chat-send',
   chatClear: 'desk:chat-clear',
+  chatGenerate: 'desk:chat-generate',
   ollamaModels: 'desk:ollama-models',
   ollamaStatus: 'desk:ollama-status',
 
@@ -69,6 +70,10 @@ export type DeskApi = {
   chatHistory: () => Promise<ChatMessage[]>
   chatSend: (content: string, model?: string) => Promise<ChatMessage[]>
   chatClear: () => Promise<void>
+  chatGenerate: (
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
+    opts?: { model?: string; temperature?: number; system?: string }
+  ) => Promise<string>
   ollamaModels: () => Promise<OllamaModel[]>
   ollamaStatus: () => Promise<{ ok: boolean; detail: string }>
 

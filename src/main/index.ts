@@ -6,6 +6,7 @@ import { IPC } from '../shared/ipc'
 import type { EnvironmentState } from '../shared/environment'
 import {
   chatSend,
+  chatGenerate,
   clearChatHistory,
   listModels,
   loadChatHistory,
@@ -112,6 +113,14 @@ function registerIpc(): void {
     chatSend(content, model)
   )
   ipcMain.handle(IPC.chatClear, async () => clearChatHistory())
+  ipcMain.handle(
+    IPC.chatGenerate,
+    async (
+      _e,
+      messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
+      opts?: { model?: string; temperature?: number; system?: string }
+    ) => chatGenerate(messages, opts)
+  )
   ipcMain.handle(IPC.ollamaModels, async () => listModels())
   ipcMain.handle(IPC.ollamaStatus, async () => ollamaStatus())
 

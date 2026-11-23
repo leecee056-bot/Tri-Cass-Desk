@@ -72,11 +72,14 @@
   text-overflow: ellipsis;
 }
 
+.float-win.maximized {
+  border-radius: 14px;
+}
+
 .float-actions {
   display: flex;
-  gap: 2px;
-  opacity: 0;
-  transition: opacity 0.18s ease;
+  gap: 4px;
+  opacity: 0.85;
 }
 
 .float-win:hover .float-actions,

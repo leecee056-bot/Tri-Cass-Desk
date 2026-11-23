@@ -51,6 +51,54 @@ export async function listModels(): Promise<OllamaModel[]> {
   }))
 }
 
+export type ChatGenerateOpts = {
+  model?: string
+  temperature?: number
+  system?: string
+}
+
+/** One-shot completion against an explicit message list (multi-session UI). */
+export async function chatGenerate(
+  messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
+  opts: ChatGenerateOpts = {}
+): Promise<string> {
+  const status = await ollamaStatus()
+  if (!status.ok) return `Local model offline. ${status.detail}`
+
+  const models = await listModels()
+  const chosen = opts.model || models[0]?.name
+  if (!chosen) {
+    return 'No local Ollama models found. Pull one (e.g. `ollama pull smollm2:135m`).'
+  }
+
+  const system =
+    opts.system?.trim() ||
+    'You are Tri-Cass Desk, a local offline companion. Be concise and practical. Never claim network weather or cloud services.'
+
+  const payload = {
+    model: chosen,
+    stream: false,
+    options: {
+      temperature: opts.temperature ?? 0.7,
+      num_predict: 768
+    },
+    messages: [
+      { role: 'system', content: system },
+      ...messages.filter((m) => m.role === 'user' || m.role === 'assistant').slice(-PROMPT_WINDOW)
+    ]
+  }
+
+  const res = await fetch(`${OLLAMA}/api/chat`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(120_000)
+  })
+  if (!res.ok) return `Ollama chat failed (HTTP ${res.status}).`
+  const data = (await res.json()) as { message?: { content?: string } }
+  return data.message?.content?.trim() || '(empty reply)'
+}
+
 export async function chatSend(content: string, model?: string): Promise<ChatMessage[]> {
   const history = loadChatHistory()
   const userMsg: ChatMessage = {

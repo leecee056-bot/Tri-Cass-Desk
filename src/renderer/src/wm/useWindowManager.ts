@@ -85,12 +85,12 @@ function layoutDefaults(): DeskWindow[] {
       id: 'w-chat',
       appId: 'chat',
       title: 'Chat',
-      x: Math.round(W * 0.28),
-      y: Math.round(H * 0.42),
-      w: 380,
-      h: 320,
-      z: 5,
-      minimized: true
+      x: Math.round(W * 0.22),
+      y: Math.round(H * 0.18),
+      w: 520,
+      h: 480,
+      z: 14,
+      minimized: false
     }
   ]
 }
@@ -154,5 +154,34 @@ export function useWindowManager() {
     setWindows((list) => list.map((w) => (w.id === id ? { ...w, minimized: true } : w)))
   }, [])
 
-  return { windows, openApp, focus, close, move, resize, minimize }
+  const maximize = useCallback((id: string) => {
+    zCounter += 1
+    setWindows((list) =>
+      list.map((w) => {
+        if (w.id !== id) return w
+        if (w.maximized && w.restore) {
+          return {
+            ...w,
+            maximized: false,
+            x: w.restore.x,
+            y: w.restore.y,
+            w: w.restore.w,
+            h: w.restore.h,
+            restore: undefined,
+            z: zCounter,
+            minimized: false
+          }
+        }
+        return {
+          ...w,
+          maximized: true,
+          restore: { x: w.x, y: w.y, w: w.w, h: w.h },
+          z: zCounter,
+          minimized: false
+        }
+      })
+    )
+  }, [])
+
+  return { windows, openApp, focus, close, move, resize, minimize, maximize }
 }

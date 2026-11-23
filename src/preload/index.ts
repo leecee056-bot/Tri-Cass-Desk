@@ -18,6 +18,7 @@ const api: DeskApi = {
   chatHistory: () => ipcRenderer.invoke(IPC.chatHistory),
   chatSend: (content, model) => ipcRenderer.invoke(IPC.chatSend, content, model),
   chatClear: () => ipcRenderer.invoke(IPC.chatClear),
+  chatGenerate: (messages, opts) => ipcRenderer.invoke(IPC.chatGenerate, messages, opts),
   ollamaModels: () => ipcRenderer.invoke(IPC.ollamaModels),
   ollamaStatus: () => ipcRenderer.invoke(IPC.ollamaStatus),
 

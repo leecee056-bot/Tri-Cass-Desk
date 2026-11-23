@@ -1,76 +1,60 @@
 import { useEffect, useMemo, useRef } from 'react'
 import type { EnvironmentState } from '../../../shared/environment'
 import landscape from '../assets/earthbound-landscape.jpg'
+import { useSceneCamera } from './useSceneCamera'
 import './living-scene.css'
 
 type Props = {
   state: EnvironmentState
 }
 
-type Ptr = { x: number; y: number; active: boolean }
-
 /**
- * Fully living environment: continuous water, twinkle, aurora, breeze flora,
- * and mood colour wash driven by live telemetry + pointer proximity.
+ * Game-like living world: camera pans on edge push (windows stay put),
+ * sky/clouds/aurora/day-night engines react to telemetry.
  */
 export default function LivingScene({ state }: Props): React.JSX.Element {
   const rootRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const ptr = useRef<Ptr>({ x: 0.5, y: 0.5, active: false })
+  const cam = useSceneCamera(state.userPreferences.motion !== 'off')
   const { solar, weather, celestial, activity, system, health, userPreferences } = state
 
   const idleScale =
     activity.workspaceState === 'ambient_idle'
-      ? 1.045
+      ? 1.03
       : activity.workspaceState === 'resting'
-        ? 1.022
+        ? 1.015
         : 1
 
-  const moodWash = useMemo(() => {
+  const mood = useMemo(() => {
     const load = system.cpuLoad
-    const band = health.band
     const day = solar.daylight
-    const warmth = weather.skyWarmth
-    const hues: Record<typeof band, [number, number, number]> = {
-      tranquil: [80, 160, 255],
-      balanced: [90, 220, 180],
-      focused: [255, 210, 90],
-      intense: [255, 140, 70],
-      strained: [200, 140, 255]
+    const band = health.band
+    const hues: Record<typeof band, string> = {
+      tranquil: 'rgba(90,160,255,0.16)',
+      balanced: 'rgba(90,220,170,0.14)',
+      focused: 'rgba(255,200,80,0.16)',
+      intense: 'rgba(255,120,60,0.18)',
+      strained: 'rgba(190,120,255,0.18)'
     }
-    const [r, g, b] = hues[band]
+    // Day → night sky wash
+    const skyNight = 1 - day
     return {
-      tint: `rgba(${r}, ${g}, ${b}, ${0.08 + load * 0.18})`,
-      top: `rgba(${Math.round(10 + warmth * 40)}, ${Math.round(16 + day * 35)}, ${Math.round(40 + day * 50)}, ${0.2 + weather.cloudCover * 0.12})`,
-      mid: `rgba(${Math.round(30 + warmth * 80)}, ${Math.round(24 + warmth * 25)}, ${Math.round(50)}, ${0.1 + (1 - day) * 0.12})`,
-      bottom: `rgba(4, 6, 14, ${0.2 + weather.fog * 0.25 + load * 0.1})`,
-      accent: `rgb(${r}, ${g}, ${b})`
+      tint: hues[band],
+      night: skyNight,
+      day,
+      energy: 0.35 + load * 0.65 + celestial.aurora * 0.2,
+      wind: weather.wind + system.processChurn * 0.35,
+      warmth: weather.skyWarmth
     }
-  }, [health.band, system.cpuLoad, solar.daylight, weather.skyWarmth, weather.cloudCover, weather.fog])
-
-  useEffect(() => {
-    const root = rootRef.current
-    if (!root) return
-    const onMove = (e: PointerEvent): void => {
-      const rect = root.getBoundingClientRect()
-      ptr.current = {
-        x: (e.clientX - rect.left) / rect.width,
-        y: (e.clientY - rect.top) / rect.height,
-        active: true
-      }
-      root.style.setProperty('--mx', String(ptr.current.x))
-      root.style.setProperty('--my', String(ptr.current.y))
-    }
-    const onLeave = (): void => {
-      ptr.current.active = false
-    }
-    root.addEventListener('pointermove', onMove)
-    root.addEventListener('pointerleave', onLeave)
-    return () => {
-      root.removeEventListener('pointermove', onMove)
-      root.removeEventListener('pointerleave', onLeave)
-    }
-  }, [])
+  }, [
+    health.band,
+    system.cpuLoad,
+    system.processChurn,
+    solar.daylight,
+    celestial.aurora,
+    weather.wind,
+    weather.skyWarmth
+  ])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -90,33 +74,27 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
     resize()
     window.addEventListener('resize', resize)
 
-    const stars = Array.from({ length: 220 }, (_, i) => ({
+    const stars = Array.from({ length: 240 }, (_, i) => ({
       x: ((i * 97) % 1000) / 1000,
-      y: ((i * 53) % 520) / 1000,
-      r: 0.35 + ((i * 17) % 16) / 10,
-      a: 0.15 + ((i * 13) % 85) / 100,
-      tw: 0.6 + (i % 9) * 0.35,
-      phase: (i * 0.37) % (Math.PI * 2)
+      y: ((i * 53) % 480) / 1000,
+      r: 0.3 + ((i * 17) % 14) / 10,
+      a: 0.2 + ((i * 13) % 80) / 100,
+      tw: 0.5 + (i % 8) * 0.28,
+      phase: (i * 0.41) % (Math.PI * 2)
     }))
 
-    const drops = Array.from({ length: 180 }, () => ({
+    const clouds = Array.from({ length: 6 }, (_, i) => ({
+      x: (i / 6) * 1.4 - 0.2,
+      y: 0.08 + (i % 3) * 0.07,
+      w: 0.28 + (i % 3) * 0.08,
+      h: 0.06 + (i % 2) * 0.02,
+      speed: 0.008 + i * 0.002
+    }))
+
+    const drops = Array.from({ length: 140 }, () => ({
       x: Math.random(),
       y: Math.random(),
-      s: 0.45 + Math.random() * 1.5
-    }))
-
-    const ripples = Array.from({ length: 5 }, (_, i) => ({
-      phase: i * 1.3,
-      amp: 0.35 + i * 0.1,
-      freq: 1.2 + i * 0.35
-    }))
-
-    const fireflies = Array.from({ length: 28 }, (_, i) => ({
-      x: 0.05 + ((i * 37) % 90) / 100,
-      y: 0.62 + ((i * 19) % 32) / 100,
-      r: 1.2 + (i % 4) * 0.4,
-      phase: i * 0.7,
-      speed: 0.00025 + (i % 5) * 0.00008
+      s: 0.5 + Math.random() * 1.3
     }))
 
     const start = performance.now()
@@ -127,165 +105,141 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
       const w = canvas.width
       const h = canvas.height
       ctx.clearRect(0, 0, w, h)
-
+      const off = motion === 'off'
       const fxOn = userPreferences.weatherEffects
       const celOn = userPreferences.celestialEffects
-      const wind = weather.wind + (ptr.current.active ? 0.15 : 0)
-      const reduced = motion === 'reduced'
-      const off = motion === 'off'
 
-      // —— Aurora (continuous, GPU-linked) ——
-      if (celOn && (celestial.aurora > 0.02 || system.cpuLoad > 0.2)) {
-        const strength = Math.max(celestial.aurora, system.cpuLoad * 0.35)
-        const wave = off ? 0 : Math.sin(t * 0.7) * 36 * strength
-        const g = ctx.createLinearGradient(0, 0, w, h * 0.48)
-        g.addColorStop(0, `rgba(40,255,170,${0.05 + strength * 0.32})`)
-        g.addColorStop(0.4, `rgba(110,90,255,${0.04 + strength * 0.22})`)
-        g.addColorStop(1, 'rgba(0,0,0,0)')
-        ctx.fillStyle = g
-        ctx.beginPath()
-        ctx.moveTo(0, h * 0.05)
-        ctx.bezierCurveTo(w * 0.25, h * 0.01 + wave, w * 0.55, h * 0.14 - wave, w, h * 0.03)
-        ctx.lineTo(w, h * 0.4)
-        ctx.lineTo(0, h * 0.42)
-        ctx.closePath()
-        ctx.fill()
-      }
-
-      // —— Twinkling stars / lights ——
-      if (celOn) {
-        const vis = Math.max(celestial.starVisibility, (1 - solar.daylight) * 0.55)
-        if (vis > 0.04) {
-          for (const s of stars) {
-            const tw = off ? 1 : 0.45 + 0.55 * Math.sin(t * s.tw + s.phase)
-            ctx.beginPath()
-            ctx.fillStyle = `rgba(255,255,255,${s.a * vis * tw})`
-            ctx.arc(s.x * w, s.y * h, s.r * dpr * (0.85 + tw * 0.35), 0, Math.PI * 2)
-            ctx.fill()
-          }
+      // —— Drifting cloud soft forms (telemetry wind) ——
+      if (fxOn) {
+        for (const c of clouds) {
+          if (!off) c.x += (c.speed * (0.4 + mood.wind)) / 60
+          if (c.x > 1.3) c.x = -0.35
+          const cx = c.x * w
+          const cy = c.y * h
+          const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, c.w * w * 0.5)
+          const a = 0.04 + weather.cloudCover * 0.14
+          g.addColorStop(0, `rgba(220,230,255,${a})`)
+          g.addColorStop(1, 'rgba(220,230,255,0)')
+          ctx.fillStyle = g
+          ctx.beginPath()
+          ctx.ellipse(cx, cy, c.w * w * 0.5, c.h * h * 2.2, 0, 0, Math.PI * 2)
+          ctx.fill()
         }
       }
 
-      // —— Living water (lake ripples + shimmer) ——
+      // —— Living aurora curtains ——
+      if (celOn && mood.night > 0.15) {
+        const strength = Math.max(celestial.aurora, system.cpuLoad * 0.4) * mood.night
+        for (let band = 0; band < 3; band++) {
+          const phase = t * (0.35 + band * 0.12) + band * 1.7
+          const g = ctx.createLinearGradient(0, h * 0.02, 0, h * 0.42)
+          g.addColorStop(0, `rgba(${40 + band * 40},${240 - band * 30},${160 + band * 30},${0.04 + strength * 0.22})`)
+          g.addColorStop(0.55, `rgba(${90 + band * 20},${80},${220},${0.03 + strength * 0.14})`)
+          g.addColorStop(1, 'rgba(0,0,0,0)')
+          ctx.fillStyle = g
+          ctx.beginPath()
+          const y0 = h * (0.04 + band * 0.03)
+          ctx.moveTo(0, y0)
+          for (let x = 0; x <= w; x += 24 * dpr) {
+            const nx = x / w
+            const wave =
+              Math.sin(phase + nx * 4.2 + band) * 28 * dpr * strength +
+              Math.sin(phase * 1.7 + nx * 9) * 12 * dpr * strength
+            ctx.lineTo(x, y0 + wave + Math.sin(phase * 0.5 + nx * 2) * 40 * dpr * strength)
+          }
+          ctx.lineTo(w, h * 0.45)
+          ctx.lineTo(0, h * 0.45)
+          ctx.closePath()
+          ctx.fill()
+        }
+      }
+
+      // —— Stars (night) ——
+      if (celOn && mood.night > 0.2) {
+        const vis = mood.night * (1 - weather.cloudCover * 0.7) * Math.max(celestial.starVisibility, 0.4)
+        for (const s of stars) {
+          const tw = off ? 1 : 0.4 + 0.6 * Math.sin(t * s.tw + s.phase)
+          ctx.beginPath()
+          ctx.fillStyle = `rgba(255,255,255,${s.a * vis * tw})`
+          ctx.arc(s.x * w, s.y * h, s.r * dpr * (0.8 + tw * 0.4), 0, Math.PI * 2)
+          ctx.fill()
+        }
+      }
+
+      // —— Soft lake caustics (no hard scanlines) ——
       {
-        const lakeY = h * 0.62
-        const lakeH = h * 0.28
-        const lakeX = w * 0.12
-        const lakeW = w * 0.76
+        const lakeY = h * 0.58
+        const lakeH = h * 0.3
         ctx.save()
         ctx.beginPath()
-        ctx.ellipse(w * 0.5, lakeY + lakeH * 0.35, lakeW * 0.48, lakeH * 0.42, 0, 0, Math.PI * 2)
+        ctx.ellipse(w * 0.5, lakeY + lakeH * 0.38, w * 0.4, lakeH * 0.4, 0, 0, Math.PI * 2)
         ctx.clip()
-
-        const waterAlpha = 0.12 + weather.rain * 0.1 + solar.daylight * 0.08
-        for (const rip of ripples) {
-          const yOff = off ? 0 : Math.sin(t * rip.freq + rip.phase) * 6 * dpr * rip.amp
-          const grad = ctx.createLinearGradient(lakeX, lakeY + yOff, lakeX + lakeW, lakeY + lakeH)
-          grad.addColorStop(0, `rgba(120, 180, 255, 0)`)
-          grad.addColorStop(0.45, `rgba(160, 210, 255, ${waterAlpha * rip.amp})`)
-          grad.addColorStop(1, `rgba(80, 140, 220, 0)`)
-          ctx.fillStyle = grad
-          ctx.fillRect(lakeX, lakeY + yOff, lakeW, lakeH)
+        for (let i = 0; i < 4; i++) {
+          const yOff = off ? 0 : Math.sin(t * (0.7 + i * 0.25) + i) * 10 * dpr
+          const g = ctx.createRadialGradient(
+            w * (0.35 + i * 0.1),
+            lakeY + lakeH * 0.3 + yOff,
+            10,
+            w * 0.5,
+            lakeY + lakeH * 0.4,
+            w * 0.35
+          )
+          const a = 0.04 + mood.day * 0.04 + Math.sin(t + i) * 0.015
+          g.addColorStop(0, `rgba(170,210,255,${Math.max(0, a)})`)
+          g.addColorStop(1, 'rgba(170,210,255,0)')
+          ctx.fillStyle = g
+          ctx.fillRect(0, lakeY, w, lakeH)
         }
-
-        // Wind-driven surface lines
+        // Soft wind ripples
         if (!off) {
-          ctx.strokeStyle = `rgba(200, 230, 255, ${0.08 + wind * 0.2})`
-          ctx.lineWidth = 1 * dpr
-          for (let i = 0; i < 14; i++) {
-            const yy = lakeY + lakeH * 0.2 + i * 8 * dpr
-            const phase = t * (1.2 + wind) + i * 0.4
+          ctx.globalAlpha = 0.12 + mood.wind * 0.15
+          ctx.strokeStyle = 'rgba(200,230,255,0.55)'
+          ctx.lineWidth = 1.2 * dpr
+          for (let i = 0; i < 8; i++) {
+            const yy = lakeY + lakeH * 0.25 + i * 10 * dpr
             ctx.beginPath()
-            for (let x = 0; x <= lakeW; x += 12 * dpr) {
-              const px = lakeX + x
-              const py = yy + Math.sin(phase + x * 0.02) * (2 + wind * 5) * dpr
-              if (x === 0) ctx.moveTo(px, py)
-              else ctx.lineTo(px, py)
+            for (let x = w * 0.15; x < w * 0.85; x += 10 * dpr) {
+              const py =
+                yy +
+                Math.sin(t * (1.1 + mood.wind) + x * 0.012 + i) * (2.5 + mood.wind * 4) * dpr
+              if (x === w * 0.15) ctx.moveTo(x, py)
+              else ctx.lineTo(x, py)
             }
             ctx.stroke()
           }
+          ctx.globalAlpha = 1
         }
         ctx.restore()
       }
 
-      // —— Waterfall shimmer ——
-      if (!off) {
-        const fx = w * 0.48
-        const fy = h * 0.42
-        ctx.strokeStyle = `rgba(220, 240, 255, ${0.15 + Math.sin(t * 8) * 0.08})`
-        ctx.lineWidth = 2 * dpr
-        for (let i = 0; i < 5; i++) {
-          const ox = (i - 2) * 4 * dpr
-          ctx.beginPath()
-          ctx.moveTo(fx + ox, fy)
-          ctx.lineTo(fx + ox + Math.sin(t * 6 + i) * 3 * dpr, fy + h * 0.18)
-          ctx.stroke()
-        }
-      }
-
-      // —— Firefly / flora lights (twinkle near vegetation) ——
-      for (const f of fireflies) {
-        if (!off) {
-          f.x += Math.sin(t + f.phase) * f.speed
-          f.y += Math.cos(t * 0.7 + f.phase) * f.speed * 0.6
-        }
-        const glow = off ? 0.5 : 0.35 + 0.65 * Math.sin(t * 2.2 + f.phase)
-        const near =
-          ptr.current.active &&
-          Math.hypot(ptr.current.x - f.x, ptr.current.y - f.y) < 0.12
-            ? 1.6
-            : 1
-        ctx.beginPath()
-        ctx.fillStyle = `rgba(180, 120, 255, ${0.25 * glow * near})`
-        ctx.arc(f.x * w, f.y * h, f.r * dpr * 2.2 * near, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.beginPath()
-        ctx.fillStyle = `rgba(230, 200, 255, ${0.55 * glow * near})`
-        ctx.arc(f.x * w, f.y * h, f.r * dpr * near, 0, Math.PI * 2)
-        ctx.fill()
-      }
-
       // —— Rain ——
-      if (fxOn && weather.rain > 0.05 && !off) {
-        ctx.strokeStyle = `rgba(190, 215, 255, ${0.16 + weather.rain * 0.42})`
-        ctx.lineWidth = 1.1 * dpr
-        const speed = reduced ? 0.0009 : 0.0022
+      if (fxOn && weather.rain > 0.08 && !off) {
+        ctx.strokeStyle = `rgba(190,215,255,${0.12 + weather.rain * 0.35})`
+        ctx.lineWidth = 1 * dpr
         for (const d of drops) {
-          if (Math.random() > Math.min(1, weather.rain + 0.2)) continue
-          d.y = (d.y + d.s * speed * 16) % 1
-          d.x = (d.x + wind * 0.00055 + 1) % 1
+          if (Math.random() > weather.rain + 0.1) continue
+          d.y = (d.y + d.s * 0.002 * 16) % 1
+          d.x = (d.x + mood.wind * 0.0005 + 1) % 1
           ctx.beginPath()
           ctx.moveTo(d.x * w, d.y * h)
-          ctx.lineTo(d.x * w + 2 * dpr + wind * 14, d.y * h + 16 * dpr * d.s)
+          ctx.lineTo(d.x * w + 2 * dpr + mood.wind * 10, d.y * h + 14 * dpr * d.s)
           ctx.stroke()
         }
       }
 
       // —— Fog ——
-      if (fxOn && weather.fog > 0.04) {
-        const fog = ctx.createLinearGradient(0, h * 0.4, 0, h)
+      if (fxOn && weather.fog > 0.05) {
+        const fog = ctx.createLinearGradient(0, h * 0.45, 0, h)
         fog.addColorStop(0, 'rgba(160,180,210,0)')
-        fog.addColorStop(0.45, `rgba(150,170,200,${weather.fog * 0.22})`)
-        fog.addColorStop(1, `rgba(90,110,140,${weather.fog * 0.34})`)
+        fog.addColorStop(1, `rgba(100,120,150,${weather.fog * 0.3})`)
         ctx.fillStyle = fog
         ctx.fillRect(0, 0, w, h)
       }
 
-      // —— Cloud veil ——
-      if (fxOn && weather.cloudCover > 0.3) {
-        ctx.fillStyle = `rgba(8, 12, 26, ${(weather.cloudCover - 0.3) * 0.5})`
-        ctx.fillRect(0, 0, w, h * 0.52)
-      }
-
       raf = requestAnimationFrame(draw)
     }
 
-    if (motion === 'off') {
-      draw(start)
-    } else {
-      raf = requestAnimationFrame(draw)
-    }
-
+    raf = requestAnimationFrame(draw)
     return () => {
       running = false
       cancelAnimationFrame(raf)
@@ -293,19 +247,18 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
     }
   }, [
     weather.rain,
-    weather.wind,
     weather.fog,
     weather.cloudCover,
     celestial.aurora,
     celestial.starVisibility,
-    solar.daylight,
     system.cpuLoad,
+    mood.night,
+    mood.wind,
+    mood.day,
     userPreferences.motion,
     userPreferences.weatherEffects,
     userPreferences.celestialEffects
   ])
-
-  const breeze = 0.35 + weather.wind * 0.9 + system.processChurn * 0.4
 
   return (
     <div
@@ -314,49 +267,37 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
       style={
         {
           '--idle-scale': String(idleScale),
-          '--grade-top': moodWash.top,
-          '--grade-mid': moodWash.mid,
-          '--grade-bottom': moodWash.bottom,
-          '--mood-tint': moodWash.tint,
-          '--mood-accent': moodWash.accent,
-          '--breeze': String(breeze),
-          '--load': String(system.cpuLoad),
-          '--parallax': String(weather.wind * 10 + system.processChurn * 5),
-          '--lake-glow': String(0.2 + solar.daylight * 0.3 + weather.skyWarmth * 0.25),
-          '--mx': '0.5',
-          '--my': '0.5'
+          '--cam-x': `${cam.x}px`,
+          '--cam-y': `${cam.y}px`,
+          '--mood-tint': mood.tint,
+          '--night': String(mood.night),
+          '--day': String(mood.day),
+          '--energy': String(mood.energy),
+          '--wind': String(mood.wind),
+          '--warmth': String(mood.warmth),
+          '--load': String(system.cpuLoad)
         } as React.CSSProperties
       }
       data-phase={solar.phase}
-      data-condition={weather.condition}
       data-mood={health.band}
+      data-condition={weather.condition}
     >
-      <img className="scene-plate" src={landscape} alt="" draggable={false} />
-      <div className="mood-wash" aria-hidden />
-      <div className="scene-grade" aria-hidden />
-      <div className="aurora-band" aria-hidden />
-      <div className="star-field" aria-hidden />
-      <div className="water-sheet" aria-hidden />
-
-      {/* Interactive vegetation layers — breeze + pointer proximity */}
-      <div className="flora-layer left" aria-hidden>
-        {Array.from({ length: 9 }, (_, i) => (
-          <span key={`fl-${i}`} className="flora-stem" style={{ ['--i' as string]: i }} />
-        ))}
+      <div className="world-stage" aria-hidden={false}>
+        <div className="sky-dome" />
+        <div className="sky-drift" />
+        <img className="scene-plate" src={landscape} alt="" draggable={false} />
+        <div className="day-night-veil" />
+        <div className="mood-wash" />
+        <canvas ref={canvasRef} className="fx-canvas" aria-hidden />
       </div>
-      <div className="flora-layer right" aria-hidden>
-        {Array.from({ length: 9 }, (_, i) => (
-          <span key={`fr-${i}`} className="flora-stem" style={{ ['--i' as string]: i }} />
-        ))}
-      </div>
-      <div className="tree-sway left" aria-hidden />
-      <div className="tree-sway right" aria-hidden />
-
-      <canvas ref={canvasRef} className="fx-canvas" aria-hidden />
       <div className="scene-vignette" aria-hidden />
+      <div className="edge-hint" aria-hidden>
+        Push cursor to edges to explore
+      </div>
       <div className="scene-live" aria-live="polite">
         <span className="live-dot" />
-        Living · {health.band} · {weather.condition} · CPU {Math.round(system.cpuLoad * 100)}%
+        Living · {health.band} · {solar.phase.replaceAll('_', ' ')} · CPU{' '}
+        {Math.round(system.cpuLoad * 100)}%
       </div>
     </div>
   )
