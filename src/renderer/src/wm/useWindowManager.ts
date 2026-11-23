@@ -77,9 +77,9 @@ function layoutDefaults(): DeskWindow[] {
       appId: 'notes',
       title: 'Notes',
       x: 32,
-      y: bottom(340),
-      w: 420,
-      h: 320,
+      y: Math.max(72, bottom(520)),
+      w: 720,
+      h: 520,
       z: 6
     },
     {
@@ -129,8 +129,17 @@ export function useWindowManager() {
       const existing = list.find((w) => w.appId === appId && !payload)
       if (existing && !payload) {
         zCounter += 1
+        const meta = APP_META[appId]
         return list.map((w) =>
-          w.id === existing.id ? { ...w, z: zCounter, minimized: false } : w
+          w.id === existing.id
+            ? {
+                ...w,
+                z: zCounter,
+                minimized: false,
+                w: meta && w.w < meta.w ? meta.w : w.w,
+                h: meta && w.h < meta.h ? meta.h : w.h
+              }
+            : w
         )
       }
       const meta = APP_META[appId] || { title: title || appId, w: 480, h: 420, icon: '◇' }
