@@ -11,7 +11,8 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json",
-    "pack:win": "npm run build && electron-builder --win --dir"
+    "pack:win": "npm run build && electron-builder --win nsis portable",
+    "pack:win:dir": "npm run build && electron-builder --win --dir"
   },
   "dependencies": {
     "@fontsource/fraunces": "^5.2.6",
@@ -51,16 +52,45 @@
   "build": {
     "appId": "os.tricass.desk",
     "productName": "Tri-Cass Desk",
+    "copyright": "Copyright © Tri-Cass",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
     "files": [
-      "out/**/*"
+      "out/**/*",
+      "build/icon.png"
     ],
+    "extraResources": [
+      {
+        "from": "build/icon.png",
+        "to": "icon.png"
+      }
+    ],
+    "icon": "build/icon.png",
     "win": {
       "target": [
-        "nsis"
-      ]
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "Tri-Cass-Desk-${version}-${os}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Tri-Cass Desk",
+      "installerIcon": "build/icon.png",
+      "uninstallerIcon": "build/icon.png",
+      "installerHeaderIcon": "build/icon.png"
     }
   }
 }

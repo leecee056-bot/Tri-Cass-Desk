@@ -40,7 +40,11 @@ export default function HealthPanel({ state }: Props): React.JSX.Element {
           <span>Energy</span>
           <strong>{energy}</strong>
         </div>
-        <div className="mood-wave" aria-hidden />
+        <div
+          className="mood-wave"
+          aria-hidden
+          style={{ opacity: 0.45 + state.system.cpuLoad * 0.55 }}
+        />
       </div>
       <ul className="mood-bands">
         {BANDS.map((b) => (
@@ -50,9 +54,7 @@ export default function HealthPanel({ state }: Props): React.JSX.Element {
           </li>
         ))}
       </ul>
-      <p className="mood-fine">
-        From CPU, RAM, GPU and process churn — local only.
-      </p>
+      <p className="mood-fine">From CPU, RAM, GPU and process churn — local only.</p>
     </section>
   )
 }

@@ -1,9 +1,9 @@
 :root {
   --ink: #e8eefc;
   --ink-dim: rgba(232, 238, 252, 0.62);
-  --glass: rgba(12, 18, 36, 0.42);
-  --glass-strong: rgba(8, 12, 28, 0.62);
-  --rim: rgba(170, 220, 255, 0.35);
+  --glass: rgba(18, 22, 38, 0.28);
+  --glass-strong: rgba(12, 16, 32, 0.45);
+  --rim: rgba(255, 255, 255, 0.22);
   --accent: #7ad7ff;
   --accent-warm: #ffb37a;
   --danger: #ff7a9a;
@@ -28,7 +28,7 @@ body,
   overflow: hidden;
   font-family: var(--font-ui);
   color: var(--ink);
-  background: #050814;
+  background: transparent;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -44,8 +44,9 @@ button {
   background: var(--glass);
   border: 1px solid var(--rim);
   border-radius: 18px;
-  backdrop-filter: blur(18px) saturate(1.2);
+  backdrop-filter: blur(26px) saturate(1.55);
+  -webkit-backdrop-filter: blur(26px) saturate(1.55);
   box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    0 14px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }

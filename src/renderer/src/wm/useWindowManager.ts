@@ -80,6 +80,17 @@ function layoutDefaults(): DeskWindow[] {
       w: 250,
       h: 190,
       z: 6
+    },
+    {
+      id: 'w-chat',
+      appId: 'chat',
+      title: 'Chat',
+      x: Math.round(W * 0.28),
+      y: Math.round(H * 0.42),
+      w: 380,
+      h: 320,
+      z: 5,
+      minimized: true
     }
   ]
 }
