@@ -24,7 +24,6 @@ export function VegetationEngine(props: Props): React.JSX.Element {
       <BladeLayer kind="meadow" {...props} />
       <BladeLayer kind="reed" {...props} />
       <BladeLayer kind="flower" {...props} />
-      <ShrubClumps lowPower={props.lowPower} mood={props.mood} />
     </group>
   )
 }
@@ -237,57 +236,6 @@ function mulberry32(a: number): () => number {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
-}
-
-/** Soft shrub / bush clumps for mid-ground diversity — multi-sphere foliage. */
-function ShrubClumps({
-  lowPower,
-  mood
-}: {
-  lowPower: boolean
-  mood: MoodState
-}): React.JSX.Element {
-  const count = lowPower ? 14 : 26
-  const clumps = useMemo(() => {
-    const items: { pos: [number, number, number]; scale: number; hue: number }[] = []
-    for (let i = 0; i < count; i++) {
-      const side = i % 2 === 0 ? -1 : 1
-      // Keep as small bank accents — never mid-meadow blobs
-      const x = side * (11.5 + (i % 8) * 0.85 + Math.sin(i * 1.7) * 0.6)
-      const z = -8 + (i % 7) * 1.7 + Math.cos(i * 0.9) * 0.8
-      items.push({
-        pos: [x, 0.12, z],
-        scale: 0.28 + (i % 4) * 0.07,
-        hue: 0.27 + (i % 5) * 0.025
-      })
-    }
-    return items
-  }, [count])
-
-  return (
-    <group>
-      {clumps.map((c, i) => (
-        <group key={i} position={c.pos}>
-          <mesh castShadow position={[0, c.scale * 0.7, 0]}>
-            <sphereGeometry args={[c.scale, 10, 8]} />
-            <meshStandardMaterial
-              color={new THREE.Color().setHSL(c.hue, 0.58, 0.26 + mood.heat * 0.08)}
-              roughness={0.86}
-              metalness={0}
-            />
-          </mesh>
-          <mesh castShadow position={[c.scale * 0.4, c.scale * 0.45, c.scale * 0.15]}>
-            <sphereGeometry args={[c.scale * 0.55, 8, 6]} />
-            <meshStandardMaterial
-              color={new THREE.Color().setHSL(c.hue + 0.015, 0.55, 0.3)}
-              roughness={0.88}
-              metalness={0}
-            />
-          </mesh>
-        </group>
-      ))}
-    </group>
-  )
 }
 
 const VERT = /* glsl */ `

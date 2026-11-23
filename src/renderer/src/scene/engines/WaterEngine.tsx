@@ -42,7 +42,6 @@ export function WaterEngine({ mood, motion, sunDir, normals }: Props): React.JSX
         <primitive object={cove} />
       </group>
       <ShoreRing />
-      <ShoreRocks />
     </group>
   )
 }
@@ -109,40 +108,3 @@ function ShoreRing(): React.JSX.Element {
   )
 }
 
-/** Small shore stones for water/land transition detail. */
-function ShoreRocks(): React.JSX.Element {
-  const rocks = useMemo(() => {
-    const items: { pos: [number, number, number]; scale: [number, number, number]; rot: number; color: string }[] =
-      []
-    const colors = ['#6a7268', '#8a8478', '#5a6458', '#7a7064']
-    for (let i = 0; i < 18; i++) {
-      const a = (i / 18) * Math.PI * 2 + 0.2
-      const r = 13.2 + (i % 3) * 0.55
-      items.push({
-        pos: [Math.cos(a) * r, 0.08, Math.sin(a) * r * 0.55],
-        scale: [0.28 + (i % 4) * 0.08, 0.12 + (i % 3) * 0.04, 0.22 + (i % 5) * 0.05],
-        rot: a * 0.7,
-        color: colors[i % colors.length]
-      })
-    }
-    return items
-  }, [])
-
-  return (
-    <group>
-      {rocks.map((r, i) => (
-        <mesh
-          key={i}
-          position={r.pos}
-          rotation={[0.15, r.rot, 0.1]}
-          scale={r.scale}
-          castShadow
-          receiveShadow
-        >
-          <dodecahedronGeometry args={[1, 0]} />
-          <meshStandardMaterial color={r.color} roughness={0.92} metalness={0.04} />
-        </mesh>
-      ))}
-    </group>
-  )
-}

@@ -11,8 +11,11 @@ Licence rule: MIT / Apache / BSD / CC0 only. GPL or unclear → ask Lee.
 | `three-stdlib` `Water` | Reflective water mesh | MIT | `WaterEngine` — time / sun / tint from mood |
 | `waternormals.jpg` | Water normal map | MIT (three.js examples) | `src/renderer/src/assets/waternormals.jpg` from three.js `examples/textures/` |
 | GrassSystemThreeJS technique | Thin GPU-instanced grass + wind | MIT © mohamedachrefelouafi | Adapted into `VegetationEngine` (meadow / reed / flower layers + wind); https://github.com/achrefelouafi/GrassSystemThreeJS |
-| Procedural shrubs / shore rocks / foam ring | Mid-ground diversity + water edge | Original (MIT project) | `VegetationEngine` / `WaterEngine` — no third-party mesh packs |
 | `earthbound-landscape.jpg` | Distant mountain billboard | Project asset | `MountainBackdrop` in canvas |
+| Poly Haven nature models (1k glTF) | Pine sapling, shrub, fern, flowers, rocks, stump, trunk | CC0 | `src/renderer/public/nature/*` — see `nature/LICENCES.md`; https://polyhaven.com |
+| ambientCG Grass001 / Ground037 / Rock023 | Meadow + shore PBR maps | CC0 | `public/nature/textures/` — https://ambientcg.com |
+| `NatureDecorEngine` | Places Poly Haven props; mood heat wash | Original (MIT project) | Loads CC0 glTFs only — no homemade tree/rock meshes |
+
 | `systeminformation` | Telemetry → mood targets | MIT | main process |
 
 ## Considered / deferred

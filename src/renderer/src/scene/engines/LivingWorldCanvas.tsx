@@ -5,6 +5,7 @@ import type { EnvironmentState } from '../../../../shared/environment'
 import type { MoodState } from '../../../../shared/mood'
 import landscapeUrl from '../../assets/earthbound-landscape.jpg'
 import waterNormalsUrl from '../../assets/waternormals.jpg'
+import { NatureDecorEngine } from './NatureDecorEngine'
 import { SkyCloudEngine } from './SkyCloudEngine'
 import { VegetationEngine } from './VegetationEngine'
 import { WaterEngine } from './WaterEngine'
@@ -30,17 +31,131 @@ function MountainBackdrop({ nightness }: { nightness: number }): React.JSX.Eleme
   )
 }
 
-function Ground(): React.JSX.Element {
+/** ambientCG CC0 turf + shore soil + rock bank patches. */
+function Ground({ mood }: { mood: MoodState }): React.JSX.Element {
+  const [
+    grassColor,
+    grassNorm,
+    grassRough,
+    groundColor,
+    groundNorm,
+    groundRough,
+    rockColor,
+    rockNorm,
+    rockRough
+  ] = useLoader(THREE.TextureLoader, [
+    '/nature/textures/Grass001_1K-JPG_Color.jpg',
+    '/nature/textures/Grass001_1K-JPG_NormalGL.jpg',
+    '/nature/textures/Grass001_1K-JPG_Roughness.jpg',
+    '/nature/textures/Ground037_1K-JPG_Color.jpg',
+    '/nature/textures/Ground037_1K-JPG_NormalGL.jpg',
+    '/nature/textures/Ground037_1K-JPG_Roughness.jpg',
+    '/nature/textures/Rock023_1K-JPG_Color.jpg',
+    '/nature/textures/Rock023_1K-JPG_NormalGL.jpg',
+    '/nature/textures/Rock023_1K-JPG_Roughness.jpg'
+  ])
+
+  useEffect(() => {
+    for (const t of [
+      grassColor,
+      grassNorm,
+      grassRough,
+      groundColor,
+      groundNorm,
+      groundRough,
+      rockColor,
+      rockNorm,
+      rockRough
+    ]) {
+      t.wrapS = t.wrapT = THREE.RepeatWrapping
+      t.anisotropy = 4
+    }
+    grassColor.colorSpace = THREE.SRGBColorSpace
+    groundColor.colorSpace = THREE.SRGBColorSpace
+    rockColor.colorSpace = THREE.SRGBColorSpace
+    grassColor.repeat.set(14, 14)
+    grassNorm.repeat.set(14, 14)
+    grassRough.repeat.set(14, 14)
+    groundColor.repeat.set(6, 6)
+    groundNorm.repeat.set(6, 6)
+    groundRough.repeat.set(6, 6)
+    rockColor.repeat.set(4, 4)
+    rockNorm.repeat.set(4, 4)
+    rockRough.repeat.set(4, 4)
+  }, [
+    grassColor,
+    grassNorm,
+    grassRough,
+    groundColor,
+    groundNorm,
+    groundRough,
+    rockColor,
+    rockNorm,
+    rockRough
+  ])
+
+  const grassMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        map: grassColor,
+        normalMap: grassNorm,
+        roughnessMap: grassRough,
+        roughness: 1,
+        metalness: 0
+      }),
+    [grassColor, grassNorm, grassRough]
+  )
+  const shoreMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        map: groundColor,
+        normalMap: groundNorm,
+        roughnessMap: groundRough,
+        roughness: 1,
+        metalness: 0
+      }),
+    [groundColor, groundNorm, groundRough]
+  )
+  const rockMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        map: rockColor,
+        normalMap: rockNorm,
+        roughnessMap: rockRough,
+        roughness: 1,
+        metalness: 0.02
+      }),
+    [rockColor, rockNorm, rockRough]
+  )
+
+  useFrame(() => {
+    grassMat.emissive.setHSL(0.08, 0.5, 0.06).multiplyScalar(mood.heat * 0.18)
+    shoreMat.emissive.setHSL(0.07, 0.45, 0.05).multiplyScalar(mood.heat * 0.14)
+    rockMat.emissive.setHSL(0.06, 0.35, 0.04).multiplyScalar(mood.heat * 0.1)
+  })
+
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <circleGeometry args={[55, 72]} />
-        <meshStandardMaterial color="#3f5c28" roughness={0.92} metalness={0} />
+        <primitive object={grassMat} attach="material" />
       </mesh>
-      {/* Subtle near-shore soil — keeps meadow green without flat patches */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.008, -5]} receiveShadow>
-        <ringGeometry args={[13, 17.5, 64]} />
-        <meshStandardMaterial color="#5a6e36" roughness={0.95} metalness={0} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, -5]} receiveShadow>
+        <ringGeometry args={[12.5, 18, 64]} />
+        <primitive object={shoreMat} attach="material" />
+      </mesh>
+      {/* Rock023 bank patches — rocky shelves beside the water */}
+      <mesh rotation={[-Math.PI / 2, 0, 0.35]} position={[-14.5, 0.02, -2]} receiveShadow>
+        <planeGeometry args={[9, 5.5]} />
+        <primitive object={rockMat} attach="material" />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, -0.4]} position={[15.2, 0.02, 1.5]} receiveShadow>
+        <planeGeometry args={[8, 5]} />
+        <primitive object={rockMat} attach="material" />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0.1]} position={[0, 0.015, -16]} receiveShadow>
+        <planeGeometry args={[14, 4.5]} />
+        <primitive object={rockMat} attach="material" />
       </mesh>
     </group>
   )
@@ -62,7 +177,6 @@ function FogMood({ mood }: { mood: MoodState }): null {
   const { scene, gl } = useThree()
   useFrame(() => {
     const day = 1 - mood.nightness
-    // Sharper mid-distance: lighter fog, punchier exposure
     const fogCol = new THREE.Color().setHSL(
       THREE.MathUtils.lerp(0.56, 0.08, mood.heat * 0.7),
       0.28 + mood.heat * 0.2,
@@ -101,11 +215,11 @@ function SceneBody({
       <FogMood mood={mood} />
       <SkyCloudEngine state={state} mood={mood} lowPower={lowPower} />
       <MountainBackdrop nightness={mood.nightness} />
-      <Ground />
-      {/* Lake sits mid-distance; grass is shoreline only */}
+      <Ground mood={mood} />
       <group position={[0, 0.02, -6]}>
         <WaterEngine mood={mood} motion={motion} sunDir={sunDir} normals={waterNormals} />
       </group>
+      <NatureDecorEngine mood={mood} lowPower={lowPower} />
       <VegetationEngine
         mood={mood}
         pointer={pointer}
@@ -118,8 +232,7 @@ function SceneBody({
 }
 
 /**
- * Opaque Three.js living world — Sky + Water + thin grass (OSS stack).
- * No CSS plate overlay (that caused the black half-screen).
+ * Opaque Three.js living world — Sky + Water + grass + Poly Haven / ambientCG props.
  */
 export function LivingWorldCanvas(props: Props): React.JSX.Element {
   const dpr: [number, number] = props.lowPower ? [1, 1.15] : [1, 1.5]
