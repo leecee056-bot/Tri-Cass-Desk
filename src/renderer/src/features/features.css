@@ -543,8 +543,10 @@
   gap: 8px;
 }
 
-.projects-list button {
-  width: 100%;
+.projects-list > li > button:first-child {
+  width: auto;
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -555,7 +557,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.projects-list button:hover {
+.projects-list > li > button:first-child:hover {
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -585,6 +587,51 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.projects-shell {
+  overflow: auto;
+}
+
+.projects-section {
+  display: grid;
+  gap: 6px;
+}
+
+.projects-list li,
+.projects-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.projects-pin {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.apps-launcher .btn.on {
+  background: rgba(122, 215, 255, 0.22);
+}
+
+.launcher-apps .tool-card {
+  min-height: 64px;
+}
+
+.bin-view .bin-list {
+  flex: 1;
+  min-height: 0;
+}
+
+.bin-row {
+  align-items: center;
+}
+
+.bin-row-meta {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
 }
 
 /* —— Chat (multi-session) —— */

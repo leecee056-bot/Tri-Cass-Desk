@@ -62,8 +62,11 @@ export const IPC = {
   safeCommandsList: 'desk:safe-commands-list',
   pickMediaFile: 'desk:pick-media-file',
   binList: 'desk:bin-list',
+  binEntries: 'desk:bin-entries',
   binMove: 'desk:bin-move',
-  binRestore: 'desk:bin-restore'
+  binRestore: 'desk:bin-restore',
+  binDelete: 'desk:bin-delete',
+  binEmpty: 'desk:bin-empty'
 } as const
 
 export type DeskApi = {
@@ -139,6 +142,11 @@ export type DeskApi = {
 
   pickMediaFile: () => Promise<Array<{ url: string; name: string; path: string }>>
   binList: () => Promise<string[]>
+  binEntries: () => Promise<
+    Array<{ name: string; displayName: string; size: number; mtimeMs: number }>
+  >
   binMove: (targetPath: string) => Promise<string>
   binRestore: (name: string) => Promise<string>
+  binDelete: (name: string) => Promise<void>
+  binEmpty: () => Promise<number>
 }

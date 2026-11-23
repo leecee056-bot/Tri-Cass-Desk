@@ -16,6 +16,8 @@ import ClockPanel from '../shell/ClockPanel'
 import AtmospherePanel from '../shell/AtmospherePanel'
 import NotesView from '../features/NotesView'
 import ProjectsView from '../features/ProjectsView'
+import BinView from '../features/BinView'
+import AppsLauncher from '../features/AppsLauncher'
 import { TOOL_CATALOG } from '../tools/catalog'
 import UniversalTool from '../tools/engines/UniversalTool'
 import '../features/features.css'
@@ -68,11 +70,18 @@ export default function AppHost({
     case 'editor':
       return <EditorSurface onClose={close} />
     case 'tools':
-    case 'launcher':
       return (
         <ToolsHub
           state={state}
           onOpenDock={(id) => openApp(id)}
+          onOpenTool={(tool) => openApp('tool', tool.name, { toolId: tool.id })}
+        />
+      )
+    case 'launcher':
+      return (
+        <AppsLauncher
+          state={state}
+          onOpenApp={(id) => openApp(id)}
           onOpenTool={(tool) => openApp('tool', tool.name, { toolId: tool.id })}
         />
       )
@@ -85,19 +94,8 @@ export default function AppHost({
           <p className="status-line">Unknown tool</p>
         )
       }
-    case 'bin': {
-      const recycle = TOOL_CATALOG.find((t) => t.name.toLowerCase().includes('recycle'))
-      return recycle ? (
-        <UniversalTool
-          tool={recycle}
-          state={state}
-          onOpenDock={(id) => openApp(id)}
-          onClose={close}
-        />
-      ) : (
-        <p className="status-line">Bin</p>
-      )
-    }
+    case 'bin':
+      return <BinView />
     case 'settings':
       return (
         <SettingsView
@@ -120,7 +118,12 @@ export default function AppHost({
     case 'notes':
       return <NotesView />
     case 'projects':
-      return <ProjectsView />
+      return (
+        <ProjectsView
+          onOpenFiles={() => openApp('files')}
+          onOpenEditor={() => openApp('editor')}
+        />
+      )
     default:
       return <p className="status-line">App “{win.appId}” not mounted.</p>
   }

@@ -56,10 +56,10 @@ function layoutDefaults(): DeskWindow[] {
       id: 'w-projects',
       appId: 'projects',
       title: 'Projects',
-      x: right(240),
-      y: 350,
-      w: 240,
-      h: 230,
+      x: right(420),
+      y: 320,
+      w: 360,
+      h: 420,
       z: 7
     },
     {

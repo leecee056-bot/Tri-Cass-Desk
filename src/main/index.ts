@@ -40,7 +40,15 @@ import {
 } from './services/systemExtras'
 import { listSnapshots, restoreSnapshot, saveSnapshot } from './services/snapshots'
 import { deskDataDir, workspaceRoot } from './services/paths'
-import { binList, binMove, binRestore, binDir } from './services/bin'
+import {
+  binList,
+  binEntries,
+  binMove,
+  binRestore,
+  binDelete,
+  binEmpty,
+  binDir
+} from './services/bin'
 
 const engine = new EnvironmentEngine()
 let mainWindow: BrowserWindow | null = null
@@ -257,8 +265,11 @@ function registerIpc(): void {
   })
 
   ipcMain.handle(IPC.binList, async () => binList())
+  ipcMain.handle(IPC.binEntries, async () => binEntries())
   ipcMain.handle(IPC.binMove, async (_e, targetPath: string) => binMove(targetPath))
   ipcMain.handle(IPC.binRestore, async (_e, name: string) => binRestore(name, workspaceRoot()))
+  ipcMain.handle(IPC.binDelete, async (_e, name: string) => binDelete(name))
+  ipcMain.handle(IPC.binEmpty, async () => binEmpty())
 
   void binDir()
 }

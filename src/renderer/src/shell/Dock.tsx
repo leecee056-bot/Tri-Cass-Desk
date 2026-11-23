@@ -3,6 +3,7 @@ import './shell.css'
 const ITEMS = [
   { id: 'launcher', label: 'Apps', color: '#a8b4d0', path: 'M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z' },
   { id: 'files', label: 'Files', color: '#ffd27a', path: 'M3 6.5A2.5 2.5 0 0 1 5.5 4H9l2 2h7.5A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5v-11z' },
+  { id: 'projects', label: 'Projects', color: '#9ad0ff', path: 'M4 6h7l2 2h7v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z' },
   { id: 'browse', label: 'Browser', color: '#6ec8ff', path: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 0c2.5 2.8 4 6 4 9s-1.5 6.2-4 9c-2.5-2.8-4-6-4-9s1.5-6.2 4-9zm-8.5 8.5h17M3.5 15.5h17' },
   { id: 'editor', label: 'Editor', color: '#7dffc8', path: 'M4 19.5V5a2 2 0 0 1 2-2h8l6 6v10.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM14 3v5h5' },
   { id: 'notes', label: 'Notes', color: '#c9a0ff', path: 'M6 3h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm8 1v4h4M8 12h8M8 16h6' },
