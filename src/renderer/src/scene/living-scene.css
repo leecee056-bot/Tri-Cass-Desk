@@ -60,48 +60,49 @@
   left: -10%;
   right: -10%;
   top: 0;
-  height: 42%;
+  height: 48%;
   pointer-events: none;
-  z-index: 1;
+  z-index: 3;
   background: linear-gradient(
     100deg,
-    transparent 10%,
-    rgba(60, 255, 170, 0.22) 35%,
-    rgba(120, 90, 255, 0.18) 55%,
-    transparent 80%
+    transparent 8%,
+    rgba(60, 255, 170, 0.45) 32%,
+    rgba(120, 90, 255, 0.35) 55%,
+    transparent 78%
   );
-  filter: blur(18px);
+  filter: blur(14px);
   mix-blend-mode: screen;
-  animation: aurora-drift 7s ease-in-out infinite;
-  opacity: calc(0.45 + var(--load, 0.2));
+  animation: aurora-drift 4.5s ease-in-out infinite;
+  opacity: calc(0.7 + var(--load, 0.2) * 0.4);
 }
 
 /* Lake surface — obvious moving shimmer */
 .water-sheet {
   position: absolute;
-  left: 14%;
-  right: 14%;
-  bottom: 12%;
-  height: 26%;
+  left: 10%;
+  right: 10%;
+  bottom: 8%;
+  height: 32%;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 1;
+  z-index: 3;
   overflow: hidden;
-  transform: perspective(500px) rotateX(58deg) scaleY(0.7);
-  opacity: 0.55;
+  transform: perspective(500px) rotateX(52deg) scaleY(0.75);
+  opacity: 0.85;
+  mix-blend-mode: screen;
 }
 
 .water-sheet::before {
   content: '';
   position: absolute;
-  inset: -40% -20%;
+  inset: -80% -30%;
   background: repeating-linear-gradient(
     0deg,
-    transparent 0 10px,
-    rgba(180, 220, 255, 0.22) 10px 12px,
-    transparent 12px 22px
+    transparent 0 14px,
+    rgba(200, 235, 255, 0.55) 14px 18px,
+    transparent 18px 32px
   );
-  animation: water-flow 2.4s linear infinite;
+  animation: water-flow 1.6s linear infinite;
 }
 
 .water-sheet::after {
@@ -120,7 +121,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 1;
+  z-index: 3;
   background-image:
     radial-gradient(1.5px 1.5px at 12% 18%, rgba(255, 255, 255, 0.9), transparent),
     radial-gradient(1.5px 1.5px at 28% 12%, rgba(255, 255, 255, 0.7), transparent),
