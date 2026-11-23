@@ -21,7 +21,7 @@ type Placement = {
  * Scales are tuned to each asset's native glTF bounds (no homemade meshes).
  */
 /** Bump when placement layout changes so Fast Refresh remounts props. */
-const PLACEMENT_REV = 4
+const PLACEMENT_REV = 5
 
 export function NatureDecorEngine({ mood, lowPower }: Props): React.JSX.Element {
   const placements = useMemo(
@@ -53,18 +53,19 @@ function buildPlacements(lowPower: boolean): Placement[] {
 
   const out: Placement[] = []
 
-  // Lake sits at world (0,-6) with r≈14.5 — keep props on dry banks / frame edges.
-  // Big pines: left + right only (half cropped / bank edge) — never mid-lake.
+  // Lake at (0,-6) r≈14.5. Foreground dry land is z≳9. Keep pines off mid-water.
+  // Large pair: near-camera left/right so they read half off-screen (not lake-center).
   out.push(
-    { url: pine, pos: [-14.5, 0, 11.5], scale: 5.0, rotY: 0.35 },
-    { url: pine, pos: [8.8, 0, 9.2], scale: 5.2, rotY: -0.85 },
-    { url: pine, pos: [-16.5, 0, 4.0], scale: 3.6, rotY: 1.1 },
-    { url: pine, pos: [10.5, 0, 11.8], scale: 4.6, rotY: -0.4 }
+    { url: pine, pos: [-10.8, 0, 12.4], scale: 6.2, rotY: 0.4 },
+    { url: pine, pos: [10.2, 0, 12.0], scale: 5.8, rotY: -0.7 },
+    // Smaller far-bank accents (outside water, not scene-dominant)
+    { url: pine, pos: [-17.0, 0, 1.5], scale: 3.4, rotY: 1.0 },
+    { url: pine, pos: [16.5, 0, 0.8], scale: 3.2, rotY: -1.2 }
   )
   if (!lowPower) {
     out.push(
-      { url: pine, pos: [-15.2, 0, 13.0], scale: 5.4, rotY: 0.2 },
-      { url: pine, pos: [9.6, 0, 7.5], scale: 4.4, rotY: -1.1 }
+      { url: pine, pos: [-12.5, 0, 13.6], scale: 5.0, rotY: 0.15 },
+      { url: pine, pos: [11.8, 0, 13.2], scale: 4.6, rotY: -0.5 }
     )
   }
 
