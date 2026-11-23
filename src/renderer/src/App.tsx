@@ -40,7 +40,15 @@ export default function App(): React.JSX.Element {
 
   return (
     <div
-      className={`desk-root ${state.activity.workspaceState}${hasMaximized ? ' has-maximized' : ''}`}
+      className={[
+        'desk-root',
+        state.activity.workspaceState,
+        hasMaximized ? 'has-maximized' : '',
+        state.userPreferences.reduceTransparency ? 'reduce-transparency' : '',
+        state.userPreferences.compactDock ? 'compact-dock' : ''
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
       <LivingScene state={state} />
 

@@ -38,7 +38,8 @@ import {
   listSafeCommands,
   runSafeCommand
 } from './services/systemExtras'
-import { listSnapshots, restoreSnapshot, saveSnapshot } from './services/snapshots'
+import { deleteSnapshot, listSnapshots, restoreSnapshot, saveSnapshot } from './services/snapshots'
+import { loadPreferences, savePreferences } from './services/preferences'
 import { deskDataDir, workspaceRoot } from './services/paths'
 import {
   binList,
@@ -114,6 +115,10 @@ function registerIpc(): void {
       return engine.tick()
     }
   )
+  ipcMain.handle(IPC.resetPreferences, async () => {
+    engine.resetPreferences()
+    return engine.tick()
+  })
   ipcMain.handle(IPC.wakeWorkspace, async () => {
     engine.wake()
     await broadcastEnvironment()
@@ -238,6 +243,7 @@ function registerIpc(): void {
     saveSnapshot(activeDock, label)
   )
   ipcMain.handle(IPC.snapshotsRestore, async (_e, id: string) => restoreSnapshot(id))
+  ipcMain.handle(IPC.snapshotsDelete, async (_e, id: string) => deleteSnapshot(id))
 
   ipcMain.handle(
     IPC.hashText,
@@ -275,6 +281,7 @@ function registerIpc(): void {
 }
 
 app.whenReady().then(() => {
+  engine.hydrate(loadPreferences(), savePreferences)
   registerIpc()
   createWindow()
   startPolling()

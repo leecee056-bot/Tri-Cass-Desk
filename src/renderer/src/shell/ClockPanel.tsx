@@ -31,7 +31,8 @@ export default function ClockPanel({ state }: Props): React.JSX.Element {
   const time = now.toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit'
+    second: '2-digit',
+    hour12: !state.userPreferences.clock24h
   })
 
   return (

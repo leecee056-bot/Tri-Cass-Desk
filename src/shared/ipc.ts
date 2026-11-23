@@ -15,6 +15,7 @@ export const IPC = {
   getEnvironment: 'desk:get-environment',
   environmentUpdated: 'desk:environment-updated',
   setPreferences: 'desk:set-preferences',
+  resetPreferences: 'desk:reset-preferences',
   wakeWorkspace: 'desk:wake-workspace',
   noteActivity: 'desk:note-activity',
 
@@ -56,6 +57,7 @@ export const IPC = {
   snapshotsList: 'desk:snapshots-list',
   snapshotsSave: 'desk:snapshots-save',
   snapshotsRestore: 'desk:snapshots-restore',
+  snapshotsDelete: 'desk:snapshots-delete',
 
   hashText: 'desk:hash-text',
   runSafeCommand: 'desk:run-safe-command',
@@ -74,6 +76,7 @@ export type DeskApi = {
   setPreferences: (
     prefs: Partial<EnvironmentState['userPreferences']>
   ) => Promise<EnvironmentState>
+  resetPreferences: () => Promise<EnvironmentState>
   wakeWorkspace: () => Promise<void>
   noteActivity: () => Promise<void>
   onEnvironmentUpdated: (cb: (state: EnvironmentState) => void) => () => void
@@ -132,6 +135,7 @@ export type DeskApi = {
   snapshotsList: () => Promise<WorkspaceSnapshot[]>
   snapshotsSave: (activeDock: string, label?: string) => Promise<WorkspaceSnapshot>
   snapshotsRestore: (id: string) => Promise<WorkspaceSnapshot | null>
+  snapshotsDelete: (id: string) => Promise<boolean>
 
   hashText: (
     text: string,

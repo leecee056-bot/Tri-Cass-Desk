@@ -10,7 +10,7 @@ function clamp01(n: number): number {
   return Math.max(0, Math.min(1, n))
 }
 
-function solarFromClock(now = new Date()): EnvironmentState['solar'] {
+function solarFromClock(now = new Date(), clock24h = false): EnvironmentState['solar'] {
   const minutes = now.getHours() * 60 + now.getMinutes()
   // Approximate solar elevation proxy from local clock (no location / astronomy API).
   const dayAngle = ((minutes - 6 * 60) / (24 * 60)) * Math.PI * 2
@@ -25,7 +25,8 @@ function solarFromClock(now = new Date()): EnvironmentState['solar'] {
 
   const clockLabel = now.toLocaleTimeString(undefined, {
     hour: 'numeric',
-    minute: '2-digit'
+    minute: '2-digit',
+    hour12: !clock24h
   })
   const dateLabel = now.toLocaleDateString(undefined, {
     weekday: 'short',
@@ -93,6 +94,16 @@ export class EnvironmentEngine {
   private last: EnvironmentState | null = null
   private idleMs = 0
   private lastSampleAt = Date.now()
+  private persist: ((prefs: EnvironmentState['userPreferences']) => void) | null = null
+
+  /** Load disk prefs after Electron app is ready (userData path). */
+  hydrate(
+    prefs: EnvironmentState['userPreferences'],
+    persist?: (prefs: EnvironmentState['userPreferences']) => void
+  ): void {
+    this.prefs = { ...defaultPreferences, ...prefs }
+    this.persist = persist ?? null
+  }
 
   getPreferences(): EnvironmentState['userPreferences'] {
     return { ...this.prefs }
@@ -100,6 +111,12 @@ export class EnvironmentEngine {
 
   setPreferences(partial: Partial<EnvironmentState['userPreferences']>): void {
     this.prefs = { ...this.prefs, ...partial }
+    this.persist?.(this.prefs)
+  }
+
+  resetPreferences(): void {
+    this.prefs = { ...defaultPreferences }
+    this.persist?.(this.prefs)
   }
 
   wake(): void {
@@ -147,7 +164,7 @@ export class EnvironmentEngine {
       freshness = freshness === 'fresh' ? 'simulated' : freshness
     }
 
-    const solar = solarFromClock(new Date(now))
+    const solar = solarFromClock(new Date(now), this.prefs.clock24h)
     const weather = this.prefs.pauseAdaptation && this.last
       ? this.last.weather
       : mapWeather(sys, this.prefs)

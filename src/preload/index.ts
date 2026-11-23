@@ -5,6 +5,7 @@ import type { EnvironmentState } from '../shared/environment'
 const api: DeskApi = {
   getEnvironment: () => ipcRenderer.invoke(IPC.getEnvironment),
   setPreferences: (prefs) => ipcRenderer.invoke(IPC.setPreferences, prefs),
+  resetPreferences: () => ipcRenderer.invoke(IPC.resetPreferences),
   wakeWorkspace: () => ipcRenderer.invoke(IPC.wakeWorkspace),
   noteActivity: () => ipcRenderer.invoke(IPC.noteActivity),
   onEnvironmentUpdated: (cb) => {
@@ -62,6 +63,7 @@ const api: DeskApi = {
   snapshotsList: () => ipcRenderer.invoke(IPC.snapshotsList),
   snapshotsSave: (activeDock, label) => ipcRenderer.invoke(IPC.snapshotsSave, activeDock, label),
   snapshotsRestore: (id) => ipcRenderer.invoke(IPC.snapshotsRestore, id),
+  snapshotsDelete: (id) => ipcRenderer.invoke(IPC.snapshotsDelete, id),
 
   hashText: (text, algo) => ipcRenderer.invoke(IPC.hashText, text, algo),
   runSafeCommand: (commandId) => ipcRenderer.invoke(IPC.runSafeCommand, commandId),

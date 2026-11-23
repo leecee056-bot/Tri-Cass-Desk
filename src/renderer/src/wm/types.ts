@@ -46,7 +46,7 @@ export const APP_META: Record<
   terminal: { title: 'Terminal', w: 720, h: 440, icon: '▷' },
   editor: { title: 'Editor', w: 820, h: 560, icon: '✎' },
   tools: { title: 'Tools', w: 640, h: 520, icon: '⬡' },
-  settings: { title: 'Settings', w: 420, h: 420, icon: '⚙' },
+  settings: { title: 'Settings', w: 720, h: 560, icon: '⚙' },
   bin: { title: 'Bin', w: 480, h: 420, icon: '⌀' },
   launcher: { title: 'Apps', w: 640, h: 520, icon: '▦' },
   system: { title: 'System', w: 420, h: 520, icon: '◈' },

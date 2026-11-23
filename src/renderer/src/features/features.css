@@ -1092,3 +1092,214 @@
   font-family: ui-monospace, monospace;
   font-size: 0.72rem;
 }
+
+/* —— HAP-90 System Settings —— */
+.settings-system {
+  flex-direction: row;
+  gap: 0;
+  min-height: 0;
+  height: 100%;
+  border: 1px solid rgba(170, 220, 255, 0.12);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.settings-side {
+  width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.settings-search {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--rim);
+  border-radius: 10px;
+  color: var(--ink);
+  padding: 8px 10px;
+  font: inherit;
+}
+
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: auto;
+  flex: 1;
+}
+
+.settings-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink);
+}
+
+.settings-nav-btn span {
+  font-size: 0.7rem;
+  color: var(--ink-dim);
+}
+
+.settings-nav-btn:hover {
+  background: rgba(122, 215, 255, 0.08);
+}
+
+.settings-nav-btn.on {
+  background: rgba(122, 215, 255, 0.14);
+  border-color: rgba(122, 215, 255, 0.28);
+}
+
+.settings-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  overflow: auto;
+}
+
+.settings-main-head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.settings-row span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings-row strong {
+  font-size: 0.9rem;
+}
+
+.settings-row em {
+  font-style: normal;
+  font-size: 0.72rem;
+  color: var(--ink-dim);
+  line-height: 1.35;
+}
+
+.settings-row select,
+.settings-actions input {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--rim);
+  border-radius: 10px;
+  color: var(--ink);
+  padding: 6px 10px;
+  font: inherit;
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.settings-actions input {
+  flex: 1;
+  min-width: 140px;
+}
+
+.settings-help {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+  line-height: 1.4;
+}
+
+.settings-bullets {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.settings-snaps .file-row {
+  align-items: flex-start;
+}
+
+.settings-snap-meta {
+  display: block;
+  font-style: normal;
+  font-size: 0.68rem;
+  color: var(--ink-dim);
+  margin-top: 2px;
+}
+
+.settings-snap-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.settings-meters {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.settings-meters div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.settings-meters span {
+  font-size: 0.65rem;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.settings-about {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  color: var(--ink-dim);
+  max-height: 220px;
+  overflow: auto;
+}

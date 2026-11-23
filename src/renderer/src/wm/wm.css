@@ -6,6 +6,36 @@
   background: transparent;
 }
 
+.desk-root.reduce-transparency .float-win {
+  --glass-fill: rgba(14, 22, 38, 0.82);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+}
+
+.desk-root.reduce-transparency .dock {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)),
+    rgba(10, 16, 28, 0.78) !important;
+  backdrop-filter: blur(16px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.2) !important;
+}
+
+.desk-root.compact-dock .dock {
+  gap: 2px;
+  padding: 8px 12px;
+}
+
+.desk-root.compact-dock .dock-item {
+  width: 40px;
+  height: 40px;
+}
+
+.desk-root.compact-dock .dock-ico {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+
 /*
   Earthbound concept glass:
   luminous cyan rim, deep frost, specular top catch, soft depth —

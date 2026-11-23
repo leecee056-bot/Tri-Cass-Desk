@@ -66,7 +66,10 @@ function livingFallback(now = Date.now()): EnvironmentState {
       motion: 'full',
       celestialEffects: true,
       weatherEffects: true,
-      pauseAdaptation: false
+      pauseAdaptation: false,
+      reduceTransparency: false,
+      compactDock: false,
+      clock24h: false
     }
   }
 }
@@ -110,7 +113,11 @@ export function useEnvironment(): {
           ...s,
           solar: {
             ...s.solar,
-            clockLabel: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            clockLabel: d.toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: !s.userPreferences.clock24h
+            }),
             dateLabel: d.toLocaleDateString(undefined, {
               weekday: 'short',
               month: 'short',

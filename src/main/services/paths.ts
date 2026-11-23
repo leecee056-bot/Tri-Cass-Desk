@@ -30,3 +30,7 @@ export function chatHistoryPath(): string {
 export function snapshotsPath(): string {
   return join(deskDataDir(), 'snapshots.json')
 }
+
+export function preferencesPath(): string {
+  return join(deskDataDir(), 'preferences.json')
+}
