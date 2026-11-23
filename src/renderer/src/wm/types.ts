@@ -44,7 +44,7 @@ export const APP_META: Record<
   browse: { title: 'Browser', w: 720, h: 560, icon: '◉' },
   media: { title: 'Media', w: 720, h: 480, icon: '♫' },
   terminal: { title: 'Terminal', w: 720, h: 440, icon: '▷' },
-  editor: { title: 'Editor', w: 680, h: 500, icon: '✎' },
+  editor: { title: 'Editor', w: 820, h: 560, icon: '✎' },
   tools: { title: 'Tools', w: 640, h: 520, icon: '⬡' },
   settings: { title: 'Settings', w: 420, h: 420, icon: '⚙' },
   bin: { title: 'Bin', w: 400, h: 360, icon: '⌀' },
