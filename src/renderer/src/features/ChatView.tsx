@@ -9,6 +9,7 @@ type Session = {
   model: string
   temperature: number
   system: string
+  maxContext?: number
   updatedAt: number
 }
 
@@ -32,6 +33,7 @@ function loadSessions(): Session[] {
             model: '',
             temperature: 0.7,
             system: '',
+            maxContext: 24,
             updatedAt: Date.now()
           }
         ]
@@ -44,6 +46,7 @@ function loadSessions(): Session[] {
         model: '',
         temperature: 0.7,
         system: '',
+        maxContext: 24,
         updatedAt: Date.now()
       }
     ]
@@ -105,6 +108,11 @@ export default function ChatView({ onCloseWindow }: Props): React.JSX.Element {
     )
   }
 
+  const contextWindow = (msgs: ChatMessage[]): ChatMessage[] => {
+    const n = active.maxContext ?? 24
+    return msgs.length > n ? msgs.slice(-n) : msgs
+  }
+
   const newChat = (): void => {
     const s: Session = {
       id: uid(),
@@ -113,6 +121,7 @@ export default function ChatView({ onCloseWindow }: Props): React.JSX.Element {
       model: active.model || models[0]?.name || '',
       temperature: 0.7,
       system: active.system,
+      maxContext: active.maxContext ?? 24,
       updatedAt: Date.now()
     }
     setSessions((list) => [s, ...list])
@@ -130,6 +139,7 @@ export default function ChatView({ onCloseWindow }: Props): React.JSX.Element {
           model: '',
           temperature: 0.7,
           system: '',
+          maxContext: 24,
           updatedAt: Date.now()
         }
         setActiveId(s.id)
@@ -158,7 +168,7 @@ export default function ChatView({ onCloseWindow }: Props): React.JSX.Element {
 
     try {
       const reply = await window.desk.chatGenerate(
-        prior.map((m) => ({ role: m.role, content: m.content })),
+        contextWindow(prior).map((m) => ({ role: m.role, content: m.content })),
         {
           model: active.model || undefined,
           temperature: active.temperature,
@@ -193,7 +203,7 @@ export default function ChatView({ onCloseWindow }: Props): React.JSX.Element {
     patchActive({ messages: trimmed })
     try {
       const reply = await window.desk.chatGenerate(
-        trimmed.map((m) => ({ role: m.role, content: m.content })),
+        contextWindow(trimmed).map((m) => ({ role: m.role, content: m.content })),
         {
           model: active.model || undefined,
           temperature: active.temperature,
@@ -286,10 +296,12 @@ export default function ChatView({ onCloseWindow }: Props): React.JSX.Element {
           </button>
           <button
             type="button"
-            className="btn btn-ghost"
+            className={`btn btn-ghost ${showSettings ? 'on' : ''}`}
+            aria-expanded={showSettings}
+            aria-controls="chat-settings-panel"
             onClick={() => setShowSettings((v) => !v)}
           >
-            Settings
+            {showSettings ? 'Hide settings' : 'Settings'}
           </button>
           <span className="chat-toolbar-spacer" />
           {onCloseWindow ? (
@@ -300,7 +312,7 @@ export default function ChatView({ onCloseWindow }: Props): React.JSX.Element {
         </div>
 
         {showSettings ? (
-          <div className="chat-settings">
+          <div id="chat-settings-panel" className="chat-settings" role="region" aria-label="Chat settings">
             <label>
               Temperature {active.temperature.toFixed(1)}
               <input
@@ -313,6 +325,18 @@ export default function ChatView({ onCloseWindow }: Props): React.JSX.Element {
               />
             </label>
             <label>
+              Max context messages
+              <input
+                type="number"
+                min={4}
+                max={64}
+                value={active.maxContext ?? 24}
+                onChange={(e) =>
+                  patchActive({ maxContext: Math.max(4, Math.min(64, Number(e.target.value) || 24)) })
+                }
+              />
+            </label>
+            <label>
               System prompt
               <textarea
                 value={active.system}
@@ -320,6 +344,9 @@ export default function ChatView({ onCloseWindow }: Props): React.JSX.Element {
                 onChange={(e) => patchActive({ system: e.target.value })}
               />
             </label>
+            <p className="status-line">
+              Local Ollama only — model, temperature, and prompt are per-chat.
+            </p>
           </div>
         ) : null}
 

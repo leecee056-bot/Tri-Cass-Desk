@@ -5,9 +5,9 @@ export type CameraState = {
   y: number
 }
 
-const EDGE = 0.11
-const SPEED = 2.4
-const LIMIT = 180
+const EDGE = 0.14
+const SPEED = 4.2
+const LIMIT = 280
 
 /**
  * Edge-pan camera for the living world.

@@ -103,7 +103,7 @@ void main() {
   float wave = fbm(vec2(uv.x * 6.0 - t * 0.35, uv.y * 2.5 + curtain));
   float band = smoothstep(0.25, 0.75, wave) * smoothstep(0.0, 0.35, uv.y) * smoothstep(1.0, 0.45, uv.y);
   float edge = smoothstep(0.0, 0.12, uv.x) * smoothstep(1.0, 0.88, uv.x);
-  float a = band * edge * (0.35 + uStrength * 1.4) * (0.7 + uEnergy * 0.5);
+  float a = band * edge * (0.22 + uStrength * 0.85) * (0.55 + uEnergy * 0.35);
 
   vec3 green = vec3(0.25, 0.95, 0.55);
   vec3 violet = vec3(0.45, 0.2, 0.95);
