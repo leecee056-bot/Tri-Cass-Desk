@@ -25,21 +25,22 @@ function layoutDefaults(): DeskWindow[] {
       id: 'w-browse',
       appId: 'browse',
       title: 'Browser',
-      x: 300,
-      y: 48,
-      w: Math.min(460, Math.round(W * 0.32)),
-      h: Math.min(380, Math.round(H * 0.44)),
+      x: 290,
+      y: 36,
+      w: Math.min(520, Math.round(W * 0.36)),
+      h: Math.min(400, Math.round(H * 0.42)),
       z: 10
     },
     {
       id: 'w-media',
       appId: 'media',
       title: 'Media',
-      x: Math.round(W * 0.42),
-      y: Math.round(H * 0.34),
-      w: 300,
-      h: 320,
-      z: 12
+      x: Math.round(W * 0.48),
+      y: bottom(280),
+      w: 280,
+      h: 260,
+      z: 12,
+      minimized: true
     },
     {
       id: 'w-atmosphere',
@@ -85,10 +86,10 @@ function layoutDefaults(): DeskWindow[] {
       id: 'w-chat',
       appId: 'chat',
       title: 'Chat',
-      x: Math.round(W * 0.22),
-      y: Math.round(H * 0.18),
-      w: 520,
-      h: 480,
+      x: Math.max(48, Math.round(W * 0.08)),
+      y: bottom(420),
+      w: Math.min(480, Math.round(W * 0.34)),
+      h: 400,
       z: 14,
       minimized: false
     }
