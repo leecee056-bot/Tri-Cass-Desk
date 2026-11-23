@@ -14,9 +14,9 @@
 .float-win {
   --glass-fill: rgba(18, 28, 48, 0.34);
   --glass-fill-hover: rgba(22, 34, 58, 0.42);
-  --glass-rim: rgba(210, 235, 255, 0.38);
-  --glass-rim-hot: rgba(170, 230, 255, 0.62);
-  --glass-glow: rgba(120, 200, 255, 0.22);
+  --glass-rim: rgba(120, 210, 255, 0.55);
+  --glass-rim-hot: rgba(150, 230, 255, 0.85);
+  --glass-glow: rgba(80, 190, 255, 0.38);
 
   position: absolute;
   display: flex;

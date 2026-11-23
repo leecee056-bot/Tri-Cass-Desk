@@ -49,8 +49,8 @@ export function CelestialEngine({ day, night, moonGlow, energy, yawDeg }: Props)
         elev * 2.4 + Math.sin(t * 0.12) * 0.05,
         -5.2 + Math.cos(yaw + orbit) * 0.8
       )
-      sunMat.opacity = Math.min(0.85, 0.2 + day * 0.7)
-      sun.current.scale.setScalar(0.12 + day * 0.14)
+      sunMat.opacity = Math.min(0.55, 0.12 + day * 0.4)
+      sun.current.scale.setScalar(0.07 + day * 0.08)
     }
     if (moon.current) {
       moon.current.visible = night > 0.15
@@ -59,8 +59,8 @@ export function CelestialEngine({ day, night, moonGlow, energy, yawDeg }: Props)
         THREE.MathUtils.lerp(1.9, -0.2, day) + Math.sin(t * 0.1) * 0.04,
         -5 + Math.cos(yaw + orbit + Math.PI) * 0.7
       )
-      moonMat.opacity = Math.min(0.7, (0.15 + night * 0.55) * (0.45 + moonGlow * 0.55))
-      moon.current.scale.setScalar(0.1 + night * 0.1)
+      moonMat.opacity = Math.min(0.45, (0.1 + night * 0.35) * (0.4 + moonGlow * 0.5))
+      moon.current.scale.setScalar(0.06 + night * 0.06)
     }
   })
 

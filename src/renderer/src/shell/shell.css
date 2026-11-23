@@ -166,11 +166,11 @@
   align-items: center;
   gap: 6px;
   padding: 11px 18px;
-  border-radius: 999px;
+  border-radius: 999px !important;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.03)),
     rgba(14, 22, 40, 0.42) !important;
-  border: 1px solid rgba(200, 230, 255, 0.36) !important;
+  border: 1px solid rgba(140, 210, 255, 0.55) !important;
   backdrop-filter: blur(36px) saturate(1.8) !important;
   -webkit-backdrop-filter: blur(36px) saturate(1.8) !important;
   box-shadow:
