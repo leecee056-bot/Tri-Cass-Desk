@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import type { EnvironmentState } from '../../../shared/environment'
-import refArt from '../assets/earthbound-ref.png'
+import refArt from '../assets/earthbound-landscape.png'
 import './living-scene.css'
 
 type Props = {

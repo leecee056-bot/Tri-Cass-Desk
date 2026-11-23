@@ -19,11 +19,11 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
-  opacity: var(--ref-opacity, 0.5);
-  filter: saturate(1.05) contrast(1.05);
+  object-position: center bottom;
+  opacity: var(--ref-opacity, 0.45);
+  filter: saturate(1.08) contrast(1.04);
   pointer-events: none;
-  mix-blend-mode: screen;
+  mix-blend-mode: soft-light;
 }
 
 .sky {
@@ -116,29 +116,24 @@
 
 .trees {
   position: absolute;
-  bottom: 6%;
-  width: 22%;
-  height: 48%;
+  bottom: 4%;
+  width: 18%;
+  height: 42%;
   background:
-    radial-gradient(ellipse 40% 30% at 50% 80%, rgba(20, 40, 30, 0.9), transparent 70%),
-    repeating-linear-gradient(
-      95deg,
-      transparent,
-      transparent 18px,
-      rgba(18, 40, 28, 0.85) 18px,
-      rgba(18, 40, 28, 0.85) 30px
-    );
-  mask-image: linear-gradient(180deg, transparent 0%, #000 25%, #000 100%);
+    radial-gradient(ellipse 55% 70% at 40% 80%, rgba(12, 28, 20, 0.75), transparent 72%),
+    radial-gradient(ellipse 45% 60% at 70% 75%, rgba(10, 24, 18, 0.65), transparent 70%),
+    radial-gradient(ellipse 35% 50% at 20% 70%, rgba(14, 32, 22, 0.55), transparent 68%);
+  filter: blur(0.6px);
   pointer-events: none;
 }
 
 .trees.left {
-  left: -2%;
-  transform: scaleX(-1);
+  left: -1%;
 }
 
 .trees.right {
-  right: -2%;
+  right: -1%;
+  transform: scaleX(-1);
 }
 
 .flora {
