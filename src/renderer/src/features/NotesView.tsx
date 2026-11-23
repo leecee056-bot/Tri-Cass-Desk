@@ -15,6 +15,16 @@ function uid(): string {
   return `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
 }
 
+function blankNote(partial?: Partial<Note>): Note {
+  return {
+    id: uid(),
+    title: 'Untitled',
+    body: '',
+    updatedAt: Date.now(),
+    ...partial
+  }
+}
+
 function load(): Note[] {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) || '[]') as Note[]
@@ -23,23 +33,24 @@ function load(): Note[] {
     /* ignore */
   }
   return [
-    {
-      id: uid(),
+    blankNote({
       title: 'Welcome',
       body: 'Apple Notes–style local notes. Pin, search, and keep thoughts on this machine only.',
-      updatedAt: Date.now(),
       pinned: true
-    }
+    })
   ]
 }
 
 /** Multi-note pad — market equivalent: Apple Notes / simple Notion. */
 export default function NotesView(): React.JSX.Element {
-  const [notes, setNotes] = useState<Note[]>(() => load())
-  const [activeId, setActiveId] = useState(() => load()[0]!.id)
+  const [seed] = useState(() => load())
+  const [notes, setNotes] = useState<Note[]>(seed)
+  const [activeId, setActiveId] = useState(() => seed[0]!.id)
   const [q, setQ] = useState('')
 
-  const active = notes.find((n) => n.id === activeId) || notes[0]!
+  const active = useMemo(() => {
+    return notes.find((n) => n.id === activeId) || notes[0] || null
+  }, [notes, activeId])
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase()
@@ -56,29 +67,49 @@ export default function NotesView(): React.JSX.Element {
     localStorage.setItem(KEY, JSON.stringify(notes))
   }, [notes])
 
+  // Keep selection valid if the active note disappeared
+  useEffect(() => {
+    if (!notes.length) {
+      const n = blankNote()
+      setNotes([n])
+      setActiveId(n.id)
+      return
+    }
+    if (!notes.some((n) => n.id === activeId)) {
+      setActiveId(notes[0]!.id)
+    }
+  }, [notes, activeId])
+
   const patch = (partial: Partial<Note>): void => {
+    if (!active) return
     setNotes((list) =>
       list.map((n) => (n.id === active.id ? { ...n, ...partial, updatedAt: Date.now() } : n))
     )
   }
 
   const create = (): void => {
-    const n: Note = { id: uid(), title: 'Untitled', body: '', updatedAt: Date.now() }
+    const n = blankNote()
     setNotes((list) => [n, ...list])
     setActiveId(n.id)
   }
 
   const remove = (id: string): void => {
+    if (!window.confirm('Delete this note?')) return
     setNotes((list) => {
       const next = list.filter((n) => n.id !== id)
-      if (!next.length) {
-        const n: Note = { id: uid(), title: 'Untitled', body: '', updatedAt: Date.now() }
-        setActiveId(n.id)
-        return [n]
-      }
-      if (id === activeId) setActiveId(next[0]!.id)
-      return next
+      return next.length ? next : [blankNote()]
     })
+  }
+
+  if (!active) {
+    return (
+      <div className="notes-app">
+        <p className="status-line">No notes yet.</p>
+        <button type="button" className="btn" onClick={create}>
+          + Note
+        </button>
+      </div>
+    )
   }
 
   return (

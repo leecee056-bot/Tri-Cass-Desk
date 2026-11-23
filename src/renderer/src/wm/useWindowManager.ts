@@ -157,6 +157,8 @@ export function useWindowManager() {
 
   const maximize = useCallback((id: string) => {
     zCounter += 1
+    const topZ = Math.max(zCounter, 20000)
+    zCounter = topZ
     setWindows((list) =>
       list.map((w) => {
         if (w.id !== id) return w
@@ -169,7 +171,7 @@ export function useWindowManager() {
             w: w.restore.w,
             h: w.restore.h,
             restore: undefined,
-            z: zCounter,
+            z: topZ,
             minimized: false
           }
         }
@@ -177,7 +179,7 @@ export function useWindowManager() {
           ...w,
           maximized: true,
           restore: { x: w.x, y: w.y, w: w.w, h: w.h },
-          z: zCounter,
+          z: topZ,
           minimized: false
         }
       })

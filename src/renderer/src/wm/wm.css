@@ -127,6 +127,14 @@
 
 .float-win.maximized {
   border-radius: 18px;
+  z-index: 20000 !important;
+}
+
+/* Concept focus: maximized window owns the stage — others tuck away */
+.desk-root.has-maximized .float-win:not(.maximized) {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .float-actions {

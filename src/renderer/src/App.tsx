@@ -33,12 +33,15 @@ export default function App(): React.JSX.Element {
   }, [])
 
   const minimized = windows.filter((w) => w.minimized)
+  const hasMaximized = windows.some((w) => w.maximized && !w.minimized)
   const idle =
     state.activity.workspaceState === 'ambient_idle' ||
     state.activity.workspaceState === 'resting'
 
   return (
-    <div className={`desk-root ${state.activity.workspaceState}`}>
+    <div
+      className={`desk-root ${state.activity.workspaceState}${hasMaximized ? ' has-maximized' : ''}`}
+    >
       <LivingScene state={state} />
 
       {windows.map((win) => (
