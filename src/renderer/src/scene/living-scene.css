@@ -88,8 +88,8 @@
   z-index: 3;
   overflow: hidden;
   transform: perspective(500px) rotateX(52deg) scaleY(0.75);
-  opacity: 0.85;
-  mix-blend-mode: screen;
+  opacity: 0.7;
+  mix-blend-mode: soft-light;
 }
 
 .water-sheet::before {
@@ -98,11 +98,12 @@
   inset: -80% -30%;
   background: repeating-linear-gradient(
     0deg,
-    transparent 0 14px,
-    rgba(200, 235, 255, 0.55) 14px 18px,
-    transparent 18px 32px
+    transparent 0 18px,
+    rgba(180, 220, 255, 0.28) 18px 22px,
+    transparent 22px 40px
   );
-  animation: water-flow 1.6s linear infinite;
+  filter: blur(1.2px);
+  animation: water-flow 2.2s linear infinite;
 }
 
 .water-sheet::after {
