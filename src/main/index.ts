@@ -227,18 +227,20 @@ function registerIpc(): void {
 
   ipcMain.handle(IPC.pickMediaFile, async () => {
     const res = await dialog.showOpenDialog(mainWindow!, {
-      properties: ['openFile'],
+      properties: ['openFile', 'multiSelections'],
       filters: [
-        { name: 'Media', extensions: ['mp4', 'webm', 'mkv', 'mov', 'mp3', 'wav', 'flac', 'ogg', 'm4a'] }
+        {
+          name: 'Media',
+          extensions: ['mp4', 'webm', 'mkv', 'mov', 'avi', 'mp3', 'wav', 'flac', 'ogg', 'm4a', 'aac']
+        }
       ]
     })
-    if (res.canceled || !res.filePaths[0]) return null
-    const filePath = res.filePaths[0]
-    return {
+    if (res.canceled || !res.filePaths.length) return []
+    return res.filePaths.map((filePath) => ({
       path: filePath,
       name: basename(filePath),
       url: pathToFileURL(filePath).href
-    }
+    }))
   })
 
   ipcMain.handle(IPC.binList, async () => binList())

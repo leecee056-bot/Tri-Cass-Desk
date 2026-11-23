@@ -53,7 +53,7 @@ The desk is a living companion environment, not a wallpaper.
 | Files | Finder/Explorer — browse, open, preview |
 | Browser | Chrome/Edge — tab strip, omnibox (URL/search), bookmark bar + star, history search, back/forward/reload/stop/home |
 | Terminal | iTerm/Windows Terminal — safe commands |
-| Media | VLC/Music — playback |
+| Media | VLC/Music — playlist, transport (play/seek/vol), open multi-file, loop/shuffle |
 | Vault | Notes/secrets store — local encrypted-ish notes |
 | Atmosphere | Weather widget — local telemetry weather metaphor |
 | Mood/System | Activity Monitor / Health |

@@ -42,7 +42,7 @@ export const APP_META: Record<
   files: { title: 'Files', w: 560, h: 480, icon: '▤' },
   vault: { title: 'Vault', w: 560, h: 480, icon: '◇' },
   browse: { title: 'Browser', w: 720, h: 560, icon: '◉' },
-  media: { title: 'Media', w: 520, h: 420, icon: '♫' },
+  media: { title: 'Media', w: 720, h: 480, icon: '♫' },
   terminal: { title: 'Terminal', w: 640, h: 360, icon: '▷' },
   editor: { title: 'Editor', w: 680, h: 500, icon: '✎' },
   tools: { title: 'Tools', w: 640, h: 520, icon: '⬡' },

@@ -129,7 +129,7 @@ export type DeskApi = {
   ) => Promise<string>
   runSafeCommand: (commandId: string) => Promise<{ ok: boolean; output: string }>
 
-  pickMediaFile: () => Promise<{ url: string; name: string; path: string } | null>
+  pickMediaFile: () => Promise<Array<{ url: string; name: string; path: string }>>
   binList: () => Promise<string[]>
   binMove: (targetPath: string) => Promise<string>
   binRestore: (name: string) => Promise<string>
