@@ -8,6 +8,8 @@ import { v4 as uuidv4 } from 'uuid'
 import JSZip from 'jszip'
 import type { EnvironmentState } from '../../../../shared/environment'
 import type { ToolEntry } from '../catalog'
+import { isTop20 } from '../top20'
+import DeepTools from './DeepTools'
 import BrowserSurface from '../../surfaces/BrowserSurface'
 import MediaSurface from '../../surfaces/MediaSurface'
 import TerminalSurface from '../../surfaces/TerminalSurface'
@@ -24,6 +26,11 @@ type Props = {
 /** Routes any of the 240 catalog tools into a glass-styled ready-made surface or utility. */
 export default function UniversalTool({ tool, state, onOpenDock, onClose }: Props): React.JSX.Element {
   const name = tool.name.toLowerCase()
+
+  // HAP-79: Top-20 Raycast-class tools get dedicated deep engines first.
+  if (isTop20(tool)) {
+    return <DeepTools tool={tool} state={state} />
+  }
 
   if (tool.engine === 'browser' || name.includes('browser') || name.includes('tab') || name.includes('bookmark') || name.includes('history') || name.includes('download') || name.includes('rss') || name.includes('sandbox') || name.includes('playground') || name.includes('iframe') || name.includes('svg preview') || name.includes('manifest') || name.includes('user agent') || name.includes('speed dial') || name.includes('home dashboard')) {
     return <BrowserSurface title={tool.name} mode={tool.id} onClose={onClose} />

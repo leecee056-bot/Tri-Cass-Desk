@@ -156,6 +156,24 @@
   border-color: rgba(125, 255, 179, 0.35);
 }
 
+.tool-card.tool-deep {
+  border-color: rgba(122, 215, 255, 0.45);
+  background: rgba(122, 215, 255, 0.06);
+}
+
+.tool-deep-badge {
+  font-style: normal;
+  font-size: 0.65rem;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(122, 215, 255, 0.2);
+  color: #9fe0ff;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
 .tool-stack {
   display: grid;
   gap: 10px;

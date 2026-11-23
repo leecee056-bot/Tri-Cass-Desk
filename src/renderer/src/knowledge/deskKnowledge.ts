@@ -57,7 +57,7 @@ The desk is a living companion environment, not a wallpaper.
 | Vault | Notes/secrets store — local encrypted-ish notes |
 | Atmosphere | Weather widget — local telemetry weather metaphor |
 | Mood/System | Activity Monitor / Health |
-| Tools | 240 utility tools hub |
+| Tools | 240 utility tools hub · Top-20 Raycast-class with deep local engines |
 | Projects | Project folders / launcher |
 | Notes | Apple Notes — multi-note |
 `
