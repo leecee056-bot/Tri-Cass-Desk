@@ -51,7 +51,7 @@ The desk is a living companion environment, not a wallpaper.
 | Agents | OpenCode — plan/build, tools, AGENTS.md |
 | Editor | VS Code — tabs, save, language |
 | Files | Finder/Explorer — browse, open, preview |
-| Browser | Chrome — tabs, bookmarks, history |
+| Browser | Chrome/Edge — tab strip, omnibox (URL/search), bookmark bar + star, history search, back/forward/reload/stop/home |
 | Terminal | iTerm/Windows Terminal — safe commands |
 | Media | VLC/Music — playback |
 | Vault | Notes/secrets store — local encrypted-ish notes |
