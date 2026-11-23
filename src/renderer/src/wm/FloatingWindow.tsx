@@ -85,6 +85,7 @@ export default function FloatingWindow({
         </div>
       </header>
       <div className="float-body">{children}</div>
+      {!win.maximized ? <div className="float-resize" aria-hidden /> : null}
     </section>
   )
 }

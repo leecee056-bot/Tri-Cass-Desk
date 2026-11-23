@@ -7,54 +7,106 @@
 }
 
 /*
-  Concept glass — soft frosted panels, thin rim, no Apple traffic lights.
-  Title + ghost ×/− controls only.
+  Earthbound concept glass:
+  luminous cyan rim, deep frost, specular top catch, soft depth —
+  not flat grey cards or Apple traffic lights.
 */
 .float-win {
+  --glass-fill: rgba(18, 28, 48, 0.34);
+  --glass-fill-hover: rgba(22, 34, 58, 0.42);
+  --glass-rim: rgba(210, 235, 255, 0.38);
+  --glass-rim-hot: rgba(170, 230, 255, 0.62);
+  --glass-glow: rgba(120, 200, 255, 0.22);
+
   position: absolute;
   display: flex;
   flex-direction: column;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(32px) saturate(1.65);
-  -webkit-backdrop-filter: blur(32px) saturate(1.65);
+  border-radius: 22px;
+  border: 1px solid var(--glass-rim);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 38%, transparent 62%),
+    var(--glass-fill);
+  backdrop-filter: blur(40px) saturate(1.85);
+  -webkit-backdrop-filter: blur(40px) saturate(1.85);
   box-shadow:
-    0 20px 55px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 1px 0 rgba(255, 255, 255, 0.28) inset,
+    0 0 24px var(--glass-glow),
+    0 22px 60px rgba(0, 0, 0, 0.45);
   overflow: hidden;
   min-width: 220px;
   min-height: 140px;
+  isolation: isolate;
   transition:
-    box-shadow 0.25s ease,
-    border-color 0.25s ease,
-    background 0.8s ease,
+    box-shadow 0.28s ease,
+    border-color 0.28s ease,
+    background 0.5s ease,
     opacity 1.2s ease;
 }
 
+.float-win::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.04) 12%,
+    transparent 32%
+  );
+  mix-blend-mode: soft-light;
+}
+
+.float-win::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: calc(22px - 1px);
+  pointer-events: none;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 -18px 40px rgba(8, 16, 32, 0.18);
+}
+
 .float-win:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--glass-rim-hot);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.03) 40%, transparent 65%),
+    var(--glass-fill-hover);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 1px 0 rgba(255, 255, 255, 0.34) inset,
+    0 0 32px rgba(140, 210, 255, 0.32),
+    0 26px 70px rgba(0, 0, 0, 0.5);
+}
+
+.float-win:focus-within {
+  border-color: var(--glass-rim-hot);
 }
 
 .desk-root.resting .float-win {
-  opacity: 0.8;
+  opacity: 0.82;
 }
 
 .desk-root.ambient_idle .float-win {
-  opacity: 0.55;
+  opacity: 0.58;
 }
 
 .float-bar {
+  position: relative;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 10px 14px 6px;
+  padding: 11px 14px 8px;
   cursor: grab;
   user-select: none;
-  background: transparent;
-  border-bottom: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .float-bar:active {
@@ -62,24 +114,26 @@
 }
 
 .float-title {
-  font-size: 0.78rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  font-size: 0.72rem;
+  font-weight: 560;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(232, 238, 252, 0.78);
+  color: rgba(236, 244, 255, 0.82);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .float-win.maximized {
-  border-radius: 14px;
+  border-radius: 18px;
 }
 
 .float-actions {
   display: flex;
-  gap: 4px;
-  opacity: 0.85;
+  gap: 5px;
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
 }
 
 .float-win:hover .float-actions,
@@ -88,31 +142,53 @@
 }
 
 .fa {
-  width: 22px;
+  width: 24px;
   height: 22px;
-  border-radius: 8px;
+  border-radius: 7px;
   display: grid;
   place-items: center;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   line-height: 1;
-  color: rgba(232, 238, 252, 0.7);
-  background: transparent;
+  color: rgba(232, 238, 252, 0.78);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .fa:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(170, 220, 255, 0.18);
+  border-color: rgba(190, 230, 255, 0.35);
   color: #fff;
 }
 
 .fa.close:hover {
-  background: rgba(255, 100, 130, 0.28);
+  background: rgba(255, 110, 140, 0.32);
+  border-color: rgba(255, 150, 170, 0.45);
 }
 
 .float-body {
+  position: relative;
+  z-index: 3;
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 4px 14px 14px;
+  padding: 6px 14px 14px;
+}
+
+/* Resize grip — subtle concept corner */
+.float-win:not(.maximized) .float-resize {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 14px;
+  height: 14px;
+  z-index: 4;
+  cursor: nwse-resize;
+  opacity: 0.35;
+  background:
+    linear-gradient(135deg, transparent 50%, rgba(220, 240, 255, 0.55) 50%) no-repeat,
+    linear-gradient(135deg, transparent 65%, rgba(220, 240, 255, 0.35) 65%);
+  border-radius: 0 0 12px 0;
 }
 
 .desk-dock-wrap {
@@ -130,13 +206,16 @@
 
 .wake-chip {
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);
+  border: 1px solid rgba(200, 230, 255, 0.35);
+  background: rgba(18, 28, 48, 0.4);
+  backdrop-filter: blur(20px) saturate(1.6);
   padding: 8px 16px;
   font-size: 0.82rem;
   color: var(--ink);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 0 18px rgba(120, 200, 255, 0.2),
+    0 10px 28px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .desk-dock-wrap.idle {
@@ -152,10 +231,11 @@
 
 .mini-tray button {
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
+  border: 1px solid rgba(200, 230, 255, 0.28);
+  background: rgba(18, 28, 48, 0.35);
+  backdrop-filter: blur(14px);
   padding: 4px 10px;
   font-size: 0.72rem;
   color: var(--ink-dim);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }

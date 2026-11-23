@@ -4,12 +4,16 @@
   height: 100%;
   min-height: 340px;
   border-radius: 22px;
-  border: 1px solid var(--rim);
-  background: rgba(10, 14, 28, 0.55);
-  backdrop-filter: blur(20px) saturate(1.25);
+  border: 1px solid rgba(210, 235, 255, 0.38);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.12), transparent 45%),
+    rgba(18, 28, 48, 0.4);
+  backdrop-filter: blur(36px) saturate(1.7);
   box-shadow:
-    0 18px 50px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 1px 0 rgba(255, 255, 255, 0.24) inset,
+    0 0 22px rgba(120, 200, 255, 0.2),
+    0 18px 50px rgba(0, 0, 0, 0.42);
   overflow: hidden;
 }
 
@@ -34,35 +38,13 @@
 }
 
 .glass-frame-bar {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
+  justify-content: space-between;
   gap: 12px;
   align-items: center;
   padding: 10px 14px;
-  border-bottom: 1px solid rgba(170, 220, 255, 0.12);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.glass-frame-traffic {
-  display: flex;
-  gap: 7px;
-}
-
-.tf {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.tf.close {
-  background: #ff7a9a;
-  cursor: pointer;
-}
-
-.tf.dim {
-  background: rgba(122, 215, 255, 0.35);
+  border-bottom: 1px solid rgba(170, 220, 255, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent);
 }
 
 .glass-frame-titles {
@@ -89,6 +71,28 @@
   display: flex;
   gap: 6px;
   align-items: center;
+}
+
+.glass-frame .fa {
+  width: 24px;
+  height: 22px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: rgba(232, 238, 252, 0.78);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-frame .fa:hover {
+  background: rgba(170, 220, 255, 0.18);
+  color: #fff;
+}
+
+.glass-frame .fa.close:hover {
+  background: rgba(255, 110, 140, 0.32);
 }
 
 .glass-frame-body {
