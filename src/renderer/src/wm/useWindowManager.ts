@@ -77,9 +77,9 @@ function layoutDefaults(): DeskWindow[] {
       appId: 'notes',
       title: 'Notes',
       x: 32,
-      y: bottom(190),
-      w: 250,
-      h: 190,
+      y: bottom(340),
+      w: 420,
+      h: 320,
       z: 6
     },
     {

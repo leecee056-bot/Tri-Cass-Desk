@@ -53,6 +53,6 @@ export const APP_META: Record<
   health: { title: 'Mood', w: 250, h: 330, icon: '✧' },
   clock: { title: 'Clock', w: 220, h: 140, icon: '◔' },
   atmosphere: { title: 'Atmosphere', w: 280, h: 290, icon: '☁' },
-  notes: { title: 'Notes', w: 260, h: 180, icon: '✎' },
+  notes: { title: 'Notes', w: 420, h: 320, icon: '✎' },
   projects: { title: 'Projects', w: 250, h: 220, icon: '▤' }
 }
