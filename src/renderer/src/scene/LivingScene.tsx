@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import type { EnvironmentState } from '../../../shared/environment'
+import refArt from '../assets/earthbound-ref.png'
 import './living-scene.css'
 
 type Props = {
@@ -166,6 +167,8 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
     }
   }, [celestial, weather.rain, weather.wind, weather.fog, userPreferences.motion])
 
+  const refOpacity = 0.42 + solar.daylight * 0.2 - weather.fog * 0.15
+
   return (
     <div
       className="living-scene"
@@ -177,13 +180,15 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
           '--cloud': String(weather.cloudCover),
           '--warm': String(weather.skyWarmth),
           '--idle-scale': String(idleScale),
-          '--shimmer': String(weather.heatShimmer)
+          '--shimmer': String(weather.heatShimmer),
+          '--ref-opacity': String(Math.max(0.2, refOpacity))
         } as React.CSSProperties
       }
     >
+      <img className="ref-plate" src={refArt} alt="" draggable={false} />
       <div className="sky" />
       <div className="clouds" />
-      <div className="moon" style={{ opacity: celestial.moonGlow }} />
+      <div className="moon" style={{ opacity: celestial.moonGlow * 0.55 }} />
       <canvas ref={canvasRef} className="fx-canvas" aria-hidden />
       <div className="ridges" />
       <div className="waterfall" />

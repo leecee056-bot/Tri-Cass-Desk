@@ -1,0 +1,132 @@
+.desk-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.float-win {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px;
+  border: 1px solid rgba(170, 220, 255, 0.32);
+  background: rgba(8, 12, 28, 0.52);
+  backdrop-filter: blur(22px) saturate(1.3);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  min-width: 260px;
+  min-height: 160px;
+}
+
+.float-bar {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: grab;
+  user-select: none;
+  border-bottom: 1px solid rgba(170, 220, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.float-bar:active {
+  cursor: grabbing;
+}
+
+.float-traffic {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+.ft {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  display: inline-block;
+}
+
+.ft.close {
+  background: #ff7a9a;
+  cursor: pointer;
+}
+
+.ft.min {
+  background: #ffd27a;
+  cursor: pointer;
+}
+
+.ft.dim {
+  background: rgba(122, 215, 255, 0.4);
+}
+
+.float-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.float-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+}
+
+.desk-dock-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.desk-brand-float {
+  position: absolute;
+  left: 28px;
+  bottom: 28px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.desk-brand-float h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  text-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
+}
+
+.desk-brand-float p {
+  margin: 2px 0 0;
+  color: var(--ink-dim);
+  font-size: 0.8rem;
+}
+
+.mini-tray {
+  display: flex;
+  gap: 6px;
+}
+
+.mini-tray button {
+  border-radius: 999px;
+  border: 1px solid var(--rim);
+  background: rgba(8, 12, 28, 0.55);
+  backdrop-filter: blur(12px);
+  color: var(--ink);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+}

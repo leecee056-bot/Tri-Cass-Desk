@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import GlassFrame from './GlassFrame'
 import './surfaces.css'
+
+type Tab = { id: string; title: string; url: string }
 
 const DIAL = [
   { label: 'Ollama', url: 'http://127.0.0.1:11434' },
@@ -10,6 +12,9 @@ const DIAL = [
   { label: 'Wikipedia', url: 'https://en.wikipedia.org' },
   { label: 'Blank', url: 'about:blank' }
 ]
+
+const BM_KEY = 'tricass-desk-bookmarks'
+const HIST_KEY = 'tricass-desk-history'
 
 type Props = {
   title?: string
@@ -25,27 +30,58 @@ type WebviewEl = HTMLElement & {
   reload: () => void
 }
 
+function loadJson<T>(key: string, fallback: T): T {
+  try {
+    return JSON.parse(localStorage.getItem(key) || '') as T
+  } catch {
+    return fallback
+  }
+}
+
 export default function BrowserSurface({
   title = 'Glass Browser',
   initialUrl = 'about:blank',
   mode,
   onClose
 }: Props): React.JSX.Element {
-  const [url, setUrl] = useState(initialUrl)
-  const [draft, setDraft] = useState(initialUrl)
-  const [showDial, setShowDial] = useState(initialUrl === 'about:blank')
+  const [tabs, setTabs] = useState<Tab[]>([
+    { id: 't1', title: 'New Tab', url: initialUrl }
+  ])
+  const [activeId, setActiveId] = useState('t1')
+  const active = tabs.find((t) => t.id === activeId) || tabs[0]!
+  const [draft, setDraft] = useState(active.url)
+  const [showDial, setShowDial] = useState(active.url === 'about:blank')
+  const [bookmarks, setBookmarks] = useState<{ title: string; url: string }[]>(() =>
+    loadJson(BM_KEY, [])
+  )
+  const [history, setHistory] = useState<{ title: string; url: string; at: number }[]>(() =>
+    loadJson(HIST_KEY, [])
+  )
+  const [panel, setPanel] = useState<'none' | 'bookmarks' | 'history'>('none')
   const webRef = useRef<WebviewEl | null>(null)
   const inElectron = typeof navigator !== 'undefined' && /Electron/i.test(navigator.userAgent)
 
   useEffect(() => {
+    setDraft(active.url)
+    setShowDial(active.url === 'about:blank')
+  }, [active.url, activeId])
+
+  useEffect(() => {
+    localStorage.setItem(BM_KEY, JSON.stringify(bookmarks))
+  }, [bookmarks])
+  useEffect(() => {
+    localStorage.setItem(HIST_KEY, JSON.stringify(history.slice(0, 80)))
+  }, [history])
+
+  useEffect(() => {
     const el = webRef.current
-    if (!el || !url) return
+    if (!el || !active.url || showDial) return
     try {
-      el.src = url
+      el.src = active.url
     } catch {
       /* ignore */
     }
-  }, [url])
+  }, [active.url, activeId, showDial])
 
   const go = (next: string): void => {
     const trimmed = next.trim()
@@ -53,32 +89,91 @@ export default function BrowserSurface({
       /^https?:\/\//i.test(trimmed) || trimmed.startsWith('about:')
         ? trimmed
         : `https://${trimmed}`
-    setDraft(final)
-    setUrl(final)
+    setTabs((list) =>
+      list.map((t) =>
+        t.id === activeId ? { ...t, url: final, title: final.replace(/^https?:\/\//, '').slice(0, 28) } : t
+      )
+    )
     setShowDial(false)
+    setHistory((h) => [{ title: final, url: final, at: Date.now() }, ...h].slice(0, 80))
     void window.desk?.noteActivity()
   }
+
+  const addTab = (): void => {
+    const id = `t${Date.now()}`
+    setTabs((t) => [...t, { id, title: 'New Tab', url: 'about:blank' }])
+    setActiveId(id)
+    setShowDial(true)
+  }
+
+  const subtitle = useMemo(() => mode || `${tabs.length} tabs · local bookmarks`, [mode, tabs.length])
 
   return (
     <GlassFrame
       title={title}
-      subtitle={mode || 'in-desk browser · glass chrome'}
+      subtitle={subtitle}
       onClose={onClose}
       actions={
         <>
-          <button type="button" className="btn btn-ghost" onClick={() => setShowDial(true)}>
-            Tabs
+          <button type="button" className="btn btn-ghost" onClick={() => setPanel((p) => (p === 'bookmarks' ? 'none' : 'bookmarks'))}>
+            ★
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={() => setPanel((p) => (p === 'history' ? 'none' : 'history'))}>
+            Hist
           </button>
           <button
             type="button"
             className="btn btn-ghost"
-            onClick={() => void window.desk?.openExternal(url)}
+            onClick={() =>
+              setBookmarks((b) =>
+                b.some((x) => x.url === active.url)
+                  ? b
+                  : [...b, { title: active.title, url: active.url }]
+              )
+            }
+          >
+            Save ★
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => void window.desk?.openExternal(active.url)}
           >
             System
           </button>
         </>
       }
     >
+      <div className="browser-tabs">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className={`browser-tab ${t.id === activeId ? 'on' : ''}`}
+            onClick={() => setActiveId(t.id)}
+          >
+            {t.title}
+            {tabs.length > 1 ? (
+              <span
+                className="tab-x"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setTabs((list) => {
+                    const next = list.filter((x) => x.id !== t.id)
+                    if (t.id === activeId && next[0]) setActiveId(next[0].id)
+                    return next
+                  })
+                }}
+              >
+                ×
+              </span>
+            ) : null}
+          </button>
+        ))}
+        <button type="button" className="browser-tab add" onClick={addTab}>
+          +
+        </button>
+      </div>
       <div className="browser-chrome">
         <button type="button" className="btn btn-ghost" onClick={() => webRef.current?.goBack()}>
           ←
@@ -101,6 +196,28 @@ export default function BrowserSurface({
           Go
         </button>
       </div>
+      {panel === 'bookmarks' ? (
+        <div className="file-list" style={{ maxHeight: 120 }}>
+          {bookmarks.map((item, i) => (
+            <div key={`${item.url}-${i}`} className="file-row" onClick={() => go(item.url)}>
+              <span>{item.title}</span>
+              <span>{item.url.replace(/^https?:\/\//, '').slice(0, 32)}</span>
+            </div>
+          ))}
+          {bookmarks.length === 0 ? <p className="status-line">No bookmarks yet.</p> : null}
+        </div>
+      ) : null}
+      {panel === 'history' ? (
+        <div className="file-list" style={{ maxHeight: 120 }}>
+          {history.map((item, i) => (
+            <div key={`${item.url}-${i}`} className="file-row" onClick={() => go(item.url)}>
+              <span>{item.title}</span>
+              <span>{item.url.replace(/^https?:\/\//, '').slice(0, 32)}</span>
+            </div>
+          ))}
+          {history.length === 0 ? <p className="status-line">No history yet.</p> : null}
+        </div>
+      ) : null}
       {showDial ? (
         <div className="speed-dial">
           {DIAL.map((d) => (
@@ -113,14 +230,14 @@ export default function BrowserSurface({
         <webview
           ref={webRef as unknown as React.RefObject<HTMLWebViewElement>}
           className="browser-webview"
-          src={url}
-          // @ts-expect-error allowpopups is Electron webview attribute
+          src={active.url}
+          // @ts-expect-error Electron attr
           allowpopups="true"
         />
       ) : (
         <iframe
           className="browser-webview"
-          src={url === 'about:blank' ? undefined : url}
+          src={active.url === 'about:blank' ? undefined : active.url}
           title="browse"
         />
       )}

@@ -25,34 +25,54 @@ type Props = {
 export default function UniversalTool({ tool, state, onOpenDock, onClose }: Props): React.JSX.Element {
   const name = tool.name.toLowerCase()
 
-  if (tool.engine === 'browser' || name.includes('browser') || name.includes('tab')) {
+  if (tool.engine === 'browser' || name.includes('browser') || name.includes('tab') || name.includes('bookmark') || name.includes('history') || name.includes('download') || name.includes('rss') || name.includes('sandbox') || name.includes('playground') || name.includes('iframe') || name.includes('svg preview') || name.includes('manifest') || name.includes('user agent') || name.includes('speed dial') || name.includes('home dashboard')) {
     return <BrowserSurface title={tool.name} mode={tool.id} onClose={onClose} />
   }
-  if (tool.engine === 'media' || name.includes('player') || name.includes('audio') || name.includes('video')) {
+  if (tool.engine === 'media' || name.includes('player') || name.includes('audio') || name.includes('video') || name.includes('playlist') || name.includes('equalizer') || name.includes('visualizer') || name.includes('lyrics') || name.includes('album') || name.includes('podcast') || name.includes('audiobook') || name.includes('metronome') || name.includes('tuner') || name.includes('midi') || name.includes('spectrum') || name.includes('waveform') || name.includes('webcam') || name.includes('mic test') || name.includes('speaker')) {
     return <MediaSurface title={tool.name} mode={tool.id} onClose={onClose} />
   }
-  if (name.includes('terminal') || name.includes('repl')) {
+  if (name.includes('terminal') || name.includes('repl') || name.includes('safe commands') || name.includes('command output')) {
     return <TerminalSurface title={tool.name} onClose={onClose} />
   }
   if (
     name.includes('code editor') ||
     name.includes('monaco') ||
     name.includes('text document') ||
-    name.includes('scratch')
+    name.includes('scratch') ||
+    name.includes('snippet') ||
+    name.includes('editor') ||
+    (tool.engine === 'dev' &&
+      (name.includes('sql') ||
+        name.includes('yaml') ||
+        name.includes('toml') ||
+        name.includes('xml') ||
+        name.includes('json studio')))
   ) {
     return <EditorSurface title={tool.name} onClose={onClose} />
   }
-  if (name.includes('chat')) {
+  if (name.includes('chat') || name.includes('prompt library') || name.includes('session memory')) {
     return <DockRedirect target="chat" onOpenDock={onOpenDock} />
   }
-  if (name.includes('agent')) {
+  if (name.includes('agent') || name.includes('allowlist') || name.includes('model compare') || name.includes('llm browser') || name.includes('plugin')) {
     return <DockRedirect target="agents" onOpenDock={onOpenDock} />
   }
-  if (name.includes('vault') || name.includes('quick notes') || name.includes('journal')) {
+  if (name.includes('vault') || name.includes('quick notes') || name.includes('journal') || name.includes('flashcard') || name.includes('wiki') || name.includes('meeting notes') || name.includes('markdown')) {
     return <DockRedirect target="vault" onOpenDock={onOpenDock} />
   }
-  if (name.includes('file') || name.includes('recycle') || name.includes('bin')) {
+  if (name.includes('file') || name.includes('recycle') || name.includes('bin') || name.includes('archive')) {
     return <BinAndFiles onOpenDock={onOpenDock} tool={tool} />
+  }
+  if (tool.engine === 'system' || tool.engine === 'network') {
+    return <GenericUtility tool={tool} state={state} forceSystem />
+  }
+  if (tool.engine === 'fun') {
+    return <GenericUtility tool={tool} state={state} forceFun />
+  }
+  if (tool.engine === 'security') {
+    return <GenericUtility tool={tool} state={state} forceSecurity />
+  }
+  if (tool.engine === 'office' || tool.engine === 'knowledge' || tool.engine === 'creative') {
+    return <GenericUtility tool={tool} state={state} />
   }
 
   return <GenericUtility tool={tool} state={state} />
@@ -115,10 +135,16 @@ function BinAndFiles({
 
 function GenericUtility({
   tool,
-  state
+  state,
+  forceSystem,
+  forceFun,
+  forceSecurity
 }: {
   tool: ToolEntry
   state: EnvironmentState
+  forceSystem?: boolean
+  forceFun?: boolean
+  forceSecurity?: boolean
 }): React.JSX.Element {
   const key = tool.name.toLowerCase()
   const [text, setText] = useState('Tri-Cass Desk')
@@ -130,21 +156,43 @@ function GenericUtility({
     setText('Tri-Cass Desk')
   }, [tool.id])
 
-  // Auto-run a few pure utilities when opened
   useEffect(() => {
     if (key.includes('uuid')) setOut(uuidv4())
     if (key.includes('world clock') || key.includes('unix timestamp') || key.includes('epoch')) {
       setOut(`${Date.now()} · ${format(new Date(), 'PPpp')}`)
     }
-    if (key.includes('sensor') || key.includes('gpu pane') || key.includes('resource')) {
+    if (
+      forceSystem ||
+      key.includes('sensor') ||
+      key.includes('gpu pane') ||
+      key.includes('resource') ||
+      key.includes('thermal') ||
+      key.includes('battery') ||
+      key.includes('display') ||
+      key.includes('about desk')
+    ) {
       const s = state.system
       setOut(
-        `CPU ${(s.cpuLoad * 100).toFixed(1)}%\nRAM ${(s.ramUsedRatio * 100).toFixed(1)}%\nGPU ${
+        `${tool.name}\nCPU ${(s.cpuLoad * 100).toFixed(1)}%\nRAM ${(s.ramUsedRatio * 100).toFixed(1)}%\nGPU ${
           s.gpuLoad != null ? `${(s.gpuLoad * 100).toFixed(1)}%` : 'n/a'
-        }\nscene ${state.weather.condition}`
+        }\nCPU° ${s.cpuTempC ?? 'n/a'} · GPU° ${s.gpuTempC ?? 'n/a'}\nprocesses ${s.processCount}\nscene ${state.weather.condition} · ${state.freshness}`
       )
     }
-  }, [key, state])
+  }, [key, state, forceSystem, tool.name])
+
+  if (forceFun || key.includes('dice') || key.includes('coin') || key.includes('card') || key.includes('snake') || key.includes('2048') || key.includes('minesweeper') || key.includes('breakout') || key.includes('memory') || key.includes('pet pixel') || key.includes('garden') || key.includes('typing') || key.includes('trivia') || key.includes('breathing') || key.includes('stretch') || key.includes('ambient mixer') || key.includes('constellation') || key.includes('timer race') || key.includes('stopwatch') || key.includes('pomodoro')) {
+    if (key.includes('pomodoro') || key.includes('stopwatch') || key.includes('timer') || key.includes('focus')) {
+      return <TimerTool mode={key} />
+    }
+    if (key.includes('snake') || key.includes('2048') || key.includes('minesweeper') || key.includes('breakout') || key.includes('memory') || key.includes('pet') || key.includes('garden') || key.includes('constellation')) {
+      return <MiniGame mode={key} />
+    }
+    return <FunChance mode={key.includes('coin') ? 'coin' : key.includes('card') ? 'card' : 'dice'} />
+  }
+
+  if (forceSecurity || key.includes('password') || key.includes('passphrase') || key.includes('entropy') || key.includes('random bytes') || key.includes('token vault') || key.includes('secret') || key.includes('certificate') || key.includes('jwt safe')) {
+    return <PasswordTool mode={key} />
+  }
 
   if (key.includes('markdown') || key.includes('reader')) {
     const html = DOMPurify.sanitize(marked.parse(text) as string)

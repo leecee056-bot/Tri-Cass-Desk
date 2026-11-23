@@ -13,6 +13,19 @@
   );
 }
 
+.ref-plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: var(--ref-opacity, 0.5);
+  filter: saturate(1.05) contrast(1.05);
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
 .sky {
   position: absolute;
   inset: 0;

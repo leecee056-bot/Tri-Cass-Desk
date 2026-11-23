@@ -1,19 +1,22 @@
 import { useMemo, useState } from 'react'
 import type { EnvironmentState } from '../../../shared/environment'
 import { TOOL_CATALOG, TOOL_GROUPS, type ToolEntry, type ToolGroup } from './catalog'
-import UniversalTool from './engines/UniversalTool'
 import '../features/features.css'
 
 type Props = {
   state: EnvironmentState
   onOpenDock: (id: string) => void
+  onOpenTool?: (tool: ToolEntry) => void
   initialToolId?: string | null
 }
 
-export default function ToolsHub({ state, onOpenDock, initialToolId = null }: Props): React.JSX.Element {
+export default function ToolsHub({
+  state,
+  onOpenDock,
+  onOpenTool
+}: Props): React.JSX.Element {
   const [query, setQuery] = useState('')
   const [group, setGroup] = useState<ToolGroup | 'all'>('all')
-  const [toolId, setToolId] = useState<string | null>(initialToolId)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -24,29 +27,7 @@ export default function ToolsHub({ state, onOpenDock, initialToolId = null }: Pr
     })
   }, [query, group])
 
-  const active: ToolEntry | undefined = TOOL_CATALOG.find((t) => t.id === toolId)
-
-  if (active) {
-    return (
-      <div className="feature">
-        <div className="feature-toolbar">
-          <button type="button" className="btn btn-ghost" onClick={() => setToolId(null)}>
-            ← Catalog ({TOOL_CATALOG.length})
-          </button>
-          <strong>{active.name}</strong>
-          <span className="status-line">
-            {active.group} · {active.engine}
-          </span>
-        </div>
-        <UniversalTool
-          tool={active}
-          state={state}
-          onOpenDock={onOpenDock}
-          onClose={() => setToolId(null)}
-        />
-      </div>
-    )
-  }
+  void state
 
   return (
     <div className="feature">
@@ -70,8 +51,7 @@ export default function ToolsHub({ state, onOpenDock, initialToolId = null }: Pr
         </select>
       </div>
       <p className="status-line">
-        {filtered.length} shown · glass UI · ready-made engines (browser, media, terminal, editor,
-        jszip, qrcode, marked, xterm, monaco…)
+        {filtered.length} shown · opens as floating glass windows · local / offline-first
       </p>
       <div className="tools-grid" style={{ overflow: 'auto' }}>
         {filtered.map((t) => (
@@ -79,7 +59,13 @@ export default function ToolsHub({ state, onOpenDock, initialToolId = null }: Pr
             key={t.id}
             type="button"
             className={`tool-card ${t.status}`}
-            onClick={() => setToolId(t.id)}
+            onClick={() => {
+              if (['chat', 'agents', 'files', 'vault', 'browse'].includes(t.id.split('-')[0]!)) {
+                /* fall through */
+              }
+              if (onOpenTool) onOpenTool(t)
+              else onOpenDock('tools')
+            }}
           >
             <strong>{t.name}</strong>
             <span>

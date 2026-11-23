@@ -98,16 +98,9 @@
   color: var(--accent);
 }
 
-.health-panel {
-  grid-column: 1;
-  grid-row: 2;
-  align-self: start;
-}
-
+.health-panel,
 .system-panel {
-  grid-column: 3;
-  grid-row: 2;
-  align-self: end;
+  width: 100%;
 }
 
 .workspace-panel {
@@ -126,12 +119,15 @@
 }
 
 .controls-bar {
-  grid-column: 1 / -1;
-  grid-row: 3;
   display: flex;
   flex-wrap: wrap;
-  gap: 14px 18px;
+  gap: 8px 12px;
   align-items: center;
+  padding: 6px 10px;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  backdrop-filter: none;
 }
 
 .controls-bar label {

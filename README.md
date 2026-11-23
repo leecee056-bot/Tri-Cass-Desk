@@ -4,14 +4,10 @@ Local-only living companion for **Tri-Cass OS** — Earthbound/Celestial atmosph
 
 ## Highlights
 
+- **Floating glass window manager** over a full-bleed living scene (Earthbound/Celestial reference plate + telemetry FX) — not a dashboard grid
 - **Living scene** — CPU/RAM/GPU/temp/disk → rain, clouds, aurora, heat, wind; clock → day/night
-- **240 tools** across companion, system, browser, media, creative, dev, knowledge, office, security, network, fun
-- **Glass surfaces** (rounded frosted chrome — no sharp OS windows):
-  - In-desk **Browser** (Electron `webview`)
-  - **Media player** (local audio/video, speed/loop/volume)
-  - **Terminal** ([xterm](https://xtermjs.org/) + allowlisted commands)
-  - **Editor** (glass textarea + optional [Monaco](https://microsoft.github.io/monaco-editor/))
-  - **Bin** soft-delete shelf
+- **Dock apps**: chat, agents, files, vault, browser (tabs/bookmarks/history), media (playlist), terminal, editor, tools, bin, settings
+- **240 tools** open as frosted floating windows, routed by engine (browser/media/dev/system/fun/security/…)
 - Ready-made libs: `qrcode`, `jszip`, `marked`+`dompurify`, `papaparse`, `date-fns`, `uuid`, `@xterm/xterm`, `monaco-editor`
 
 ## Develop (Windows)

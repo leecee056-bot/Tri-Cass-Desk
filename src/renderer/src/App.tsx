@@ -1,64 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useEnvironment } from './hooks/useEnvironment'
 import LivingScene from './scene/LivingScene'
-import AgentsView from './features/AgentsView'
-import BrowseView from './features/BrowseView'
-import ChatView from './features/ChatView'
-import FilesView from './features/FilesView'
-import SettingsView from './features/SettingsView'
-import VaultView from './features/VaultView'
-import BrowserSurface from './surfaces/BrowserSurface'
-import MediaSurface from './surfaces/MediaSurface'
-import TerminalSurface from './surfaces/TerminalSurface'
-import EditorSurface from './surfaces/EditorSurface'
-import ClockPanel from './shell/ClockPanel'
-import ControlsBar from './shell/ControlsBar'
 import Dock from './shell/Dock'
-import HealthPanel from './shell/HealthPanel'
-import SystemPanel from './shell/SystemPanel'
-import WorkspacePanel from './shell/WorkspacePanel'
-import ToolsHub from './tools/ToolsHub'
-import { TOOL_CATALOG } from './tools/catalog'
-import UniversalTool from './tools/engines/UniversalTool'
+import ControlsBar from './shell/ControlsBar'
+import FloatingWindow from './wm/FloatingWindow'
+import AppHost from './wm/AppHost'
+import { useWindowManager } from './wm/useWindowManager'
 import './shell/shell.css'
 import './features/features.css'
 import './surfaces/surfaces.css'
-
-function workspaceMeta(active: string): { title: string; subtitle: string } {
-  switch (active) {
-    case 'tools':
-    case 'launcher':
-      return {
-        title: 'Apps & Tools',
-        subtitle: `${TOOL_CATALOG.length} glass utilities`
-      }
-    case 'files':
-      return { title: 'Files', subtitle: 'Local workspace & home' }
-    case 'agents':
-      return { title: 'Agents', subtitle: 'Allowlisted local agent' }
-    case 'vault':
-      return { title: 'Knowledge Vault', subtitle: 'Notes on this PC' }
-    case 'browse':
-      return { title: 'Glass Browser', subtitle: 'In-desk browsing · frosted chrome' }
-    case 'media':
-      return { title: 'Media Player', subtitle: 'Local audio / video · VLC-class controls' }
-    case 'terminal':
-      return { title: 'Terminal', subtitle: 'xterm · allowlisted commands' }
-    case 'editor':
-      return { title: 'Editor', subtitle: 'Glass code desk (+ Monaco)' }
-    case 'bin':
-      return { title: 'Bin', subtitle: 'Soft-delete shelf' }
-    case 'settings':
-      return { title: 'Settings', subtitle: 'Environment + snapshots' }
-    case 'chat':
-    default:
-      return { title: 'Chat', subtitle: 'Local Ollama chat' }
-  }
-}
+import './wm/wm.css'
 
 export default function App(): React.JSX.Element {
   const { state, setPreferences, wake } = useEnvironment()
-  const [active, setActive] = useState('chat')
+  const { windows, openApp, focus, close, move, minimize } = useWindowManager()
 
   useEffect(() => {
     const onPointer = (): void => {
@@ -72,95 +27,66 @@ export default function App(): React.JSX.Element {
     }
   }, [])
 
-  const meta = workspaceMeta(active)
-  const binTool = TOOL_CATALOG.find((t) => t.name.toLowerCase().includes('recycle'))
-
-  let body: React.ReactNode
-  switch (active) {
-    case 'tools':
-    case 'launcher':
-      body = <ToolsHub state={state} onOpenDock={setActive} />
-      break
-    case 'files':
-      body = <FilesView />
-      break
-    case 'agents':
-      body = <AgentsView />
-      break
-    case 'vault':
-      body = <VaultView />
-      break
-    case 'browse':
-      body = <BrowserSurface />
-      break
-    case 'media':
-      body = <MediaSurface />
-      break
-    case 'terminal':
-      body = <TerminalSurface />
-      break
-    case 'editor':
-      body = <EditorSurface />
-      break
-    case 'bin':
-      body = binTool ? (
-        <UniversalTool
-          tool={binTool}
-          state={state}
-          onOpenDock={setActive}
-          onClose={() => setActive('tools')}
-        />
-      ) : (
-        <p className="status-line">Bin shelf</p>
-      )
-      break
-    case 'settings':
-      body = (
-        <SettingsView
-          state={state}
-          activeDock={active}
-          onChange={(prefs) => {
-            void setPreferences(prefs)
-          }}
-          onRestoreDock={setActive}
-        />
-      )
-      break
-    case 'chat':
-    default:
-      body = active === 'browse-legacy' ? <BrowseView /> : <ChatView />
-      break
-  }
+  const minimized = windows.filter((w) => w.minimized)
 
   return (
-    <>
+    <div className={`desk-root ${state.activity.workspaceState}`}>
       <LivingScene state={state} />
-      <div className={`desk-ui ${state.activity.workspaceState}`}>
-        <div className="brand-mark">
-          <h1>Tri-Cass Desk</h1>
-          <p>Local living companion</p>
+
+      <div className="desk-brand-float">
+        <h1>Tri-Cass Desk</h1>
+        <p>Local living companion</p>
+      </div>
+
+      {windows.map((win) => (
+        <FloatingWindow
+          key={win.id}
+          win={win}
+          onFocus={() => focus(win.id)}
+          onClose={() => close(win.id)}
+          onMinimize={() => minimize(win.id)}
+          onMove={(x, y) => move(win.id, x, y)}
+        >
+          <AppHost
+            win={win}
+            state={state}
+            setPreferences={setPreferences}
+            openApp={openApp}
+            close={() => close(win.id)}
+          />
+        </FloatingWindow>
+      ))}
+
+      <div className="desk-dock-wrap">
+        {minimized.length > 0 ? (
+          <div className="mini-tray">
+            {minimized.map((w) => (
+              <button key={w.id} type="button" onClick={() => focus(w.id)}>
+                {w.title}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        <div className="glass" style={{ borderRadius: 22, padding: '6px 8px' }}>
+          <ControlsBar
+            state={state}
+            onChange={(prefs) => {
+              void setPreferences(prefs)
+            }}
+            onWake={() => {
+              void wake()
+              windows.forEach((w) => {
+                if (w.minimized) focus(w.id)
+              })
+            }}
+          />
         </div>
-        <ClockPanel state={state} />
-        <HealthPanel state={state} />
-        <WorkspacePanel title={meta.title} subtitle={meta.subtitle}>
-          {body}
-        </WorkspacePanel>
-        <SystemPanel state={state} />
-        <ControlsBar
-          state={state}
-          onChange={(prefs) => {
-            void setPreferences(prefs)
-          }}
-          onWake={() => {
-            void wake()
-          }}
-        />
         <Dock
-          activeId={active === 'launcher' ? 'launcher' : active}
-          onSelect={setActive}
+          activeId=""
+          onSelect={(id) => openApp(id)}
           dimmed={state.activity.workspaceState !== 'active'}
         />
       </div>
-    </>
+    </div>
   )
 }

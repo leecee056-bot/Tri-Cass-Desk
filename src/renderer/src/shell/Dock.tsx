@@ -16,12 +16,12 @@ const ITEMS = [
 ] as const
 
 type Props = {
-  activeId: string
+  activeId?: string
   onSelect: (id: string) => void
   dimmed?: boolean
 }
 
-export default function Dock({ activeId, onSelect, dimmed }: Props): React.JSX.Element {
+export default function Dock({ activeId = '', onSelect, dimmed }: Props): React.JSX.Element {
   return (
     <nav className={`dock glass ${dimmed ? 'dock-dim' : ''}`} aria-label="Desk dock">
       {ITEMS.map((item) => (
