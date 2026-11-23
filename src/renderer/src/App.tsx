@@ -15,19 +15,27 @@ export default function App(): React.JSX.Element {
   const { windows, openApp, focus, close, move, minimize } = useWindowManager()
 
   useEffect(() => {
-    const onPointer = (): void => {
+    let last = 0
+    const ping = (): void => {
+      const now = Date.now()
+      if (now - last < 400) return
+      last = now
       void window.desk?.noteActivity()
     }
-    window.addEventListener('pointerdown', onPointer)
-    window.addEventListener('keydown', onPointer)
+    window.addEventListener('pointerdown', ping)
+    window.addEventListener('pointermove', ping)
+    window.addEventListener('keydown', ping)
     return () => {
-      window.removeEventListener('pointerdown', onPointer)
-      window.removeEventListener('keydown', onPointer)
+      window.removeEventListener('pointerdown', ping)
+      window.removeEventListener('pointermove', ping)
+      window.removeEventListener('keydown', ping)
     }
   }, [])
 
   const minimized = windows.filter((w) => w.minimized)
-  const idle = state.activity.workspaceState !== 'active'
+  const idle =
+    state.activity.workspaceState === 'ambient_idle' ||
+    state.activity.workspaceState === 'resting'
 
   return (
     <div className={`desk-root ${state.activity.workspaceState}`}>

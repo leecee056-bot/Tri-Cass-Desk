@@ -334,6 +334,9 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
       <img className="scene-plate" src={landscape} alt="" draggable={false} />
       <div className="mood-wash" aria-hidden />
       <div className="scene-grade" aria-hidden />
+      <div className="aurora-band" aria-hidden />
+      <div className="star-field" aria-hidden />
+      <div className="water-sheet" aria-hidden />
 
       {/* Interactive vegetation layers — breeze + pointer proximity */}
       <div className="flora-layer left" aria-hidden>
