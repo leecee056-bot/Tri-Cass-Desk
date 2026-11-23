@@ -6,6 +6,7 @@ const ITEMS = [
   { id: 'browse', label: 'Browser', color: '#6ec8ff', path: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 0c2.5 2.8 4 6 4 9s-1.5 6.2-4 9c-2.5-2.8-4-6-4-9s1.5-6.2 4-9zm-8.5 8.5h17M3.5 15.5h17' },
   { id: 'editor', label: 'Editor', color: '#7dffc8', path: 'M4 19.5V5a2 2 0 0 1 2-2h8l6 6v10.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM14 3v5h5' },
   { id: 'notes', label: 'Notes', color: '#c9a0ff', path: 'M6 3h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm8 1v4h4M8 12h8M8 16h6' },
+  { id: 'vault', label: 'Vault', color: '#ffb86b', path: 'M6 10V7a6 6 0 0 1 12 0v3M5 10h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm7 3v4' },
   { id: 'media', label: 'Media', color: '#ff7a9a', path: 'M9 18V6l12-2v12M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm12-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0z' },
   { id: 'terminal', label: 'Terminal', color: '#7dffb0', path: 'M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm3 4 3 3-3 3m5 0h5' },
   { id: 'chat', label: 'Chat', color: '#7ad7ff', path: 'M4 6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H9l-5 3v-3.5A3 3 0 0 1 4 14V6z' },

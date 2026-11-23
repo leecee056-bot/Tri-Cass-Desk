@@ -21,11 +21,20 @@ export type FileEntry = {
   mtimeMs: number
 }
 
+export type VaultItemKind = 'note' | 'login'
+
 export type VaultNote = {
   id: string
   title: string
   body: string
   updatedAt: number
+  /** Bitwarden-lite fields (optional for older notes). */
+  kind?: VaultItemKind
+  username?: string
+  password?: string
+  url?: string
+  folder?: string
+  favorite?: boolean
 }
 
 export type ProcessRow = {

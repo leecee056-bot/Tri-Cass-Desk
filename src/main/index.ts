@@ -214,7 +214,7 @@ function registerIpc(): void {
   ipcMain.handle(IPC.vaultGet, async (_e, id: string) => getNote(id))
   ipcMain.handle(
     IPC.vaultSave,
-    async (_e, note: { id?: string; title: string; body: string }) => saveNote(note)
+    async (_e, note: Parameters<typeof saveNote>[0]) => saveNote(note)
   )
   ipcMain.handle(IPC.vaultDelete, async (_e, id: string) => deleteNote(id))
 
