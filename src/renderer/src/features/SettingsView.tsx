@@ -99,8 +99,21 @@ export default function SettingsView({
           <p className="status-line">No snapshots yet — saves active dock + label locally.</p>
         ) : null}
       </div>
+      <div className="tool-stack" style={{ marginTop: 12 }}>
+        <p className="status-line">
+          <strong>Living world controls</strong>
+        </p>
+        <p className="status-line">
+          Edge-pan for 360° yaw · Alt/⌘-drag to orbit · Shift+wheel yaw · Alt+wheel pitch. Windows
+          stay fixed on screen.
+        </p>
+        <p className="status-line">
+          Atmosphere is local telemetry (CPU/RAM/processes), not outdoor weather APIs.
+        </p>
+      </div>
       <p className="status-line">
-        Freshness: {state.freshness} · activity: {state.activity.workspaceState}
+        Freshness: {state.freshness} · activity: {state.activity.workspaceState} · CPU{' '}
+        {Math.round(state.system.cpuLoad * 100)}% · phase {state.solar.phase.replaceAll('_', ' ')}
       </p>
     </div>
   )

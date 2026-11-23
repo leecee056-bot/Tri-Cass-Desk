@@ -52,7 +52,7 @@ export default function AppHost({
 
   switch (win.appId) {
     case 'chat':
-      return <ChatView onCloseWindow={close} />
+      return <ChatView onCloseWindow={close} openApp={openApp} />
     case 'agents':
       return <AgentsView />
     case 'files':

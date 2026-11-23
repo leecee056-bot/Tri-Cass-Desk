@@ -290,6 +290,7 @@
 }
 
 /* —— Chat (multi-session) —— */
+.chat-view,
 .chat-app {
   display: grid;
   grid-template-columns: 1fr;
@@ -298,8 +299,9 @@
   gap: 0;
 }
 
+.chat-view.with-side,
 .chat-app.with-side {
-  grid-template-columns: 150px 1fr;
+  grid-template-columns: 168px 1fr;
   gap: 10px;
 }
 
@@ -423,4 +425,210 @@
 
 .chat-main .chat-log {
   flex: 1;
+}
+
+.chat-search,
+.chat-kb input,
+.notes-side input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--rim);
+  border-radius: 8px;
+  color: var(--ink);
+  padding: 6px 8px;
+  font-size: 0.78rem;
+}
+
+.chat-mode-switch {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.chat-mode-switch .btn.on,
+.btn.on {
+  background: rgba(122, 215, 255, 0.22);
+}
+
+.chat-mode-tag {
+  font-style: normal;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-right: 4px;
+}
+
+.chat-kb {
+  display: grid;
+  gap: 8px;
+  max-height: 180px;
+  overflow: auto;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-kb details {
+  font-size: 0.75rem;
+}
+
+.chat-kb pre {
+  white-space: pre-wrap;
+  font-size: 0.7rem;
+  opacity: 0.9;
+  margin: 6px 0 0;
+}
+
+.chat-empty {
+  padding: 12px;
+}
+
+.chat-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.chat-bubble.thinking {
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.chat-check {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px;
+}
+
+.agents-layout {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 10px;
+  min-height: 200px;
+  flex: 1;
+}
+
+.agent-sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: auto;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  padding-right: 6px;
+}
+
+.agent-permission {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 180, 80, 0.12);
+  border: 1px solid rgba(255, 180, 80, 0.35);
+}
+
+.agents-view {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  min-height: 0;
+}
+
+.notes-app {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 10px;
+  height: 100%;
+  min-height: 220px;
+}
+
+.notes-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  padding-right: 8px;
+}
+
+.notes-list {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notes-item {
+  text-align: left;
+  padding: 8px;
+  border-radius: 10px;
+  background: transparent;
+  border: 0;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.notes-item.on {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--ink);
+}
+
+.notes-item strong {
+  display: block;
+  font-size: 0.8rem;
+}
+
+.notes-item span {
+  display: block;
+  font-size: 0.68rem;
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notes-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.notes-title {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.notes-area {
+  flex: 1;
+  width: 100%;
+  min-height: 120px;
+  resize: none;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: var(--ink);
+  padding: 10px;
+}
+
+.files-path-bar {
+  font-family: ui-monospace, monospace;
+  font-size: 0.72rem;
 }

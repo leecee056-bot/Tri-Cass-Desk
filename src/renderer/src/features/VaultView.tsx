@@ -2,16 +2,25 @@ import { useEffect, useState } from 'react'
 import type { VaultNote } from '../../../shared/types'
 import './features.css'
 
+/** Local vault — market intent: secure notes / Bitwarden-lite plaintext store. */
 export default function VaultView(): React.JSX.Element {
   const [notes, setNotes] = useState<VaultNote[]>([])
   const [active, setActive] = useState<VaultNote | null>(null)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
+  const [q, setQ] = useState('')
 
   const refresh = async (): Promise<void> => {
     if (!window.desk) return
     setNotes(await window.desk.vaultList())
   }
+
+  const visible = notes.filter(
+    (n) =>
+      !q.trim() ||
+      n.title.toLowerCase().includes(q.toLowerCase()) ||
+      n.body.toLowerCase().includes(q.toLowerCase())
+  )
 
   useEffect(() => {
     void refresh()
@@ -64,9 +73,16 @@ export default function VaultView(): React.JSX.Element {
           </button>
         ) : null}
       </div>
+      <input
+        placeholder="Search vault…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        aria-label="Search vault"
+        style={{ marginBottom: 8 }}
+      />
       <div className="split-2">
         <div className="vault-list">
-          {notes.map((n) => (
+          {visible.map((n) => (
             <div
               key={n.id}
               className={`vault-row ${active?.id === n.id ? 'on' : ''}`}

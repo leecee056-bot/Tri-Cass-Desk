@@ -11,8 +11,8 @@ type Props = {
 }
 
 /**
- * Living companion world: edge-pan camera (windows stay fixed) +
- * Three.js/drei engines for sky, clouds, stars, aurora, water —
+ * Living companion world: 360° edge-pan / orbit (windows stay fixed) +
+ * Three.js/drei sky, stars, sun/moon, weather, aurora, water —
  * all reactive to local system telemetry.
  */
 export default function LivingScene({ state }: Props): React.JSX.Element {
@@ -65,13 +65,16 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
           '--idle-scale': String(idleScale),
           '--cam-x': `${cam.x}px`,
           '--cam-y': `${cam.y}px`,
+          '--yaw': String(cam.yaw),
+          '--pitch': String(cam.pitch),
           '--mood-tint': mood.tint,
           '--night': String(mood.night),
           '--day': String(mood.day),
           '--energy': String(mood.energy),
           '--wind': String(mood.wind),
           '--warmth': String(mood.warmth),
-          '--load': String(system.cpuLoad)
+          '--load': String(system.cpuLoad),
+          '--rain': String(weather.rain)
         } as React.CSSProperties
       }
       data-phase={solar.phase}
@@ -79,7 +82,12 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
       data-condition={weather.condition}
     >
       <div className="world-stage" aria-hidden={false}>
-        <img className="scene-plate" src={landscape} alt="" draggable={false} />
+        {/* Tiled plates so 360° yaw never hits a hard edge */}
+        <div className="plate-strip">
+          <img className="scene-plate" src={landscape} alt="" draggable={false} />
+          <img className="scene-plate" src={landscape} alt="" draggable={false} />
+          <img className="scene-plate" src={landscape} alt="" draggable={false} />
+        </div>
         <SceneErrorBoundary>
           <LivingWorldCanvas
             state={state}
@@ -87,6 +95,7 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
             night={mood.night}
             day={mood.day}
             wind={mood.wind}
+            yaw={cam.yaw}
           />
         </SceneErrorBoundary>
         <div className="day-night-veil" />
@@ -94,11 +103,11 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
       </div>
       <div className="scene-vignette" aria-hidden />
       <div className="edge-hint" aria-hidden>
-        Push cursor to edges to explore
+        Edge-pan · Alt-drag · Shift-wheel · 360°
       </div>
       <div className="scene-live" aria-live="polite">
         <span className="live-dot" />
-        Living · {health.band} · {solar.phase.replaceAll('_', ' ')} · CPU{' '}
+        Living · {Math.round(cam.yaw)}° · {health.band} · {solar.phase.replaceAll('_', ' ')} · CPU{' '}
         {Math.round(system.cpuLoad * 100)}%
       </div>
     </div>

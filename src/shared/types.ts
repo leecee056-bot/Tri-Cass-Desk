@@ -66,7 +66,16 @@ export type WorkspaceSnapshot = {
 
 export type AgentStep = {
   at: number
-  kind: 'thought' | 'tool' | 'result' | 'error'
+  kind:
+    | 'thought'
+    | 'tool'
+    | 'result'
+    | 'error'
+    | 'plan'
+    | 'note'
+    | 'llm'
+    | 'permission'
+    | 'knowledge'
   text: string
 }
 
@@ -74,5 +83,6 @@ export type AgentRun = {
   id: string
   prompt: string
   steps: AgentStep[]
-  status: 'running' | 'done' | 'error'
+  status?: 'running' | 'done' | 'error'
+  at?: number
 }

@@ -8,25 +8,38 @@
   transition: transform 2s ease;
 }
 
-/* World moves under a fixed UI layer — camera pan */
+/* World moves under a fixed UI layer — 360° yaw scrolls tiled plates */
 .world-stage {
   position: absolute;
-  inset: -22%;
-  width: 144%;
-  height: 144%;
-  transform: translate3d(var(--cam-x, 0), var(--cam-y, 0), 0);
+  inset: -28% -10%;
+  width: 120%;
+  height: 156%;
+  transform: translate3d(0, var(--cam-y, 0), 0);
+  will-change: transform;
+}
+
+.plate-strip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -100%;
+  display: flex;
+  width: 300%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  /* cam.x scrolls forever; tiles repeat the landscape for 360° */
+  transform: translate3d(var(--cam-x, 0), 0, 0);
   will-change: transform;
 }
 
 .scene-plate {
-  position: absolute;
-  inset: 0;
-  width: 100%;
+  flex: 0 0 33.333%;
+  width: 33.333%;
   height: 100%;
   object-fit: cover;
   object-position: center 42%;
   pointer-events: none;
-  z-index: 1;
   filter: saturate(calc(1.02 + var(--load, 0) * 0.12))
     brightness(calc(0.78 + var(--day, 0.4) * 0.35 + var(--warmth, 0.2) * 0.1));
   transition: filter 1.8s ease;
