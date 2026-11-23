@@ -11,19 +11,17 @@ type Props = {
   sunDir: THREE.Vector3
 }
 
-type LayerKind = 'meadow' | 'reed' | 'flower' | 'clover' | 'fern'
+type LayerKind = 'meadow' | 'reed' | 'flower'
 
 /**
  * Multi-layer shoreline flora — thin GPU-instanced blades.
  * Technique adapted from GrassSystemThreeJS (MIT © mohamedachrefelouafi).
- * Layers: clover undergrowth, meadow, ferns, reeds, wildflowers + shrubs.
+ * Layers: meadow grass, tall reeds, wildflower accents — lake stays open.
  */
 export function VegetationEngine(props: Props): React.JSX.Element {
   return (
     <group>
-      <BladeLayer kind="clover" {...props} />
       <BladeLayer kind="meadow" {...props} />
-      <BladeLayer kind="fern" {...props} />
       <BladeLayer kind="reed" {...props} />
       <BladeLayer kind="flower" {...props} />
       <ShrubClumps lowPower={props.lowPower} mood={props.mood} />
@@ -107,8 +105,7 @@ function BladeLayer({
       uColorVarAmt: { value: cfg.colorVar },
       uHeat: { value: 0 },
       uSunDir: { value: new THREE.Vector3(1, 1, 1) },
-      uFlower: { value: kind === 'flower' ? 1 : 0 },
-      uNight: { value: 0 }
+      uFlower: { value: kind === 'flower' ? 1 : 0 }
     }
 
     return { geometry, uniforms }
@@ -134,7 +131,6 @@ function BladeLayer({
     )
     uniforms.uGust.value = THREE.MathUtils.lerp(uniforms.uGust.value, 0.28 + mood.wind * 0.7, 0.08)
     uniforms.uHeat.value = THREE.MathUtils.lerp(uniforms.uHeat.value, mood.heat, 0.08)
-    uniforms.uNight.value = THREE.MathUtils.lerp(uniforms.uNight.value, mood.nightness, 0.08)
     uniforms.uSunDir.value.copy(sunDir)
     const cx = (pointer.nx - 0.5) * 24
     const cz = 12 - pointer.ny * 14
@@ -147,18 +143,6 @@ function BladeLayer({
     if (kind === 'flower') {
       const h = (mood.heat * 0.15 + mood.activity * 0.08) % 1
       uniforms.uColorTip.value.setHSL(0.12 + h * 0.35, 0.88, 0.64)
-    } else if (kind === 'clover') {
-      uniforms.uColorTip.value.setRGB(
-        THREE.MathUtils.lerp(0.35, 0.55, mood.heat),
-        THREE.MathUtils.lerp(0.72, 0.48, mood.heat),
-        THREE.MathUtils.lerp(0.28, 0.16, mood.heat)
-      )
-    } else if (kind === 'fern') {
-      uniforms.uColorTip.value.setRGB(
-        THREE.MathUtils.lerp(0.28, 0.5, mood.heat),
-        THREE.MathUtils.lerp(0.55, 0.38, mood.heat),
-        THREE.MathUtils.lerp(0.22, 0.14, mood.heat)
-      )
     } else if (kind === 'meadow') {
       uniforms.uColorTip.value.setRGB(
         THREE.MathUtils.lerp(0.62, 0.78, mood.heat),
@@ -178,30 +162,12 @@ function BladeLayer({
 }
 
 const LAYER_CFG = {
-  clover: {
-    seed: 0xc10a11,
-    lowCount: 5000,
-    hiCount: 14000,
-    lowFill: 0.6,
-    hiFill: 0.9,
-    heightScale: 0.22,
-    widthScale: 0.05,
-    curl: 0.25,
-    windSpeed: 1.8,
-    colorVar: 0.4,
-    base: 0x1a4014,
-    tip: 0x5a9a38,
-    place: (rand: () => number) => {
-      if (rand() < 0.8) return { x: (rand() - 0.5) * 28, z: 2 + rand() * 11 }
-      return { x: (rand() < 0.5 ? -1 : 1) * (8 + rand() * 10), z: -8 + rand() * 14 }
-    }
-  },
   meadow: {
     seed: 0x91a11e,
-    lowCount: 8000,
-    hiCount: 24000,
+    lowCount: 9000,
+    hiCount: 28000,
     lowFill: 0.65,
-    hiFill: 0.92,
+    hiFill: 0.95,
     heightScale: 0.72,
     widthScale: 0.024,
     curl: 0.95,
@@ -211,31 +177,10 @@ const LAYER_CFG = {
     tip: 0xb4f04e,
     place: (rand: () => number) => {
       const r = rand()
+      // Bias density into the near meadow so fullness reads on camera
       if (r < 0.72) return { x: (rand() - 0.5) * 30, z: 2 + rand() * 11 }
       if (r < 0.86) return { x: -8 - rand() * 14, z: -10 + rand() * 16 }
       return { x: 8 + rand() * 14, z: -10 + rand() * 16 }
-    }
-  },
-  fern: {
-    seed: 0xfe12a1,
-    lowCount: 1600,
-    hiCount: 4800,
-    lowFill: 0.5,
-    hiFill: 0.78,
-    heightScale: 0.95,
-    widthScale: 0.06,
-    curl: 1.15,
-    windSpeed: 0.95,
-    colorVar: 0.38,
-    base: 0x143218,
-    tip: 0x4a7a32,
-    place: (rand: () => number) => {
-      // Shade under tree banks + damp pockets
-      if (rand() < 0.55) {
-        const side = rand() < 0.5 ? -1 : 1
-        return { x: side * (10 + rand() * 8), z: -6 + rand() * 12 }
-      }
-      return { x: (rand() - 0.5) * 20, z: 4 + rand() * 7 }
     }
   },
   reed: {
@@ -398,7 +343,6 @@ uniform vec3 uColorBase;
 uniform vec3 uColorTip;
 uniform float uColorVarAmt;
 uniform float uHeat;
-uniform float uNight;
 uniform vec3 uSunDir;
 uniform float uFlower;
 varying float vT;
@@ -410,11 +354,9 @@ void main() {
   if (uFlower > 0.5 && vT > 0.72) {
     gcol = mix(gcol, uColorTip * 1.25, smoothstep(0.72, 1.0, vT));
   }
-  // Sunset / heat wash + night cool-down — same mood pipe as sky/water
-  gcol = mix(gcol, vec3(0.72, 0.42, 0.16), uHeat * 0.28 * vT);
-  gcol *= mix(1.0, 0.55, uNight * 0.65);
-  float lit = 0.55 + 0.6 * clamp(uSunDir.y, 0.05, 1.0);
-  float rim = pow(1.0 - abs(vT * 2.0 - 1.0), 2.0) * 0.14;
+  gcol = mix(gcol, vec3(0.62, 0.48, 0.2), uHeat * 0.22 * vT);
+  float lit = 0.62 + 0.55 * clamp(uSunDir.y, 0.05, 1.0);
+  float rim = pow(1.0 - abs(vT * 2.0 - 1.0), 2.0) * 0.12;
   gl_FragColor = vec4(gcol * lit + rim, 1.0);
 }
 `

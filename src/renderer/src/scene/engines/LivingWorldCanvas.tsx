@@ -1,12 +1,11 @@
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
-import { Suspense, useEffect, useMemo, useRef } from 'react'
+import { Suspense, useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import type { EnvironmentState } from '../../../../shared/environment'
 import type { MoodState } from '../../../../shared/mood'
 import landscapeUrl from '../../assets/earthbound-landscape.jpg'
 import waterNormalsUrl from '../../assets/waternormals.jpg'
 import { SkyCloudEngine } from './SkyCloudEngine'
-import { TerrainDecorEngine } from './TerrainDecorEngine'
 import { VegetationEngine } from './VegetationEngine'
 import { WaterEngine } from './WaterEngine'
 
@@ -18,24 +17,32 @@ type Props = {
   lowPower: boolean
 }
 
-/** Distant painted plate — mood-tinted under the procedural Sky. */
-function MountainBackdrop({ mood }: { mood: MoodState }): React.JSX.Element {
+/** Distant painted plate — full-width backdrop under the procedural Sky. */
+function MountainBackdrop({ nightness }: { nightness: number }): React.JSX.Element {
   const tex = useLoader(THREE.TextureLoader, landscapeUrl)
   tex.colorSpace = THREE.SRGBColorSpace
-  const matRef = useRef<THREE.MeshBasicMaterial>(null)
-  useFrame(() => {
-    if (!matRef.current) return
-    matRef.current.color.setHSL(
-      THREE.MathUtils.lerp(0.08, 0.04, mood.heat),
-      0.12 + mood.heat * 0.35,
-      0.9 - mood.nightness * 0.4
-    )
-  })
+  const tint = new THREE.Color().setHSL(0.08, 0.15, 0.92 - nightness * 0.35)
   return (
     <mesh position={[0, 14, -95]}>
       <planeGeometry args={[240, 100]} />
-      <meshBasicMaterial ref={matRef} map={tex} toneMapped={false} color="#fff0e0" />
+      <meshBasicMaterial map={tex} toneMapped={false} color={tint} />
     </mesh>
+  )
+}
+
+function Ground(): React.JSX.Element {
+  return (
+    <group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+        <circleGeometry args={[55, 72]} />
+        <meshStandardMaterial color="#3f5c28" roughness={0.92} metalness={0} />
+      </mesh>
+      {/* Subtle near-shore soil — keeps meadow green without flat patches */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.008, -5]} receiveShadow>
+        <ringGeometry args={[13, 17.5, 64]} />
+        <meshStandardMaterial color="#5a6e36" roughness={0.95} metalness={0} />
+      </mesh>
+    </group>
   )
 }
 
@@ -55,19 +62,18 @@ function FogMood({ mood }: { mood: MoodState }): null {
   const { scene, gl } = useThree()
   useFrame(() => {
     const day = 1 - mood.nightness
-    // Sunset oranges when heat+dusk; cool blue at night; crisp day air
-    const dusk = mood.nightness * (1 - Math.abs(mood.nightness - 0.45) * 1.2)
+    // Sharper mid-distance: lighter fog, punchier exposure
     const fogCol = new THREE.Color().setHSL(
-      THREE.MathUtils.lerp(0.56, 0.06, Math.max(mood.heat, dusk * 1.4)),
-      0.28 + mood.heat * 0.25 + dusk * 0.2,
-      THREE.MathUtils.lerp(0.34, 0.7, day)
+      THREE.MathUtils.lerp(0.56, 0.08, mood.heat * 0.7),
+      0.28 + mood.heat * 0.2,
+      THREE.MathUtils.lerp(0.36, 0.68, day)
     )
     if (scene.fog instanceof THREE.FogExp2) {
       scene.fog.color.copy(fogCol)
-      scene.fog.density = 0.0032 + mood.load * 0.0022 + mood.nightness * 0.0018
+      scene.fog.density = 0.0035 + mood.load * 0.0025 + mood.nightness * 0.0015
     }
     gl.setClearColor(fogCol, 1)
-    gl.toneMappingExposure = 1.05 + day * 0.22 - mood.heat * 0.02
+    gl.toneMappingExposure = 1.05 + day * 0.22 - mood.heat * 0.03
   })
   return null
 }
@@ -94,8 +100,9 @@ function SceneBody({
       <CameraRig yaw={yaw} />
       <FogMood mood={mood} />
       <SkyCloudEngine state={state} mood={mood} lowPower={lowPower} />
-      <MountainBackdrop mood={mood} />
-      <TerrainDecorEngine mood={mood} lowPower={lowPower} />
+      <MountainBackdrop nightness={mood.nightness} />
+      <Ground />
+      {/* Lake sits mid-distance; grass is shoreline only */}
       <group position={[0, 0.02, -6]}>
         <WaterEngine mood={mood} motion={motion} sunDir={sunDir} normals={waterNormals} />
       </group>
@@ -111,8 +118,8 @@ function SceneBody({
 }
 
 /**
- * Opaque Three.js living world — Sky + Water + flora + trees/rocks (OSS stack).
- * Shared mood drives day/night, sunset wash, wind, and heat across every layer.
+ * Opaque Three.js living world — Sky + Water + thin grass (OSS stack).
+ * No CSS plate overlay (that caused the black half-screen).
  */
 export function LivingWorldCanvas(props: Props): React.JSX.Element {
   const dpr: [number, number] = props.lowPower ? [1, 1.15] : [1, 1.5]
@@ -120,7 +127,7 @@ export function LivingWorldCanvas(props: Props): React.JSX.Element {
     <div className="living-canvas-host living-canvas-opaque" aria-hidden>
       <Canvas
         dpr={dpr}
-        shadows
+        shadows={!props.lowPower}
         camera={{ position: [0, 5.2, 15.5], fov: 42, near: 0.3, far: 500 }}
         gl={{
           antialias: !props.lowPower,
@@ -131,8 +138,6 @@ export function LivingWorldCanvas(props: Props): React.JSX.Element {
           gl.setClearColor(0x7aa8c8, 1)
           gl.toneMapping = THREE.ACESFilmicToneMapping
           gl.toneMappingExposure = 1.1
-          gl.shadowMap.enabled = true
-          gl.shadowMap.type = THREE.PCFSoftShadowMap
           scene.fog = new THREE.FogExp2(0x7aa8c8, 0.004)
         }}
         style={{ width: '100%', height: '100%' }}

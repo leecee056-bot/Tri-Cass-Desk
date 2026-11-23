@@ -60,38 +60,21 @@ export function SkyCloudEngine({ state, mood, lowPower }: Props): React.JSX.Elem
         turbidity={turbidity}
       />
 
-      {/* Lower ambient so tree/rock shadows read; key tinted by sunset/heat */}
-      <ambientLight intensity={0.28 + day * 0.32} />
-      <hemisphereLight
-        args={[
-          mood.heat > 0.45 || mood.nightness > 0.35 ? '#ffd0a8' : '#c8e4ff',
-          '#2a3a20',
-          0.38 + day * 0.35
-        ]}
-      />
+      {/* Punchier fill + key for sharper, more vibrant reads */}
+      <ambientLight intensity={0.42 + day * 0.38} />
+      <hemisphereLight args={['#c8e4ff', '#3a5a28', 0.45 + day * 0.4]} />
       <directionalLight
-        castShadow
-        shadow-mapSize-width={lowPower ? 512 : 1024}
-        shadow-mapSize-height={lowPower ? 512 : 1024}
-        shadow-camera-near={2}
-        shadow-camera-far={90}
-        shadow-camera-left={-28}
-        shadow-camera-right={28}
-        shadow-camera-top={28}
-        shadow-camera-bottom={-28}
-        shadow-bias={-0.0004}
-        position={[sunPosition.x * 42, Math.max(8, sunPosition.y * 48), sunPosition.z * 42]}
-        intensity={0.85 + day * 1.35}
-        color={
-          mood.heat > 0.4 || (mood.nightness > 0.25 && mood.nightness < 0.7)
-            ? '#ffb070'
-            : '#fff8e8'
-        }
+        castShadow={!lowPower}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        position={[sunPosition.x * 40, Math.max(6, sunPosition.y * 45), sunPosition.z * 40]}
+        intensity={0.75 + day * 1.45}
+        color={mood.heat > 0.5 ? '#ffb890' : '#fff8e8'}
       />
       <directionalLight
         position={[-18, 12, 10]}
-        intensity={0.15 + day * 0.22}
-        color={mood.nightness > 0.5 ? '#6a90c8' : '#a8d8ff'}
+        intensity={0.22 + day * 0.25}
+        color="#a8d8ff"
       />
 
       {showStars ? (
