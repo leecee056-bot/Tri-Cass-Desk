@@ -14,6 +14,10 @@ const QUICK_APPS: Array<{ id: string; label: string; hint: string }> = [
   { id: 'terminal', label: 'Terminal', hint: 'Shell' },
   { id: 'chat', label: 'Chat', hint: 'LLM' },
   { id: 'projects', label: 'Projects', hint: 'Folders' },
+  { id: 'health', label: 'Mood', hint: 'Focus' },
+  { id: 'atmosphere', label: 'Atmosphere', hint: 'Weather' },
+  { id: 'system', label: 'System', hint: 'Monitor' },
+  { id: 'clock', label: 'Clock', hint: 'Calendar' },
   { id: 'bin', label: 'Bin', hint: 'Trash' },
   { id: 'settings', label: 'Settings', hint: 'Prefs' },
   { id: 'tools', label: 'Tools', hint: 'Utilities' }

@@ -17,8 +17,8 @@ function layoutDefaults(): DeskWindow[] {
       title: 'Mood',
       x: 32,
       y: 40,
-      w: 240,
-      h: 340,
+      w: 300,
+      h: 480,
       z: 8
     },
     {
@@ -46,10 +46,10 @@ function layoutDefaults(): DeskWindow[] {
       id: 'w-atmosphere',
       appId: 'atmosphere',
       title: 'Atmosphere',
-      x: right(270),
+      x: right(340),
       y: 32,
-      w: 270,
-      h: 300,
+      w: 340,
+      h: 460,
       z: 9
     },
     {
@@ -66,10 +66,10 @@ function layoutDefaults(): DeskWindow[] {
       id: 'w-system',
       appId: 'system',
       title: 'System',
-      x: right(260),
-      y: bottom(220),
-      w: 260,
-      h: 220,
+      x: right(400),
+      y: bottom(480),
+      w: 400,
+      h: 480,
       z: 11
     },
     {

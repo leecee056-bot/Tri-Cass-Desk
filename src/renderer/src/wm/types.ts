@@ -49,10 +49,10 @@ export const APP_META: Record<
   settings: { title: 'Settings', w: 420, h: 420, icon: '⚙' },
   bin: { title: 'Bin', w: 480, h: 420, icon: '⌀' },
   launcher: { title: 'Apps', w: 640, h: 520, icon: '▦' },
-  system: { title: 'System', w: 280, h: 240, icon: '◈' },
-  health: { title: 'Mood', w: 250, h: 330, icon: '✧' },
-  clock: { title: 'Clock', w: 220, h: 140, icon: '◔' },
-  atmosphere: { title: 'Atmosphere', w: 280, h: 290, icon: '☁' },
+  system: { title: 'System', w: 420, h: 520, icon: '◈' },
+  health: { title: 'Mood', w: 300, h: 520, icon: '✧' },
+  clock: { title: 'Clock', w: 280, h: 220, icon: '◔' },
+  atmosphere: { title: 'Atmosphere', w: 340, h: 480, icon: '☁' },
   notes: { title: 'Notes', w: 720, h: 520, icon: '✎' },
   projects: { title: 'Projects', w: 420, h: 480, icon: '▤' }
 }
