@@ -3,64 +3,32 @@
   inset: 0;
   overflow: hidden;
   transform: scale(var(--idle-scale, 1));
-  transition: transform 1.8s ease;
-  background: linear-gradient(
-    180deg,
-    var(--sky-top) 0%,
-    var(--sky-mid) 42%,
-    var(--sky-horizon) 68%,
-    #1a1028 100%
-  );
+  transition: transform 2s ease;
+  background: #050814;
 }
 
-.ref-plate {
+/* The landscape is the environment — full-bleed, not a faded wallpaper. */
+.scene-plate {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center bottom;
-  opacity: var(--ref-opacity, 0.45);
-  filter: saturate(1.08) contrast(1.04);
+  object-position: center center;
   pointer-events: none;
+  transform: translateX(calc(var(--parallax, 0) * -1px));
+  transition: transform 8s ease-out;
+  filter: saturate(1.05) contrast(1.02);
+}
+
+.scene-grade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, var(--grade-top) 0%, transparent 38%),
+    linear-gradient(180deg, transparent 40%, var(--grade-mid) 70%, var(--grade-bottom) 100%);
   mix-blend-mode: soft-light;
-}
-
-.sky {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 80% 45% at 70% 18%, rgba(160, 120, 255, 0.28), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 30% 25%, rgba(80, 200, 255, 0.12), transparent 55%);
-  pointer-events: none;
-}
-
-.clouds {
-  position: absolute;
-  inset: 0;
-  opacity: calc(0.15 + var(--cloud) * 0.55);
-  background:
-    radial-gradient(ellipse 40% 18% at 20% 28%, rgba(220, 230, 255, 0.35), transparent 70%),
-    radial-gradient(ellipse 50% 20% at 65% 22%, rgba(200, 210, 240, 0.28), transparent 70%),
-    radial-gradient(ellipse 35% 16% at 85% 34%, rgba(180, 190, 220, 0.22), transparent 70%);
-  filter: blur(2px);
-  animation: drift 48s linear infinite;
-  pointer-events: none;
-}
-
-.moon {
-  position: absolute;
-  top: 9%;
-  right: 14%;
-  width: min(14vw, 150px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 35%, #f4f0ff 0%, #c9c0e8 45%, #7a7398 100%);
-  box-shadow:
-    0 0 40px rgba(220, 210, 255, 0.45),
-    0 0 120px rgba(140, 160, 255, 0.25);
-  pointer-events: none;
 }
 
 .fx-canvas {
@@ -71,116 +39,18 @@
   pointer-events: none;
 }
 
-.ridges {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 18%;
-  height: 42%;
-  background:
-    linear-gradient(180deg, transparent, rgba(10, 8, 20, 0.35)),
-    radial-gradient(ellipse 70% 80% at 50% 100%, #2a2038 0%, transparent 70%),
-    linear-gradient(115deg, transparent 20%, #1c142c 21%, #241a34 40%, transparent 41%),
-    linear-gradient(250deg, transparent 30%, #171022 31%, #20182e 55%, transparent 56%);
-  clip-path: polygon(0% 55%, 8% 48%, 18% 52%, 28% 30%, 40% 44%, 52% 18%, 64% 40%, 76% 28%, 88% 46%, 100% 36%, 100% 100%, 0% 100%);
-  filter: drop-shadow(0 -10px 30px rgba(0, 0, 0, 0.35));
-}
-
-.waterfall {
-  position: absolute;
-  left: 46%;
-  bottom: 28%;
-  width: 3.5%;
-  height: 22%;
-  background: linear-gradient(180deg, rgba(200, 230, 255, 0.55), rgba(140, 190, 255, 0.05));
-  filter: blur(1px);
-  opacity: 0.75;
-  animation: fall 1.8s linear infinite;
-}
-
-.lake {
-  position: absolute;
-  left: 10%;
-  right: 10%;
-  bottom: 8%;
-  height: 24%;
-  border-radius: 50% 50% 40% 40%;
-  background:
-    linear-gradient(180deg, rgba(80, 140, 200, 0.35), rgba(20, 30, 50, 0.75)),
-    linear-gradient(90deg, transparent, rgba(255, 200, 140, 0.15), transparent);
-  box-shadow: inset 0 10px 40px rgba(255, 255, 255, 0.08);
-  filter: blur(0.2px);
-  transform: perspective(400px) rotateX(55deg) scaleY(0.55);
-  opacity: 0.9;
-}
-
-.trees {
-  position: absolute;
-  bottom: 4%;
-  width: 18%;
-  height: 42%;
-  background:
-    radial-gradient(ellipse 55% 70% at 40% 80%, rgba(12, 28, 20, 0.75), transparent 72%),
-    radial-gradient(ellipse 45% 60% at 70% 75%, rgba(10, 24, 18, 0.65), transparent 70%),
-    radial-gradient(ellipse 35% 50% at 20% 70%, rgba(14, 32, 22, 0.55), transparent 68%);
-  filter: blur(0.6px);
-  pointer-events: none;
-}
-
-.trees.left {
-  left: -1%;
-}
-
-.trees.right {
-  right: -1%;
-  transform: scaleX(-1);
-}
-
-.flora {
-  position: absolute;
-  left: 4%;
-  bottom: 4%;
-  width: 28%;
-  height: 18%;
-  background:
-    radial-gradient(circle at 20% 60%, rgba(180, 80, 255, 0.55) 0 4px, transparent 5px),
-    radial-gradient(circle at 35% 40%, rgba(200, 100, 255, 0.5) 0 5px, transparent 6px),
-    radial-gradient(circle at 50% 70%, rgba(160, 70, 255, 0.45) 0 4px, transparent 5px),
-    radial-gradient(circle at 70% 50%, rgba(220, 120, 255, 0.4) 0 6px, transparent 7px);
-  filter: blur(0.4px);
-  pointer-events: none;
-}
-
-.vignette {
+.scene-vignette {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.35) 100%);
   pointer-events: none;
-  opacity: calc(0.35 + var(--shimmer) * 0.25);
-}
-
-@keyframes drift {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-4%);
-  }
-}
-
-@keyframes fall {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 0 24px;
-  }
+  background:
+    radial-gradient(ellipse 75% 65% at 50% 42%, transparent 40%, rgba(0, 0, 0, 0.28) 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .clouds,
-  .waterfall {
-    animation: none;
+  .living-scene,
+  .scene-plate {
+    transition: none;
+    transform: none;
   }
 }

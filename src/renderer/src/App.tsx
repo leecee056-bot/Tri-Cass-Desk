@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { useEnvironment } from './hooks/useEnvironment'
 import LivingScene from './scene/LivingScene'
 import Dock from './shell/Dock'
-import ControlsBar from './shell/ControlsBar'
 import FloatingWindow from './wm/FloatingWindow'
 import AppHost from './wm/AppHost'
 import { useWindowManager } from './wm/useWindowManager'
@@ -28,15 +27,11 @@ export default function App(): React.JSX.Element {
   }, [])
 
   const minimized = windows.filter((w) => w.minimized)
+  const idle = state.activity.workspaceState !== 'active'
 
   return (
     <div className={`desk-root ${state.activity.workspaceState}`}>
       <LivingScene state={state} />
-
-      <div className="desk-brand-float">
-        <h1>Tri-Cass Desk</h1>
-        <p>Local living companion</p>
-      </div>
 
       {windows.map((win) => (
         <FloatingWindow
@@ -57,7 +52,7 @@ export default function App(): React.JSX.Element {
         </FloatingWindow>
       ))}
 
-      <div className="desk-dock-wrap">
+      <div className={`desk-dock-wrap ${idle ? 'idle' : ''}`}>
         {minimized.length > 0 ? (
           <div className="mini-tray">
             {minimized.map((w) => (
@@ -67,24 +62,24 @@ export default function App(): React.JSX.Element {
             ))}
           </div>
         ) : null}
-        <div className="glass" style={{ borderRadius: 22, padding: '6px 8px' }}>
-          <ControlsBar
-            state={state}
-            onChange={(prefs) => {
-              void setPreferences(prefs)
-            }}
-            onWake={() => {
+        {idle ? (
+          <button
+            type="button"
+            className="wake-chip"
+            onClick={() => {
               void wake()
               windows.forEach((w) => {
                 if (w.minimized) focus(w.id)
               })
             }}
-          />
-        </div>
+          >
+            Return to workspace
+          </button>
+        ) : null}
         <Dock
           activeId=""
           onSelect={(id) => openApp(id)}
-          dimmed={state.activity.workspaceState !== 'active'}
+          dimmed={idle}
         />
       </div>
     </div>

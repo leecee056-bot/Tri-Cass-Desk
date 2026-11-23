@@ -70,7 +70,7 @@ export default function TerminalSurface({
   }, [])
 
   return (
-    <GlassFrame title={title} subtitle="xterm · allowlisted local commands" onClose={onClose}>
+    <GlassFrame title={title} subtitle="xterm · allowlisted local commands" onClose={onClose} embedded>
       <div className="terminal-host" ref={hostRef} />
     </GlassFrame>
   )

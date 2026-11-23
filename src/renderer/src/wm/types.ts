@@ -14,6 +14,9 @@ export type AppId =
   | 'system'
   | 'health'
   | 'clock'
+  | 'atmosphere'
+  | 'notes'
+  | 'projects'
 
 export type DeskWindow = {
   id: string
@@ -44,7 +47,10 @@ export const APP_META: Record<
   settings: { title: 'Settings', w: 420, h: 420, icon: '⚙' },
   bin: { title: 'Bin', w: 400, h: 360, icon: '⌀' },
   launcher: { title: 'Apps', w: 560, h: 480, icon: '▦' },
-  system: { title: 'System', w: 300, h: 280, icon: '◈' },
-  health: { title: 'Machine mood', w: 280, h: 300, icon: '✧' },
-  clock: { title: 'Clock', w: 220, h: 140, icon: '◔' }
+  system: { title: 'System', w: 280, h: 240, icon: '◈' },
+  health: { title: 'Mood', w: 250, h: 330, icon: '✧' },
+  clock: { title: 'Clock', w: 220, h: 140, icon: '◔' },
+  atmosphere: { title: 'Atmosphere', w: 280, h: 290, icon: '☁' },
+  notes: { title: 'Notes', w: 260, h: 180, icon: '✎' },
+  projects: { title: 'Projects', w: 250, h: 220, icon: '▤' }
 }

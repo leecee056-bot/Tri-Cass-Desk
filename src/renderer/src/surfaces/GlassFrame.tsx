@@ -7,6 +7,8 @@ type Props = {
   actions?: React.ReactNode
   children: React.ReactNode
   className?: string
+  /** When hosted inside FloatingWindow — no nested chrome. */
+  embedded?: boolean
 }
 
 /** Rounded frosted frame — no sharp OS chrome. */
@@ -16,8 +18,23 @@ export default function GlassFrame({
   onClose,
   actions,
   children,
-  className = ''
+  className = '',
+  embedded = false
 }: Props): React.JSX.Element {
+  if (embedded) {
+    return (
+      <div className={`glass-frame embedded ${className}`}>
+        {(actions || subtitle) && (
+          <div className="glass-frame-toolbar">
+            {subtitle ? <em>{subtitle}</em> : <span />}
+            <div className="glass-frame-actions">{actions}</div>
+          </div>
+        )}
+        <div className="glass-frame-body">{children}</div>
+      </div>
+    )
+  }
+
   return (
     <section className={`glass-frame ${className}`}>
       <header className="glass-frame-bar">

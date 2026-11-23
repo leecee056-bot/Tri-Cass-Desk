@@ -134,6 +134,7 @@ export class EnvironmentEngine {
         cpuTempC: null,
         gpuTempC: null,
         diskIoMbps: 0,
+        diskUsedRatio: null,
         processCount: 0,
         processChurn: 0,
         sampledAt: now

@@ -72,88 +72,99 @@ export default function MediaSurface({
     input.click()
   }
 
+  const trackName = current?.name || mode || 'Local library'
+  const artist = current ? 'This machine' : 'Open a file to play'
+
   return (
     <GlassFrame
       title={title}
-      subtitle={mode || current?.name || 'No media — open local files'}
+      subtitle={trackName}
       onClose={onClose}
+      embedded
       actions={
         <button type="button" className="btn" onClick={() => void pick()}>
           Open
         </button>
       }
     >
-      <div className="media-stage">
-        <video ref={videoRef} src={current?.url} controls={false} key={current?.url} />
-      </div>
-      <div className="media-controls">
-        <button
-          type="button"
-          className="btn btn-ghost"
-          onClick={() => setIndex((i) => Math.max(0, i - 1))}
-        >
-          ⏮
-        </button>
-        <button
-          type="button"
-          className="btn"
-          onClick={() => {
-            const v = videoRef.current
-            if (!v) return
-            if (v.paused) void v.play()
-            else v.pause()
-          }}
-        >
-          Play / Pause
-        </button>
-        <button
-          type="button"
-          className="btn btn-ghost"
-          onClick={() => setIndex((i) => Math.min(playlist.length - 1, i + 1))}
-        >
-          ⏭
-        </button>
-        <label className="status-line">
-          Speed
-          <select value={rate} onChange={(e) => setRate(Number(e.target.value))} style={{ marginLeft: 6 }}>
-            {[0.5, 0.75, 1, 1.25, 1.5, 2].map((r) => (
-              <option key={r} value={r}>
-                {r}x
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="status-line">
-          <input type="checkbox" checked={loop} onChange={(e) => setLoop(e.target.checked)} /> Loop
-        </label>
-        <label className="status-line">
-          <input type="checkbox" checked={shuffle} onChange={(e) => setShuffle(e.target.checked)} />{' '}
-          Shuffle
-        </label>
+      <div className="media-card">
+        <div className="media-art" aria-hidden>
+          <video ref={videoRef} src={current?.url} controls={false} key={current?.url} />
+          {!current ? <div className="media-art-fallback" /> : null}
+        </div>
+        <div className="media-meta">
+          <strong>{trackName.replace(/\.[^.]+$/, '')}</strong>
+          <em>{artist}</em>
+        </div>
+        <div className="media-controls compact">
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => setIndex((i) => Math.max(0, i - 1))}
+            aria-label="Previous"
+          >
+            ⏮
+          </button>
+          <button
+            type="button"
+            className="btn media-play"
+            onClick={() => {
+              const v = videoRef.current
+              if (!v) return
+              if (v.paused) void v.play()
+              else v.pause()
+            }}
+            aria-label="Play or pause"
+          >
+            ▶
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => setIndex((i) => Math.min(playlist.length - 1, i + 1))}
+            aria-label="Next"
+          >
+            ⏭
+          </button>
+          <button
+            type="button"
+            className={`btn btn-ghost ${loop ? 'on' : ''}`}
+            onClick={() => setLoop((v) => !v)}
+            aria-label="Loop"
+          >
+            ♡
+          </button>
+        </div>
         <input
+          className="media-scrub"
           type="range"
           min={0}
           max={1}
           step={0.01}
-          defaultValue={0.85}
+          defaultValue={0}
           onChange={(e) => {
-            if (videoRef.current) videoRef.current.volume = Number(e.target.value)
+            const v = videoRef.current
+            if (!v || !v.duration) return
+            v.currentTime = Number(e.target.value) * v.duration
           }}
-          aria-label="Volume"
+          aria-label="Seek"
         />
-      </div>
-      <div className="file-list" style={{ maxHeight: 100 }}>
-        {playlist.map((t, i) => (
-          <div
-            key={`${t.url}-${i}`}
-            className={`file-row ${i === index ? 'on' : ''}`}
-            onClick={() => setIndex(i)}
-          >
-            <span>{t.name}</span>
-            <span>{i === index ? '▶' : ''}</span>
-          </div>
-        ))}
-        {playlist.length === 0 ? <p className="status-line">Playlist empty — Open local audio/video.</p> : null}
+        <div className="media-extra">
+          <label className="status-line">
+            Speed
+            <select value={rate} onChange={(e) => setRate(Number(e.target.value))} style={{ marginLeft: 6 }}>
+              {[0.5, 0.75, 1, 1.25, 1.5, 2].map((r) => (
+                <option key={r} value={r}>
+                  {r}x
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="status-line">
+            <input type="checkbox" checked={shuffle} onChange={(e) => setShuffle(e.target.checked)} />{' '}
+            Shuffle
+          </label>
+        </div>
       </div>
     </GlassFrame>
   )

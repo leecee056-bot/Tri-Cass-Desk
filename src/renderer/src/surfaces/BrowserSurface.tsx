@@ -5,12 +5,12 @@ import './surfaces.css'
 type Tab = { id: string; title: string; url: string }
 
 const DIAL = [
-  { label: 'Ollama', url: 'http://127.0.0.1:11434' },
-  { label: 'Localhost', url: 'http://127.0.0.1:3000' },
-  { label: 'Desk repo', url: 'https://github.com/leecee056-bot/Tri-Cass-Desk' },
-  { label: 'MDN', url: 'https://developer.mozilla.org' },
-  { label: 'Wikipedia', url: 'https://en.wikipedia.org' },
-  { label: 'Blank', url: 'about:blank' }
+  { label: 'Ollama', url: 'http://127.0.0.1:11434', tone: '#7ad7ff' },
+  { label: 'Local', url: 'http://127.0.0.1:3000', tone: '#ff9a5c' },
+  { label: 'Docs', url: 'https://developer.mozilla.org', tone: '#7dffc8' },
+  { label: 'Wiki', url: 'https://en.wikipedia.org', tone: '#c9a0ff' },
+  { label: 'Desk', url: 'https://github.com/leecee056-bot/Tri-Cass-Desk', tone: '#ffe07a' },
+  { label: 'Blank', url: 'about:blank', tone: '#a8b4d0' }
 ]
 
 const BM_KEY = 'tricass-desk-bookmarks'
@@ -113,6 +113,7 @@ export default function BrowserSurface({
       title={title}
       subtitle={subtitle}
       onClose={onClose}
+      embedded
       actions={
         <>
           <button type="button" className="btn btn-ghost" onClick={() => setPanel((p) => (p === 'bookmarks' ? 'none' : 'bookmarks'))}>
@@ -221,7 +222,13 @@ export default function BrowserSurface({
       {showDial ? (
         <div className="speed-dial">
           {DIAL.map((d) => (
-            <button key={d.url} type="button" onClick={() => go(d.url)}>
+            <button
+              key={d.url}
+              type="button"
+              onClick={() => go(d.url)}
+              style={{ '--dial-tone': d.tone } as React.CSSProperties}
+            >
+              <i style={{ background: d.tone }} aria-hidden />
               {d.label}
             </button>
           ))}

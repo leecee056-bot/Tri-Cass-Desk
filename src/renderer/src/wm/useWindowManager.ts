@@ -1,61 +1,95 @@
 import { useCallback, useState } from 'react'
 import { APP_META, type DeskWindow } from './types'
 
-let zCounter = 10
+let zCounter = 20
 let idCounter = 1
 
+function layoutDefaults(): DeskWindow[] {
+  const W = typeof window !== 'undefined' ? window.innerWidth : 1440
+  const H = typeof window !== 'undefined' ? window.innerHeight : 900
+  const right = (w: number, pad = 28): number => Math.max(24, W - w - pad)
+  const bottom = (h: number, pad = 110): number => Math.max(48, H - h - pad)
+
+  return [
+    {
+      id: 'w-health',
+      appId: 'health',
+      title: 'Mood',
+      x: 28,
+      y: 36,
+      w: 250,
+      h: 330,
+      z: 8
+    },
+    {
+      id: 'w-browse',
+      appId: 'browse',
+      title: 'Browser',
+      x: Math.round(W * 0.2),
+      y: 56,
+      w: Math.min(520, Math.round(W * 0.36)),
+      h: Math.min(400, Math.round(H * 0.46)),
+      z: 10
+    },
+    {
+      id: 'w-media',
+      appId: 'media',
+      title: 'Media',
+      x: Math.round(W * 0.38),
+      y: Math.round(H * 0.28),
+      w: 320,
+      h: 340,
+      z: 12
+    },
+    {
+      id: 'w-atmosphere',
+      appId: 'atmosphere',
+      title: 'Atmosphere',
+      x: right(280),
+      y: 28,
+      w: 280,
+      h: 290,
+      z: 9
+    },
+    {
+      id: 'w-projects',
+      appId: 'projects',
+      title: 'Projects',
+      x: right(250),
+      y: 340,
+      w: 250,
+      h: 220,
+      z: 7
+    },
+    {
+      id: 'w-system',
+      appId: 'system',
+      title: 'System',
+      x: right(270),
+      y: bottom(230),
+      w: 270,
+      h: 230,
+      z: 11
+    },
+    {
+      id: 'w-notes',
+      appId: 'notes',
+      title: 'Notes',
+      x: 28,
+      y: bottom(170),
+      w: 260,
+      h: 170,
+      z: 6
+    }
+  ]
+}
+
 function stagger(n: number): { x: number; y: number } {
-  return { x: 48 + (n % 6) * 36, y: 56 + (n % 5) * 28 }
+  return { x: 64 + (n % 6) * 40, y: 72 + (n % 5) * 32 }
 }
 
 export function useWindowManager() {
-  const [windows, setWindows] = useState<DeskWindow[]>(() => {
-    const a = stagger(0)
-    const b = stagger(1)
-    const c = stagger(2)
-    return [
-      {
-        id: 'w-system',
-        appId: 'system',
-        title: 'System',
-        x: typeof window !== 'undefined' ? Math.max(40, window.innerWidth - 340) : 900,
-        y: typeof window !== 'undefined' ? Math.max(80, window.innerHeight - 360) : 520,
-        w: 300,
-        h: 280,
-        z: 5
-      },
-      {
-        id: 'w-health',
-        appId: 'health',
-        title: 'Machine mood',
-        x: 40,
-        y: 80,
-        w: 280,
-        h: 300,
-        z: 4
-      },
-      {
-        id: 'w-chat',
-        appId: 'chat',
-        title: 'Chat',
-        x: a.x + 280,
-        y: a.y + 40,
-        w: 440,
-        h: 520,
-        z: 6
-      },
-      {
-        id: 'w-clock',
-        appId: 'clock',
-        title: 'Clock',
-        x: typeof window !== 'undefined' ? Math.max(40, window.innerWidth - 260) : 980,
-        y: 40,
-        w: 220,
-        h: 140,
-        z: 3
-      }
-    ]
-  })
+  const [windows, setWindows] = useState<DeskWindow[]>(() => layoutDefaults())
 
   const focus = useCallback((id: string) => {
     zCounter += 1
@@ -73,7 +107,7 @@ export function useWindowManager() {
   const resize = useCallback((id: string, w: number, h: number) => {
     setWindows((list) =>
       list.map((win) =>
-        win.id === id ? { ...win, w: Math.max(260, w), h: Math.max(160, h) } : win
+        win.id === id ? { ...win, w: Math.max(220, w), h: Math.max(140, h) } : win
       )
     )
   }, [])

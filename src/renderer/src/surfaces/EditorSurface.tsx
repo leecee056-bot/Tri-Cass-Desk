@@ -58,6 +58,7 @@ export default function EditorSurface({
       title={title}
       subtitle={path || (useMonaco ? 'monaco' : 'glass editor')}
       onClose={onClose}
+      embedded
       actions={
         <>
           <button type="button" className="btn btn-ghost" onClick={() => setUseMonaco((v) => !v)}>

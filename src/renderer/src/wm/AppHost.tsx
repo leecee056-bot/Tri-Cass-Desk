@@ -13,6 +13,9 @@ import ToolsHub from '../tools/ToolsHub'
 import SystemPanel from '../shell/SystemPanel'
 import HealthPanel from '../shell/HealthPanel'
 import ClockPanel from '../shell/ClockPanel'
+import AtmospherePanel from '../shell/AtmospherePanel'
+import NotesView from '../features/NotesView'
+import ProjectsView from '../features/ProjectsView'
 import { TOOL_CATALOG } from '../tools/catalog'
 import UniversalTool from '../tools/engines/UniversalTool'
 import '../features/features.css'
@@ -112,6 +115,12 @@ export default function AppHost({
       return <HealthPanel state={state} />
     case 'clock':
       return <ClockPanel state={state} />
+    case 'atmosphere':
+      return <AtmospherePanel state={state} />
+    case 'notes':
+      return <NotesView />
+    case 'projects':
+      return <ProjectsView />
     default:
       return <p className="status-line">App “{win.appId}” not mounted.</p>
   }

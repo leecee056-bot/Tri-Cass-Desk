@@ -18,6 +18,8 @@ export interface SystemSnapshot {
   cpuTempC: number | null
   gpuTempC: number | null
   diskIoMbps: number
+  /** Aggregate disk used / size across mounts; null if unavailable. */
+  diskUsedRatio: number | null
   processCount: number
   processChurn: number
   sampledAt: number
