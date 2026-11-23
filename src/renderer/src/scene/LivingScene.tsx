@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react'
 import type { EnvironmentState } from '../../../shared/environment'
 import landscape from '../assets/earthbound-landscape.jpg'
 import { LivingWorldCanvas } from './engines/LivingWorldCanvas'
+import { SceneErrorBoundary } from './engines/SceneErrorBoundary'
 import { useSceneCamera } from './useSceneCamera'
 import './living-scene.css'
 
@@ -79,13 +80,15 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
     >
       <div className="world-stage" aria-hidden={false}>
         <img className="scene-plate" src={landscape} alt="" draggable={false} />
-        <LivingWorldCanvas
-          state={state}
-          energy={mood.energy}
-          night={mood.night}
-          day={mood.day}
-          wind={mood.wind}
-        />
+        <SceneErrorBoundary>
+          <LivingWorldCanvas
+            state={state}
+            energy={mood.energy}
+            night={mood.night}
+            day={mood.day}
+            wind={mood.wind}
+          />
+        </SceneErrorBoundary>
         <div className="day-night-veil" />
         <div className="mood-wash" />
       </div>

@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { EnvironmentState } from '../../../../shared/environment'
+import cloudTextureUrl from '../../assets/drei-cloud.png'
 
 type Props = {
   state: EnvironmentState
@@ -104,7 +105,11 @@ export function SkyCloudEngine({
 
       {showClouds ? (
         <group ref={cloudGroup} position={[0, 2.35, -5.5]}>
-          <Clouds material={THREE.MeshLambertMaterial} limit={32}>
+          <Clouds
+            material={THREE.MeshLambertMaterial}
+            limit={32}
+            texture={cloudTextureUrl}
+          >
             <Cloud
               segments={30}
               bounds={[9, 1.7, 1.5]}
