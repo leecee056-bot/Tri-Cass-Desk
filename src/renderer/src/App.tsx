@@ -1,84 +1,101 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useEnvironment } from './hooks/useEnvironment'
 import LivingScene from './scene/LivingScene'
+import AgentsView from './features/AgentsView'
+import BrowseView from './features/BrowseView'
+import ChatView from './features/ChatView'
+import FilesView from './features/FilesView'
+import SettingsView from './features/SettingsView'
+import VaultView from './features/VaultView'
 import ClockPanel from './shell/ClockPanel'
 import ControlsBar from './shell/ControlsBar'
 import Dock from './shell/Dock'
 import HealthPanel from './shell/HealthPanel'
 import SystemPanel from './shell/SystemPanel'
 import WorkspacePanel from './shell/WorkspacePanel'
+import ToolsHub from './tools/ToolsHub'
 import { TOOL_CATALOG } from './tools/catalog'
 import './shell/shell.css'
+import './features/features.css'
+
+function workspaceMeta(active: string): { title: string; subtitle: string } {
+  switch (active) {
+    case 'tools':
+      return {
+        title: 'Tools',
+        subtitle: `${TOOL_CATALOG.filter((t) => t.status === 'live').length} live local tools`
+      }
+    case 'files':
+      return { title: 'Files', subtitle: 'Local workspace & home browser' }
+    case 'agents':
+      return { title: 'Agents', subtitle: 'Allowlisted local machine agent' }
+    case 'vault':
+      return { title: 'Knowledge Vault', subtitle: 'Notes stored on this PC' }
+    case 'browse':
+      return { title: 'Browse', subtitle: 'Open links in the system browser' }
+    case 'settings':
+      return { title: 'Settings', subtitle: 'Environment + workspace snapshots' }
+    case 'launcher':
+      return { title: 'Apps', subtitle: 'Dock launcher — pick a surface' }
+    case 'chat':
+    default:
+      return { title: 'Chat', subtitle: 'Local Ollama chat' }
+  }
+}
 
 export default function App(): React.JSX.Element {
   const { state, setPreferences, wake } = useEnvironment()
   const [active, setActive] = useState('chat')
 
-  const workspace = useMemo(() => {
-    switch (active) {
-      case 'tools':
-        return {
-          title: 'Tools',
-          subtitle: `${TOOL_CATALOG.length} integrated slots — expanding from the companion checklist + OSS`,
-          body: (
-            <div className="placeholder-grid">
-              {TOOL_CATALOG.slice(0, 9).map((tool) => (
-                <div key={tool.id} className="placeholder-tile">
-                  {tool.name}
-                </div>
-              ))}
-            </div>
-          )
-        }
-      case 'files':
-        return {
-          title: 'Files',
-          subtitle: 'Local file browser (Phase 2)',
-          body: <p className="notes-line">Workspace files stay on this machine.</p>
-        }
-      case 'agents':
-        return {
-          title: 'Agents',
-          subtitle: 'Local agent runner (Phase 2)',
-          body: <p className="notes-line">Sandboxed agents — offline-first.</p>
-        }
-      case 'vault':
-        return {
-          title: 'Knowledge Vault',
-          subtitle: 'Local notes & knowledge (Phase 2)',
-          body: <p className="notes-line">Dream bigger… the machine is the sky.</p>
-        }
-      case 'browse':
-        return {
-          title: 'Browse',
-          subtitle: 'Optional local browser pane (Phase 2)',
-          body: <p className="notes-line">No required cloud services for the living desk.</p>
-        }
-      case 'settings':
-        return {
-          title: 'Settings',
-          subtitle: 'Desk preferences',
-          body: (
-            <p className="notes-line">
-              Use the controls bar for motion, celestial art, and adaptation pause. Deeper settings
-              land with companion feature packs.
-            </p>
-          )
-        }
-      case 'chat':
-      default:
-        return {
-          title: 'Chat',
-          subtitle: 'Local LLM chat (Phase 2) — shell is live',
-          body: (
-            <p className="notes-line">
-              Living environment is reactive to this PC’s CPU, RAM, GPU, temps and processes. Chat /
-              agents / vault / browse come next — then dozens of integrated tools.
-            </p>
-          )
-        }
+  useEffect(() => {
+    const onPointer = (): void => {
+      void window.desk?.noteActivity()
     }
-  }, [active])
+    window.addEventListener('pointerdown', onPointer)
+    window.addEventListener('keydown', onPointer)
+    return () => {
+      window.removeEventListener('pointerdown', onPointer)
+      window.removeEventListener('keydown', onPointer)
+    }
+  }, [])
+
+  const meta = workspaceMeta(active)
+
+  let body: React.ReactNode
+  switch (active) {
+    case 'tools':
+    case 'launcher':
+      body = <ToolsHub state={state} onOpenDock={setActive} />
+      break
+    case 'files':
+      body = <FilesView />
+      break
+    case 'agents':
+      body = <AgentsView />
+      break
+    case 'vault':
+      body = <VaultView />
+      break
+    case 'browse':
+      body = <BrowseView />
+      break
+    case 'settings':
+      body = (
+        <SettingsView
+          state={state}
+          activeDock={active}
+          onChange={(prefs) => {
+            void setPreferences(prefs)
+          }}
+          onRestoreDock={setActive}
+        />
+      )
+      break
+    case 'chat':
+    default:
+      body = <ChatView />
+      break
+  }
 
   return (
     <>
@@ -90,8 +107,8 @@ export default function App(): React.JSX.Element {
         </div>
         <ClockPanel state={state} />
         <HealthPanel state={state} />
-        <WorkspacePanel title={workspace.title} subtitle={workspace.subtitle}>
-          {workspace.body}
+        <WorkspacePanel title={meta.title} subtitle={meta.subtitle}>
+          {body}
         </WorkspacePanel>
         <SystemPanel state={state} />
         <ControlsBar
@@ -104,7 +121,7 @@ export default function App(): React.JSX.Element {
           }}
         />
         <Dock
-          activeId={active}
+          activeId={active === 'launcher' ? 'launcher' : active}
           onSelect={setActive}
           dimmed={state.activity.workspaceState !== 'active'}
         />

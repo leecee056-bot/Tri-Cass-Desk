@@ -2,16 +2,16 @@
 
 Local-only living companion desktop for **Tri-Cass OS**.
 
-The atmosphere is inspired by an Earthbound / Celestial adaptive desktop — cinematic landscape, frosted glass surfaces, graceful idle — but **driven by this machine**, not the weather outside. No location or forecast APIs.
+Earthbound / Celestial atmosphere — cinematic landscape, frosted glass, graceful idle — driven by **this machine** (CPU, RAM, GPU, temps, processes, disk). No weather or location APIs.
 
-## Stack (new — not a nexus-app clone)
+## Stack
 
-- **Electron + Vite + React + TypeScript**
-- Main-process telemetry (`systeminformation`) → normalized `EnvironmentState`
-- Layered living scene + glass shell + dock
-- Tool registry for companion features + dozens of integrated utilities
+- Electron + Vite + React + TypeScript (desktop-first; not a nexus-app / Expo clone)
+- `systeminformation` telemetry → `EnvironmentState` → living scene
+- Local Ollama chat, allowlisted agent, files, vault, browse, settings
+- 30+ integrated local tools (hash, JSON, regex, monitor, ports, timer, canvas, …)
 
-## Metric → scene (v1)
+## Metric → scene
 
 | Telemetry | Scene |
 |---|---|
@@ -29,19 +29,22 @@ npm install
 npm run dev
 ```
 
+Requires [Ollama](https://ollama.com) locally for chat / model list (optional — Desk runs without it).
+
 ```bash
 npm run typecheck
 npm run build
 npm run pack:win
 ```
 
-## Phases
+## Layout
 
-1. **Living shell** (this PR) — scene, telemetry, glass UI, dock, tool catalog stubs
-2. Companion core — chat / agents / files / vault / browse / settings
-3. Tool packs — wire OSS utilities into the registry
-4. Idle intelligence — layout snapshots, protected activity, wake restore
-5. Polish — performance tiers, a11y, installer
+- `src/main` — Electron main, telemetry, Ollama, files, vault, agent
+- `src/preload` — `window.desk` bridge
+- `src/renderer` — living scene + glass shell + feature views + tools
+- `src/shared` — types / IPC
+
+Data lives under the Electron userData `tri-cass-desk/` folder (chat history, vault, workspace, snapshots).
 
 ## License
 
