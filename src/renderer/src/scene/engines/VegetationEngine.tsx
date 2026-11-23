@@ -11,23 +11,39 @@ type Props = {
   sunDir: THREE.Vector3
 }
 
+type LayerKind = 'meadow' | 'reed' | 'flower'
+
 /**
- * Shoreline grass — thin GPU-instanced blades.
+ * Multi-layer shoreline flora — thin GPU-instanced blades.
  * Technique adapted from GrassSystemThreeJS (MIT © mohamedachrefelouafi).
- * Kept on near shore only so the lake stays visible.
+ * Layers: meadow grass, tall reeds, wildflower accents — lake stays open.
  */
-export function VegetationEngine({
+export function VegetationEngine(props: Props): React.JSX.Element {
+  return (
+    <group>
+      <BladeLayer kind="meadow" {...props} />
+      <BladeLayer kind="reed" {...props} />
+      <BladeLayer kind="flower" {...props} />
+      <ShrubClumps lowPower={props.lowPower} mood={props.mood} />
+    </group>
+  )
+}
+
+function BladeLayer({
+  kind,
   mood,
   pointer,
   motion,
   lowPower,
   sunDir
-}: Props): React.JSX.Element {
+}: Props & { kind: LayerKind }): React.JSX.Element {
   const meshRef = useRef<THREE.Mesh>(null)
-  const maxCount = lowPower ? 5000 : 16000
+  const cfg = LAYER_CFG[kind]
+  const maxCount = lowPower ? cfg.lowCount : cfg.hiCount
+  const fill = lowPower ? cfg.lowFill : cfg.hiFill
 
   const { geometry, uniforms } = useMemo(() => {
-    const segments = 5
+    const segments = 6
     const positions: number[] = []
     const indices: number[] = []
     for (let j = 0; j <= segments; j++) {
@@ -50,32 +66,17 @@ export function VegetationEngine({
     const iCurlVar = new Float32Array(maxCount)
     const iColorVar = new Float32Array(maxCount)
 
-    // Shore band: near camera (+Z) and sides of lake — not covering the water plane
+    const rand = mulberry32(cfg.seed)
     for (let i = 0; i < maxCount; i++) {
-      const side = Math.random()
-      let x: number
-      let z: number
-      if (side < 0.55) {
-        // Front meadow
-        x = (Math.random() - 0.5) * 28
-        z = 2 + Math.random() * 10
-      } else if (side < 0.78) {
-        // Left bank
-        x = -10 - Math.random() * 8
-        z = -10 + Math.random() * 16
-      } else {
-        // Right bank
-        x = 10 + Math.random() * 8
-        z = -10 + Math.random() * 16
-      }
+      const { x, z } = cfg.place(rand)
       iPos[i * 2] = x
       iPos[i * 2 + 1] = z
-      iYaw[i] = Math.random() * Math.PI * 2
-      iHeight[i] = 0.55 + Math.random() * 0.55
-      iWidth[i] = 0.7 + Math.random() * 0.45
-      iPhase[i] = Math.random() * Math.PI * 2
-      iCurlVar[i] = 0.55 + Math.random() * 0.8
-      iColorVar[i] = Math.random()
+      iYaw[i] = rand() * Math.PI * 2
+      iHeight[i] = 0.45 + rand() * 0.75
+      iWidth[i] = 0.55 + rand() * 0.7
+      iPhase[i] = rand() * Math.PI * 2
+      iCurlVar[i] = 0.4 + rand() * 1.1
+      iColorVar[i] = rand()
     }
     geometry.setAttribute('iPos', new THREE.InstancedBufferAttribute(iPos, 2))
     geometry.setAttribute('iYaw', new THREE.InstancedBufferAttribute(iYaw, 1))
@@ -84,30 +85,31 @@ export function VegetationEngine({
     geometry.setAttribute('iPhase', new THREE.InstancedBufferAttribute(iPhase, 1))
     geometry.setAttribute('iCurlVar', new THREE.InstancedBufferAttribute(iCurlVar, 1))
     geometry.setAttribute('iColorVar', new THREE.InstancedBufferAttribute(iColorVar, 1))
-    geometry.instanceCount = Math.floor(maxCount * (lowPower ? 0.4 : 0.7))
-    geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 2), 40)
+    geometry.instanceCount = Math.floor(maxCount * fill)
+    geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 2), 48)
 
     const uniforms = {
       uTime: { value: 0 },
-      uCurl: { value: 0.85 },
-      uHeight: { value: 0.55 },
-      uWidth: { value: 0.028 },
+      uCurl: { value: cfg.curl },
+      uHeight: { value: cfg.heightScale },
+      uWidth: { value: cfg.widthScale },
       uWindDir: { value: new THREE.Vector2(1, 0.35).normalize() },
       uWindStrength: { value: 0.35 },
-      uWindSpeed: { value: 1.2 },
+      uWindSpeed: { value: cfg.windSpeed },
       uWindScale: { value: 0.35 },
       uGust: { value: 0.4 },
       uCursorGust: { value: 0 },
       uCursorPos: { value: new THREE.Vector2(0, 6) },
-      uColorBase: { value: new THREE.Color(0x2a3a18) },
-      uColorTip: { value: new THREE.Color(0x8fbf45) },
-      uColorVarAmt: { value: 0.35 },
+      uColorBase: { value: new THREE.Color(cfg.base) },
+      uColorTip: { value: new THREE.Color(cfg.tip) },
+      uColorVarAmt: { value: cfg.colorVar },
       uHeat: { value: 0 },
-      uSunDir: { value: new THREE.Vector3(1, 1, 1) }
+      uSunDir: { value: new THREE.Vector3(1, 1, 1) },
+      uFlower: { value: kind === 'flower' ? 1 : 0 }
     }
 
     return { geometry, uniforms }
-  }, [maxCount, lowPower])
+  }, [maxCount, fill, cfg, kind])
 
   const material = useMemo(
     () =>
@@ -124,10 +126,10 @@ export function VegetationEngine({
     if (motion) uniforms.uTime.value = state.clock.elapsedTime
     uniforms.uWindStrength.value = THREE.MathUtils.lerp(
       uniforms.uWindStrength.value,
-      0.2 + mood.wind * 0.85,
+      0.22 + mood.wind * 0.9,
       0.08
     )
-    uniforms.uGust.value = THREE.MathUtils.lerp(uniforms.uGust.value, 0.25 + mood.wind * 0.65, 0.08)
+    uniforms.uGust.value = THREE.MathUtils.lerp(uniforms.uGust.value, 0.28 + mood.wind * 0.7, 0.08)
     uniforms.uHeat.value = THREE.MathUtils.lerp(uniforms.uHeat.value, mood.heat, 0.08)
     uniforms.uSunDir.value.copy(sunDir)
     const cx = (pointer.nx - 0.5) * 24
@@ -135,17 +137,157 @@ export function VegetationEngine({
     uniforms.uCursorPos.value.set(cx, cz)
     uniforms.uCursorGust.value = THREE.MathUtils.lerp(
       uniforms.uCursorGust.value,
-      pointer.inside ? 0.5 + mood.activity * 0.4 : 0,
+      pointer.inside ? 0.55 + mood.activity * 0.4 : 0,
       0.12
     )
-    uniforms.uColorTip.value.setRGB(
-      THREE.MathUtils.lerp(0.56, 0.72, mood.heat),
-      THREE.MathUtils.lerp(0.75, 0.52, mood.heat),
-      THREE.MathUtils.lerp(0.27, 0.18, mood.heat)
-    )
+    if (kind === 'flower') {
+      const h = (mood.heat * 0.15 + mood.activity * 0.08) % 1
+      uniforms.uColorTip.value.setHSL(0.12 + h * 0.35, 0.88, 0.64)
+    } else if (kind === 'meadow') {
+      uniforms.uColorTip.value.setRGB(
+        THREE.MathUtils.lerp(0.62, 0.78, mood.heat),
+        THREE.MathUtils.lerp(0.86, 0.55, mood.heat),
+        THREE.MathUtils.lerp(0.29, 0.18, mood.heat)
+      )
+    } else {
+      uniforms.uColorTip.value.setRGB(
+        THREE.MathUtils.lerp(0.72, 0.82, mood.heat),
+        THREE.MathUtils.lerp(0.82, 0.62, mood.heat),
+        THREE.MathUtils.lerp(0.35, 0.22, mood.heat)
+      )
+    }
   })
 
   return <mesh ref={meshRef} geometry={geometry} material={material} frustumCulled={false} />
+}
+
+const LAYER_CFG = {
+  meadow: {
+    seed: 0x91a11e,
+    lowCount: 9000,
+    hiCount: 28000,
+    lowFill: 0.65,
+    hiFill: 0.95,
+    heightScale: 0.72,
+    widthScale: 0.024,
+    curl: 0.95,
+    windSpeed: 1.25,
+    colorVar: 0.48,
+    base: 0x1a3810,
+    tip: 0xb4f04e,
+    place: (rand: () => number) => {
+      const r = rand()
+      // Bias density into the near meadow so fullness reads on camera
+      if (r < 0.72) return { x: (rand() - 0.5) * 30, z: 2 + rand() * 11 }
+      if (r < 0.86) return { x: -8 - rand() * 14, z: -10 + rand() * 16 }
+      return { x: 8 + rand() * 14, z: -10 + rand() * 16 }
+    }
+  },
+  reed: {
+    seed: 0x7eed01,
+    lowCount: 2400,
+    hiCount: 7000,
+    lowFill: 0.6,
+    hiFill: 0.88,
+    heightScale: 1.55,
+    widthScale: 0.022,
+    curl: 0.5,
+    windSpeed: 1.05,
+    colorVar: 0.35,
+    base: 0x1e3a24,
+    tip: 0xd8ea72,
+    place: (rand: () => number) => {
+      // Near shore arc facing camera + side banks of the lake (centred ~z=-6)
+      if (rand() < 0.45) {
+        const x = (rand() - 0.5) * 22
+        return { x, z: -6 + 11.5 + rand() * 2.2 }
+      }
+      const angle = rand() * Math.PI * 2
+      const radius = 12.2 + rand() * 2.8
+      return { x: Math.cos(angle) * radius, z: -6 + Math.sin(angle) * radius * 0.55 }
+    }
+  },
+  flower: {
+    seed: 0xf10a11,
+    lowCount: 1400,
+    hiCount: 4200,
+    lowFill: 0.55,
+    hiFill: 0.85,
+    heightScale: 0.55,
+    widthScale: 0.055,
+    curl: 0.35,
+    windSpeed: 1.65,
+    colorVar: 0.62,
+    base: 0x2e5a1c,
+    tip: 0xff6ab0,
+    place: (rand: () => number) => {
+      if (rand() < 0.78) return { x: (rand() - 0.5) * 24, z: 3.5 + rand() * 8 }
+      return {
+        x: (rand() < 0.5 ? -1 : 1) * (9 + rand() * 9),
+        z: -6 + rand() * 12
+      }
+    }
+  }
+} as const
+
+function mulberry32(a: number): () => number {
+  return () => {
+    let t = (a += 0x6d2b79f5)
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+/** Soft shrub / bush clumps for mid-ground diversity — multi-sphere foliage. */
+function ShrubClumps({
+  lowPower,
+  mood
+}: {
+  lowPower: boolean
+  mood: MoodState
+}): React.JSX.Element {
+  const count = lowPower ? 14 : 26
+  const clumps = useMemo(() => {
+    const items: { pos: [number, number, number]; scale: number; hue: number }[] = []
+    for (let i = 0; i < count; i++) {
+      const side = i % 2 === 0 ? -1 : 1
+      // Keep as small bank accents — never mid-meadow blobs
+      const x = side * (11.5 + (i % 8) * 0.85 + Math.sin(i * 1.7) * 0.6)
+      const z = -8 + (i % 7) * 1.7 + Math.cos(i * 0.9) * 0.8
+      items.push({
+        pos: [x, 0.12, z],
+        scale: 0.28 + (i % 4) * 0.07,
+        hue: 0.27 + (i % 5) * 0.025
+      })
+    }
+    return items
+  }, [count])
+
+  return (
+    <group>
+      {clumps.map((c, i) => (
+        <group key={i} position={c.pos}>
+          <mesh castShadow position={[0, c.scale * 0.7, 0]}>
+            <sphereGeometry args={[c.scale, 10, 8]} />
+            <meshStandardMaterial
+              color={new THREE.Color().setHSL(c.hue, 0.58, 0.26 + mood.heat * 0.08)}
+              roughness={0.86}
+              metalness={0}
+            />
+          </mesh>
+          <mesh castShadow position={[c.scale * 0.4, c.scale * 0.45, c.scale * 0.15]}>
+            <sphereGeometry args={[c.scale * 0.55, 8, 6]} />
+            <meshStandardMaterial
+              color={new THREE.Color().setHSL(c.hue + 0.015, 0.55, 0.3)}
+              roughness={0.88}
+              metalness={0}
+            />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  )
 }
 
 const VERT = /* glsl */ `
@@ -202,14 +344,19 @@ uniform vec3 uColorTip;
 uniform float uColorVarAmt;
 uniform float uHeat;
 uniform vec3 uSunDir;
+uniform float uFlower;
 varying float vT;
 varying float vColorVar;
 void main() {
-  vec3 gcol = mix(uColorBase, uColorTip, vT);
+  vec3 gcol = mix(uColorBase, uColorTip, pow(vT, 0.85));
   gcol *= mix(1.0 - uColorVarAmt, 1.0 + uColorVarAmt, vColorVar);
-  gcol *= mix(0.55, 1.0, smoothstep(0.0, 0.35, vT));
-  gcol = mix(gcol, vec3(0.55, 0.42, 0.18), uHeat * 0.25 * vT);
-  float lit = 0.7 + 0.3 * clamp(uSunDir.y, 0.0, 1.0);
-  gl_FragColor = vec4(gcol * lit, 1.0);
+  gcol *= mix(0.5, 1.15, smoothstep(0.0, 0.4, vT));
+  if (uFlower > 0.5 && vT > 0.72) {
+    gcol = mix(gcol, uColorTip * 1.25, smoothstep(0.72, 1.0, vT));
+  }
+  gcol = mix(gcol, vec3(0.62, 0.48, 0.2), uHeat * 0.22 * vT);
+  float lit = 0.62 + 0.55 * clamp(uSunDir.y, 0.05, 1.0);
+  float rim = pow(1.0 - abs(vT * 2.0 - 1.0), 2.0) * 0.12;
+  gl_FragColor = vec4(gcol * lit + rim, 1.0);
 }
 `

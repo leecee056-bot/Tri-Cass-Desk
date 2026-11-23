@@ -21,35 +21,38 @@ type Props = {
 function MountainBackdrop({ nightness }: { nightness: number }): React.JSX.Element {
   const tex = useLoader(THREE.TextureLoader, landscapeUrl)
   tex.colorSpace = THREE.SRGBColorSpace
+  const tint = new THREE.Color().setHSL(0.08, 0.15, 0.92 - nightness * 0.35)
   return (
-    <mesh position={[0, 12, -90]}>
-      <planeGeometry args={[220, 90]} />
-      <meshBasicMaterial
-        map={tex}
-        toneMapped={false}
-        color={new THREE.Color().setScalar(1 - nightness * 0.55)}
-      />
+    <mesh position={[0, 14, -95]}>
+      <planeGeometry args={[240, 100]} />
+      <meshBasicMaterial map={tex} toneMapped={false} color={tint} />
     </mesh>
   )
 }
 
 function Ground(): React.JSX.Element {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-      <circleGeometry args={[55, 64]} />
-      <meshStandardMaterial color="#4a5c34" roughness={0.92} metalness={0} />
-    </mesh>
+    <group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+        <circleGeometry args={[55, 72]} />
+        <meshStandardMaterial color="#3f5c28" roughness={0.92} metalness={0} />
+      </mesh>
+      {/* Subtle near-shore soil — keeps meadow green without flat patches */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.008, -5]} receiveShadow>
+        <ringGeometry args={[13, 17.5, 64]} />
+        <meshStandardMaterial color="#5a6e36" roughness={0.95} metalness={0} />
+      </mesh>
+    </group>
   )
 }
 
 function CameraRig({ yaw }: { yaw: number }): null {
   const { camera } = useThree()
   useEffect(() => {
-    camera.position.set(0, 5.5, 16)
-    camera.lookAt(0, 1.2, -8)
+    camera.position.set(0, 5.2, 15.5)
+    camera.lookAt(0, 1.4, -7)
   }, [camera])
   useFrame(() => {
-    // Gentle yaw from edge-pan without breaking the horizon framing
     camera.rotation.y = THREE.MathUtils.degToRad(-yaw * 0.12)
   })
   return null
@@ -59,18 +62,18 @@ function FogMood({ mood }: { mood: MoodState }): null {
   const { scene, gl } = useThree()
   useFrame(() => {
     const day = 1 - mood.nightness
-    // Keep a visible mid-band at night — never drop into a black slab
+    // Sharper mid-distance: lighter fog, punchier exposure
     const fogCol = new THREE.Color().setHSL(
-      THREE.MathUtils.lerp(0.58, 0.08, mood.heat * 0.7),
-      0.22 + mood.heat * 0.18,
-      THREE.MathUtils.lerp(0.32, 0.64, day)
+      THREE.MathUtils.lerp(0.56, 0.08, mood.heat * 0.7),
+      0.28 + mood.heat * 0.2,
+      THREE.MathUtils.lerp(0.36, 0.68, day)
     )
     if (scene.fog instanceof THREE.FogExp2) {
       scene.fog.color.copy(fogCol)
-      scene.fog.density = 0.006 + mood.load * 0.004 + mood.nightness * 0.002
+      scene.fog.density = 0.0035 + mood.load * 0.0025 + mood.nightness * 0.0015
     }
     gl.setClearColor(fogCol, 1)
-    gl.toneMappingExposure = 0.95 + day * 0.2 - mood.heat * 0.04
+    gl.toneMappingExposure = 1.05 + day * 0.22 - mood.heat * 0.03
   })
   return null
 }
@@ -125,17 +128,17 @@ export function LivingWorldCanvas(props: Props): React.JSX.Element {
       <Canvas
         dpr={dpr}
         shadows={!props.lowPower}
-        camera={{ position: [0, 5.5, 16], fov: 40, near: 0.3, far: 500 }}
+        camera={{ position: [0, 5.2, 15.5], fov: 42, near: 0.3, far: 500 }}
         gl={{
           antialias: !props.lowPower,
           powerPreference: props.lowPower ? 'low-power' : 'high-performance',
           alpha: false
         }}
         onCreated={({ gl, scene }) => {
-          gl.setClearColor(0x6a90b8, 1)
+          gl.setClearColor(0x7aa8c8, 1)
           gl.toneMapping = THREE.ACESFilmicToneMapping
-          gl.toneMappingExposure = 1
-          scene.fog = new THREE.FogExp2(0x6a90b8, 0.01)
+          gl.toneMappingExposure = 1.1
+          scene.fog = new THREE.FogExp2(0x7aa8c8, 0.004)
         }}
         style={{ width: '100%', height: '100%' }}
       >

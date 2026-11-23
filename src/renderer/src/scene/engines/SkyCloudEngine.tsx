@@ -20,9 +20,9 @@ export function SkyCloudEngine({ state, mood, lowPower }: Props): React.JSX.Elem
   const cloudGroup = useRef<THREE.Group>(null)
   const day = 1 - mood.nightness
   // Map nightness/heat → sun inclination (0.5 ≈ horizon, ~0.15 night-ish)
-  const inclination = THREE.MathUtils.lerp(0.48, 0.12, mood.nightness)
-  const turbidity = 2 + mood.heat * 8 + mood.load * 4
-  const rayleigh = 0.5 + day * 2.2 + mood.heat * 1.5
+  const inclination = THREE.MathUtils.lerp(0.49, 0.14, mood.nightness)
+  const turbidity = 1.6 + mood.heat * 6 + mood.load * 3
+  const rayleigh = 0.8 + day * 2.6 + mood.heat * 1.2
   const sunPosition = useMemo(() => {
     const v = new THREE.Vector3()
     const theta = Math.PI * (inclination - 0.5)
@@ -60,16 +60,21 @@ export function SkyCloudEngine({ state, mood, lowPower }: Props): React.JSX.Elem
         turbidity={turbidity}
       />
 
-      {/* Floor fill so night never collapses to a black mid-band */}
-      <ambientLight intensity={0.38 + day * 0.4} />
-      <hemisphereLight
-        args={['#b8d4f0', '#2a3a28', 0.35 + day * 0.35]}
-      />
+      {/* Punchier fill + key for sharper, more vibrant reads */}
+      <ambientLight intensity={0.42 + day * 0.38} />
+      <hemisphereLight args={['#c8e4ff', '#3a5a28', 0.45 + day * 0.4]} />
       <directionalLight
         castShadow={!lowPower}
-        position={[sunPosition.x * 40, Math.max(4, sunPosition.y * 40), sunPosition.z * 40]}
-        intensity={0.55 + day * 1.25}
-        color={mood.heat > 0.5 ? '#ffb080' : '#fff4e0'}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        position={[sunPosition.x * 40, Math.max(6, sunPosition.y * 45), sunPosition.z * 40]}
+        intensity={0.75 + day * 1.45}
+        color={mood.heat > 0.5 ? '#ffb890' : '#fff8e8'}
+      />
+      <directionalLight
+        position={[-18, 12, 10]}
+        intensity={0.22 + day * 0.25}
+        color="#a8d8ff"
       />
 
       {showStars ? (
