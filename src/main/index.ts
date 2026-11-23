@@ -7,12 +7,14 @@ import type { EnvironmentState } from '../shared/environment'
 import {
   chatSend,
   chatGenerate,
+  chatGenerateStream,
   clearChatHistory,
   listModels,
   loadChatHistory,
   ollamaStatus
 } from './services/ollama'
-import { runAgent } from './services/agent'
+import { runAgent, runAgentLoop } from './services/agent'
+import { randomUUID } from 'node:crypto'
 import {
   getHomeDir,
   listDirectory,
@@ -118,13 +120,74 @@ function registerIpc(): void {
     async (
       _e,
       messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
-      opts?: { model?: string; temperature?: number; system?: string }
+      opts?: { model?: string; temperature?: number; system?: string; numPredict?: number }
     ) => chatGenerate(messages, opts)
   )
+
+  const chatStreamAborts = new Map<string, AbortController>()
+  ipcMain.handle(
+    IPC.chatStreamStart,
+    async (
+      e,
+      messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
+      opts?: { model?: string; temperature?: number; system?: string; numPredict?: number }
+    ) => {
+      const streamId = randomUUID()
+      const ac = new AbortController()
+      chatStreamAborts.set(streamId, ac)
+      const sender = e.sender
+      void (async () => {
+        try {
+          await chatGenerateStream(messages, opts ?? {}, {
+            signal: ac.signal,
+            onDelta: (delta) => {
+              if (!sender.isDestroyed()) {
+                sender.send(IPC.chatStreamChunk, { streamId, delta })
+              }
+            }
+          })
+          if (!sender.isDestroyed()) {
+            sender.send(IPC.chatStreamChunk, { streamId, delta: '', done: true })
+          }
+        } catch (err) {
+          const message =
+            err instanceof Error && err.name === 'AbortError'
+              ? 'stopped'
+              : err instanceof Error
+                ? err.message
+                : String(err)
+          if (!sender.isDestroyed()) {
+            sender.send(IPC.chatStreamChunk, {
+              streamId,
+              delta: '',
+              done: true,
+              error: message === 'stopped' ? undefined : message
+            })
+          }
+        } finally {
+          chatStreamAborts.delete(streamId)
+        }
+      })()
+      return { streamId }
+    }
+  )
+  ipcMain.handle(IPC.chatStreamAbort, async (_e, streamId: string) => {
+    chatStreamAborts.get(streamId)?.abort()
+    chatStreamAborts.delete(streamId)
+  })
+
   ipcMain.handle(IPC.ollamaModels, async () => listModels())
   ipcMain.handle(IPC.ollamaStatus, async () => ollamaStatus())
 
   ipcMain.handle(IPC.agentRun, async (_e, prompt: string) => runAgent(prompt))
+  ipcMain.handle(
+    IPC.agentLoop,
+    async (
+      _e,
+      prompt: string,
+      opts?: { mode?: 'inspect' | 'plan' | 'build'; model?: string; temperature?: number }
+    ) => runAgentLoop(prompt, opts)
+  )
 
   ipcMain.handle(IPC.listDir, async (_e, dirPath?: string) => listDirectory(dirPath))
   ipcMain.handle(IPC.readTextFile, async (_e, filePath: string) => readTextFile(filePath))

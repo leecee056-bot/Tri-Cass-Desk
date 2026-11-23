@@ -22,10 +22,14 @@ export const IPC = {
   chatSend: 'desk:chat-send',
   chatClear: 'desk:chat-clear',
   chatGenerate: 'desk:chat-generate',
+  chatStreamStart: 'desk:chat-stream-start',
+  chatStreamChunk: 'desk:chat-stream-chunk',
+  chatStreamAbort: 'desk:chat-stream-abort',
   ollamaModels: 'desk:ollama-models',
   ollamaStatus: 'desk:ollama-status',
 
   agentRun: 'desk:agent-run',
+  agentLoop: 'desk:agent-loop',
 
   listDir: 'desk:list-dir',
   readTextFile: 'desk:read-text-file',
@@ -72,12 +76,29 @@ export type DeskApi = {
   chatClear: () => Promise<void>
   chatGenerate: (
     messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
-    opts?: { model?: string; temperature?: number; system?: string }
+    opts?: { model?: string; temperature?: number; system?: string; numPredict?: number }
   ) => Promise<string>
+  chatStreamStart: (
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
+    opts?: { model?: string; temperature?: number; system?: string; numPredict?: number }
+  ) => Promise<{ streamId: string }>
+  chatStreamAbort: (streamId: string) => Promise<void>
+  onChatStreamChunk: (
+    cb: (payload: {
+      streamId: string
+      delta: string
+      done?: boolean
+      error?: string
+    }) => void
+  ) => () => void
   ollamaModels: () => Promise<OllamaModel[]>
   ollamaStatus: () => Promise<{ ok: boolean; detail: string }>
 
   agentRun: (prompt: string) => Promise<AgentRun>
+  agentLoop: (
+    prompt: string,
+    opts?: { mode?: 'inspect' | 'plan' | 'build'; model?: string; temperature?: number }
+  ) => Promise<AgentRun>
 
   listDir: (dirPath?: string) => Promise<{ path: string; entries: FileEntry[] }>
   readTextFile: (filePath: string) => Promise<string>

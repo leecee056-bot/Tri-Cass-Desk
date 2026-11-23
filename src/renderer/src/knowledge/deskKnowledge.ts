@@ -69,10 +69,11 @@ The desk is a living companion environment, not a wallpaper.
     body: `# Coding workflow
 
 Modes:
-- **Chat** — general companion Q&A with optional knowledge.
-- **Code** — read/list workspace files, propose edits, use vault/notes as context.
+- **Chat** — general companion Q&A with optional knowledge; **streams** Ollama tokens live.
+- **Code** — read/list workspace files, propose edits, \`/agent\` OpenCode loop, vault/notes context.
 - **Plan** — read-only analysis (OpenCode plan agent style).
 
+Agents app: inspect / plan / build multi-round TOOL→FINAL loop with allowlisted local tools; build writes need Approve.
 Knowledge is loaded from built-in Desk docs plus \`~/.tricass-desk/knowledge/*.md\` when present.
 Always cite which knowledge doc you used when answering product questions.
 `

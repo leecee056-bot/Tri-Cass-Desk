@@ -19,10 +19,23 @@ const api: DeskApi = {
   chatSend: (content, model) => ipcRenderer.invoke(IPC.chatSend, content, model),
   chatClear: () => ipcRenderer.invoke(IPC.chatClear),
   chatGenerate: (messages, opts) => ipcRenderer.invoke(IPC.chatGenerate, messages, opts),
+  chatStreamStart: (messages, opts) => ipcRenderer.invoke(IPC.chatStreamStart, messages, opts),
+  chatStreamAbort: (streamId) => ipcRenderer.invoke(IPC.chatStreamAbort, streamId),
+  onChatStreamChunk: (cb) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      payload: { streamId: string; delta: string; done?: boolean; error?: string }
+    ): void => {
+      cb(payload)
+    }
+    ipcRenderer.on(IPC.chatStreamChunk, listener)
+    return () => ipcRenderer.removeListener(IPC.chatStreamChunk, listener)
+  },
   ollamaModels: () => ipcRenderer.invoke(IPC.ollamaModels),
   ollamaStatus: () => ipcRenderer.invoke(IPC.ollamaStatus),
 
   agentRun: (prompt) => ipcRenderer.invoke(IPC.agentRun, prompt),
+  agentLoop: (prompt, opts) => ipcRenderer.invoke(IPC.agentLoop, prompt, opts),
 
   listDir: (dirPath) => ipcRenderer.invoke(IPC.listDir, dirPath),
   readTextFile: (filePath) => ipcRenderer.invoke(IPC.readTextFile, filePath),

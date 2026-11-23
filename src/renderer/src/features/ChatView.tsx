@@ -83,7 +83,10 @@ export default function ChatView({ onCloseWindow, openApp }: Props): React.JSX.E
   const [query, setQuery] = useState('')
   const [kbQuery, setKbQuery] = useState('')
   const [attached, setAttached] = useState<{ path: string; excerpt: string } | null>(null)
+  const [streamingId, setStreamingId] = useState<string | null>(null)
   const cancelRef = useRef(false)
+  const streamIdRef = useRef<string | null>(null)
+  const streamUnsubRef = useRef<(() => void) | null>(null)
   const logRef = useRef<HTMLDivElement>(null)
 
   const active = useMemo(
@@ -117,7 +120,16 @@ export default function ChatView({ onCloseWindow, openApp }: Props): React.JSX.E
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' })
-  }, [active.messages.length, busy])
+  }, [active.messages.length, busy, streamingId, active.messages[active.messages.length - 1]?.content])
+
+  useEffect(() => {
+    return () => {
+      streamUnsubRef.current?.()
+      if (streamIdRef.current && window.desk) {
+        void window.desk.chatStreamAbort(streamIdRef.current)
+      }
+    }
+  }, [])
 
   const patchActive = (partial: Partial<Session>): void => {
     setSessions((list) =>
@@ -244,10 +256,38 @@ export default function ChatView({ onCloseWindow, openApp }: Props): React.JSX.E
     }
     if (active.mode !== 'plan' && (lower.startsWith('/agent ') || lower.includes('run agent'))) {
       const p = prompt.replace(/^\/agent\s+/i, '').replace(/run agent/i, '').trim() || prompt
-      const run = await window.desk.agentRun(p)
+      const run = window.desk.agentLoop
+        ? await window.desk.agentLoop(p, {
+            mode: active.mode === 'code' ? 'build' : 'inspect',
+            model: active.model || undefined
+          })
+        : await window.desk.agentRun(p)
       return run.steps.map((s) => `[${s.kind}] ${s.text}`).join('\n\n')
     }
     return null
+  }
+
+  const appendStreamDelta = (assistantId: string, sessionId: string, delta: string): void => {
+    setSessions((list) =>
+      list.map((s) => {
+        if (s.id !== sessionId) return s
+        return {
+          ...s,
+          updatedAt: Date.now(),
+          messages: s.messages.map((m) =>
+            m.id === assistantId ? { ...m, content: m.content + delta } : m
+          )
+        }
+      })
+    )
+  }
+
+  const finishStream = (): void => {
+    streamUnsubRef.current?.()
+    streamUnsubRef.current = null
+    streamIdRef.current = null
+    setStreamingId(null)
+    setBusy(false)
   }
 
   const handleSlash = (raw: string): boolean => {
@@ -342,6 +382,51 @@ export default function ChatView({ onCloseWindow, openApp }: Props): React.JSX.E
         return
       }
 
+      const sessionId = active.id
+      const assistantId = uid()
+      const assistant: ChatMessage = {
+        id: assistantId,
+        role: 'assistant',
+        content: '',
+        at: Date.now()
+      }
+      setSessions((list) =>
+        list.map((s) =>
+          s.id === sessionId
+            ? { ...s, messages: [...prior, assistant], title, updatedAt: Date.now() }
+            : s
+        )
+      )
+      setStreamingId(assistantId)
+
+      // Prefer token streaming; fall back to one-shot generate.
+      if (window.desk.chatStreamStart && window.desk.onChatStreamChunk) {
+        streamUnsubRef.current = window.desk.onChatStreamChunk((payload) => {
+          if (payload.streamId !== streamIdRef.current) return
+          if (cancelRef.current && !payload.done) return
+          if (payload.delta) appendStreamDelta(assistantId, sessionId, payload.delta)
+          if (payload.error) {
+            appendStreamDelta(assistantId, sessionId, `\n\n_(stream error: ${payload.error})_`)
+          }
+          if (payload.done) {
+            if (cancelRef.current) setStatus('Stopped')
+            finishStream()
+            void window.desk?.noteActivity()
+          }
+        })
+        const { streamId } = await window.desk.chatStreamStart(
+          contextWindow(prior).map((m) => ({ role: m.role, content: m.content })),
+          {
+            model: active.model || undefined,
+            temperature: active.temperature,
+            system: buildSystem()
+          }
+        )
+        streamIdRef.current = streamId
+        // busy cleared on stream done
+        return
+      }
+
       const reply = await window.desk.chatGenerate(
         contextWindow(prior).map((m) => ({ role: m.role, content: m.content })),
         {
@@ -351,29 +436,37 @@ export default function ChatView({ onCloseWindow, openApp }: Props): React.JSX.E
         }
       )
       if (cancelRef.current) return
-      const assistant: ChatMessage = {
-        id: uid(),
-        role: 'assistant',
-        content: reply,
-        at: Date.now()
-      }
       setSessions((list) =>
         list.map((s) =>
-          s.id === active.id
-            ? { ...s, messages: [...prior, assistant], title, updatedAt: Date.now() }
+          s.id === sessionId
+            ? {
+                ...s,
+                messages: s.messages.map((m) =>
+                  m.id === assistantId ? { ...m, content: reply } : m
+                ),
+                title,
+                updatedAt: Date.now()
+              }
             : s
         )
       )
       void window.desk.noteActivity()
     } finally {
-      setBusy(false)
+      if (!streamIdRef.current) {
+        setBusy(false)
+        setStreamingId(null)
+      }
     }
   }
 
   const stop = (): void => {
     cancelRef.current = true
-    setBusy(false)
-    setStatus('Stopped')
+    if (streamIdRef.current && window.desk?.chatStreamAbort) {
+      void window.desk.chatStreamAbort(streamIdRef.current)
+    } else {
+      finishStream()
+      setStatus('Stopped')
+    }
   }
 
   const regenerate = async (): Promise<void> => {
@@ -577,8 +670,8 @@ export default function ChatView({ onCloseWindow, openApp }: Props): React.JSX.E
           {active.messages.length === 0 ? (
             <div className="chat-empty">
               <p>
-                Local {active.mode} via Ollama — sessions, knowledge, attach, export, slash commands
-                (/new /code /plan /kb /ls /read).
+                Local {active.mode} via Ollama with live token streaming — sessions, knowledge,
+                attach, export, slash commands (/new /code /plan /kb /ls /read /agent).
               </p>
               <div className="chat-suggestions">
                 {suggestions.map((s) => (
@@ -590,11 +683,18 @@ export default function ChatView({ onCloseWindow, openApp }: Props): React.JSX.E
             </div>
           ) : null}
           {active.messages.map((m) => (
-            <div key={m.id} className={`chat-bubble ${m.role}`}>
+            <div
+              key={m.id}
+              className={`chat-bubble ${m.role}${
+                streamingId === m.id ? ' streaming' : ''
+              }${!m.content && streamingId === m.id ? ' thinking' : ''}`}
+            >
               {m.content}
             </div>
           ))}
-          {busy ? <div className="chat-bubble assistant thinking">Thinking…</div> : null}
+          {busy && !streamingId ? (
+            <div className="chat-bubble assistant thinking">Thinking…</div>
+          ) : null}
         </div>
 
         <div className="chat-actions">

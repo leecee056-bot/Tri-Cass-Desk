@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { AgentRun } from '../../../shared/types'
-import { DESK_KNOWLEDGE, knowledgeAsSystemPrompt } from '../knowledge/deskKnowledge'
+import { DESK_KNOWLEDGE } from '../knowledge/deskKnowledge'
 import './features.css'
 
 type AgentMode = 'inspect' | 'plan' | 'build'
@@ -19,14 +19,26 @@ function uid(): string {
   return `a-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
 }
 
+function parsePermission(text: string): { path: string; content: string } | null {
+  try {
+    const parsed = JSON.parse(text) as { path?: string; content?: string }
+    if (parsed.path && typeof parsed.content === 'string') {
+      return { path: parsed.path, content: parsed.content }
+    }
+  } catch {
+    /* legacy plain text */
+  }
+  return null
+}
+
 /**
- * OpenCode-inspired local agents: inspect / plan / build with knowledge + file tools.
+ * OpenCode-inspired local agents: inspect / plan / build with multi-round tool loop + KB.
  */
 export default function AgentsView(): React.JSX.Element {
   const [mode, setMode] = useState<AgentMode>('inspect')
   const [prompt, setPrompt] = useState('Summarize disk and CPU health')
   const [busy, setBusy] = useState(false)
-  const [status, setStatus] = useState('Local allowlisted tools + Ollama when available')
+  const [status, setStatus] = useState('OpenCode loop · local tools + streaming-capable Ollama')
   const [sessions, setSessions] = useState<AgentSession[]>(() => {
     try {
       return JSON.parse(localStorage.getItem(KEY) || '[]') as AgentSession[]
@@ -47,7 +59,7 @@ export default function AgentsView(): React.JSX.Element {
     localStorage.setItem(KEY, JSON.stringify(sessions.slice(0, 40)))
   }, [sessions])
 
-  const runInspect = async (text: string): Promise<AgentRun> => {
+  const runAgent = async (text: string): Promise<AgentRun> => {
     if (!window.desk) {
       return {
         id: uid(),
@@ -58,104 +70,33 @@ export default function AgentsView(): React.JSX.Element {
             kind: 'note',
             text: 'Electron Desk APIs unavailable in browser preview.',
             at: Date.now()
+          },
+          {
+            kind: 'knowledge',
+            text: DESK_KNOWLEDGE.map((d) => d.title).join('\n'),
+            at: Date.now()
           }
         ],
         at: Date.now()
       }
     }
-    return window.desk.agentRun(text)
-  }
 
-  const runPlanOrBuild = async (text: string): Promise<AgentRun> => {
-    const steps: AgentRun['steps'] = []
-    const at = Date.now()
-    steps.push({
-      kind: 'plan',
-      text: `${mode.toUpperCase()} agent using Tri-Cass knowledge + local tools.`,
-      at
-    })
-
-    if (window.desk) {
-      const lower = text.toLowerCase()
-      if (lower.includes('list') || lower.includes('files') || lower.includes('workspace')) {
-        const home = await window.desk.homeDir()
-        const { path, entries } = await window.desk.listDir(home)
-        steps.push({
-          kind: 'tool',
-          text: `listDir ${path}\n` + entries.slice(0, 30).map((e) => `${e.isDirectory ? 'dir' : 'file'} ${e.name}`).join('\n'),
-          at: Date.now()
-        })
-      }
-      if (lower.startsWith('read ') || lower.includes('read file')) {
-        const path = text.replace(/^read( file)?\s+/i, '').trim()
-        try {
-          const body = await window.desk.readTextFile(path)
-          steps.push({
-            kind: 'tool',
-            text: `read ${path}\n${body.slice(0, 4000)}`,
-            at: Date.now()
-          })
-        } catch (e) {
-          steps.push({ kind: 'error', text: String(e), at: Date.now() })
-        }
-      }
-
-      const inspect = await window.desk.agentRun(text)
-      steps.push(...inspect.steps)
-
-      if (mode === 'build' && window.desk) {
-        const st = await window.desk.ollamaStatus()
-        if (st.ok) {
-          try {
-            const reply = await window.desk.chatGenerate(
-              [{ role: 'user', content: text }],
-              {
-                temperature: 0.3,
-                system:
-                  knowledgeAsSystemPrompt() +
-                  '\nYou are the Build agent. Propose concrete file edits as:\nWRITE path/to/file\n```\ncontent\n```\nOnly when safe.'
-              }
-            )
-            steps.push({ kind: 'llm', text: reply, at: Date.now() })
-            const match = reply.match(/WRITE\s+(\S+)\s*```[\w]*\n([\s\S]*?)```/i)
-            if (match) {
-              setPendingWrite({ path: match[1]!, content: match[2]! })
-              steps.push({
-                kind: 'permission',
-                text: `Proposed write to ${match[1]} — approve below to apply.`,
-                at: Date.now()
-              })
-            }
-          } catch (e) {
-            steps.push({ kind: 'error', text: `LLM: ${String(e)}`, at: Date.now() })
-          }
-        } else {
-          steps.push({
-            kind: 'note',
-            text: `Ollama offline (${st.detail}). Inspect tools still ran.`,
-            at: Date.now()
-          })
-        }
-      } else if (mode === 'plan') {
-        steps.push({
-          kind: 'note',
-          text: 'Plan mode is read-only — no file writes will be applied.',
-          at: Date.now()
-        })
-      }
-    } else {
-      steps.push({
-        kind: 'note',
-        text: 'Preview mode: knowledge base available; file tools need Electron Desk.',
-        at: Date.now()
-      })
-      steps.push({
-        kind: 'knowledge',
-        text: DESK_KNOWLEDGE.map((d) => d.title).join('\n'),
-        at: Date.now()
-      })
+    if (window.desk.agentLoop) {
+      return window.desk.agentLoop(text, { mode })
     }
 
+    // Fallback for older preload: inspect via agentRun, plan/build lightweight
+    if (mode === 'inspect') return window.desk.agentRun(text)
+
+    const steps: AgentRun['steps'] = [
+      {
+        kind: 'plan',
+        text: `${mode} fallback without agentLoop IPC.`,
+        at: Date.now()
+      }
+    ]
+    const inspect = await window.desk.agentRun(text)
+    steps.push(...inspect.steps)
     return { id: uid(), prompt: text, status: 'done', steps, at: Date.now() }
   }
 
@@ -164,8 +105,12 @@ export default function AgentsView(): React.JSX.Element {
     setBusy(true)
     setPendingWrite(null)
     try {
-      const run =
-        mode === 'inspect' ? await runInspect(prompt.trim()) : await runPlanOrBuild(prompt.trim())
+      const run = await runAgent(prompt.trim())
+      const perm = [...run.steps].reverse().find((s) => s.kind === 'permission')
+      if (perm) {
+        const parsed = parsePermission(perm.text)
+        if (parsed) setPendingWrite(parsed)
+      }
       const session: AgentSession = {
         id: uid(),
         title: prompt.trim().slice(0, 48),
@@ -176,7 +121,11 @@ export default function AgentsView(): React.JSX.Element {
       }
       setSessions((list) => [session, ...list])
       setActiveId(session.id)
-      setStatus(`${mode} finished · ${run.steps.length} steps`)
+      setStatus(
+        `${mode} finished · ${run.steps.length} steps · ${run.status || 'done'}${
+          perm ? ' · write pending approval' : ''
+        }`
+      )
       void window.desk?.noteActivity()
     } finally {
       setBusy(false)
@@ -210,8 +159,9 @@ export default function AgentsView(): React.JSX.Element {
       </div>
 
       <p className="status-line">
-        OpenCode-style local agents — <strong>inspect</strong> (telemetry), <strong>plan</strong>{' '}
-        (read-only), <strong>build</strong> (LLM + approve writes). {status}
+        OpenCode-style multi-round loop — <strong>inspect</strong> (tools + LLM summary),{' '}
+        <strong>plan</strong> (read-only tools), <strong>build</strong> (tools + approve writes).{' '}
+        {status}
       </p>
 
       {showKb ? (
@@ -229,7 +179,7 @@ export default function AgentsView(): React.JSX.Element {
         <input
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Ask the agent…"
+          placeholder="Ask the agent… (tools: list_dir, read_file, disks, processes…)"
           onKeyDown={(e) => {
             if (e.key === 'Enter') void go()
           }}
@@ -244,6 +194,7 @@ export default function AgentsView(): React.JSX.Element {
           <p>
             Approve write to <code>{pendingWrite.path}</code>?
           </p>
+          <pre className="agent-write-preview">{pendingWrite.content.slice(0, 800)}</pre>
           <button type="button" className="btn" onClick={() => void approveWrite()}>
             Approve write
           </button>
@@ -273,16 +224,22 @@ export default function AgentsView(): React.JSX.Element {
         <div className="agent-log">
           {!active?.run ? (
             <p className="status-line">
-              Tips: “cpu load”, “vault notes”, “list files”, “read ~/path/file.ts”
+              Tips: “cpu load”, “vault notes”, “list files”, “read ~/path/file.ts” — plan/build use
+              LLM tool rounds until FINAL.
             </p>
           ) : (
-            active.run.steps.map((s, i) => (
-              <div key={`${s.at}-${i}`} className="chat-bubble assistant">
-                <strong>{s.kind}</strong>
-                {'\n'}
-                {s.text}
-              </div>
-            ))
+            active.run.steps.map((s, i) => {
+              const perm = s.kind === 'permission' ? parsePermission(s.text) : null
+              return (
+                <div key={`${s.at}-${i}`} className={`chat-bubble assistant agent-step-${s.kind}`}>
+                  <strong>{s.kind}</strong>
+                  {'\n'}
+                  {perm
+                    ? `Proposed write → ${perm.path}\n${perm.content.slice(0, 500)}`
+                    : s.text}
+                </div>
+              )
+            })
           )}
         </div>
       </div>
