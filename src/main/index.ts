@@ -51,6 +51,8 @@ function createWindow(): void {
     minHeight: 700,
     backgroundColor: '#050814',
     title: 'Tri-Cass Desk',
+    frame: false,
+    titleBarStyle: 'hidden',
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
