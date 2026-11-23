@@ -10,25 +10,29 @@ type Props = {
   yawDeg: number
 }
 
-/** Sun + moon bodies that travel across the sky with day/night + yaw. */
+/** Soft additive sun/moon discs — small glowing bodies, not opaque blobs. */
 export function CelestialEngine({ day, night, moonGlow, energy, yawDeg }: Props): React.JSX.Element {
   const sun = useRef<THREE.Mesh>(null)
   const moon = useRef<THREE.Mesh>(null)
   const sunMat = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#ffe6a8'),
+        color: new THREE.Color('#ffd89a'),
         transparent: true,
-        depthWrite: false
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        toneMapped: false
       }),
     []
   )
   const moonMat = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#dce6ff'),
+        color: new THREE.Color('#c8d6ff'),
         transparent: true,
-        depthWrite: false
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        toneMapped: false
       }),
     []
   )
@@ -36,44 +40,41 @@ export function CelestialEngine({ day, night, moonGlow, energy, yawDeg }: Props)
   useFrame((state) => {
     const t = state.clock.elapsedTime
     const yaw = (yawDeg * Math.PI) / 180
-    const elev = THREE.MathUtils.lerp(-0.6, 1.15, day)
-    const orbit = t * 0.02 * (0.4 + energy)
+    const elev = THREE.MathUtils.lerp(-0.35, 1.05, day)
+    const orbit = t * 0.015 * (0.35 + energy * 0.5)
     if (sun.current) {
+      sun.current.visible = day > 0.08
       sun.current.position.set(
-        Math.sin(yaw + orbit) * 5.5,
-        elev * 2.8 + Math.sin(t * 0.15) * 0.08,
-        -4.5 + Math.cos(yaw + orbit) * 1.2
+        Math.sin(yaw + orbit) * 4.8,
+        elev * 2.4 + Math.sin(t * 0.12) * 0.05,
+        -5.2 + Math.cos(yaw + orbit) * 0.8
       )
-      sunMat.opacity = 0.15 + day * 0.85
-      sun.current.scale.setScalar(0.35 + day * 0.45)
+      sunMat.opacity = Math.min(0.85, 0.2 + day * 0.7)
+      sun.current.scale.setScalar(0.12 + day * 0.14)
     }
     if (moon.current) {
+      moon.current.visible = night > 0.15
       moon.current.position.set(
-        Math.sin(yaw + orbit + Math.PI) * 5.2,
-        THREE.MathUtils.lerp(2.2, -0.4, day) + Math.sin(t * 0.12) * 0.05,
-        -4.2 + Math.cos(yaw + orbit + Math.PI) * 1.1
+        Math.sin(yaw + orbit + Math.PI) * 4.6,
+        THREE.MathUtils.lerp(1.9, -0.2, day) + Math.sin(t * 0.1) * 0.04,
+        -5 + Math.cos(yaw + orbit + Math.PI) * 0.7
       )
-      moonMat.opacity = (0.2 + night * 0.75) * (0.5 + moonGlow * 0.5)
-      moon.current.scale.setScalar(0.28 + night * 0.25)
+      moonMat.opacity = Math.min(0.7, (0.15 + night * 0.55) * (0.45 + moonGlow * 0.55))
+      moon.current.scale.setScalar(0.1 + night * 0.1)
     }
   })
 
   return (
     <>
       <mesh ref={sun} renderOrder={1}>
-        <sphereGeometry args={[1, 24, 24]} />
+        <sphereGeometry args={[1, 16, 16]} />
         <primitive object={sunMat} attach="material" />
       </mesh>
       <mesh ref={moon} renderOrder={1}>
-        <sphereGeometry args={[1, 24, 24]} />
+        <sphereGeometry args={[1, 16, 16]} />
         <primitive object={moonMat} attach="material" />
       </mesh>
-      <pointLight
-        intensity={0.2 + day * 1.1}
-        color="#fff2d0"
-        distance={20}
-        position={[3, 4, 2]}
-      />
+      <pointLight intensity={0.15 + day * 0.7} color="#fff1d0" distance={18} position={[2, 3.5, 2]} />
     </>
   )
 }

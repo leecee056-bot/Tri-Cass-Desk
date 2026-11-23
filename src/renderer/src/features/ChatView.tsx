@@ -274,8 +274,10 @@ export default function ChatView({ onCloseWindow, openApp }: Props): React.JSX.E
       patchActive({ mode: 'chat' })
       return true
     }
-    if (t === '/kb') {
+    if (t === '/kb' || t.startsWith('/kb ')) {
       setShowKb(true)
+      setKbQuery(t.slice(3).trim())
+      setStatus('Knowledge base open')
       return true
     }
     if (t.startsWith('/model ')) {
