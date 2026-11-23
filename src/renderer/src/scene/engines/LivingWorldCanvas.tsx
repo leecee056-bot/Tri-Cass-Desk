@@ -1,14 +1,13 @@
-import { Canvas } from '@react-three/fiber'
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
+import { Suspense, useEffect, useMemo } from 'react'
+import * as THREE from 'three'
 import type { EnvironmentState } from '../../../../shared/environment'
 import type { MoodState } from '../../../../shared/mood'
-import { AuroraEngine } from './AuroraEngine'
-import { CelestialEngine } from './CelestialEngine'
-import { HeatHazeEngine } from './HeatHazeEngine'
+import landscapeUrl from '../../assets/earthbound-landscape.jpg'
+import waterNormalsUrl from '../../assets/waternormals.jpg'
 import { SkyCloudEngine } from './SkyCloudEngine'
 import { VegetationEngine } from './VegetationEngine'
 import { WaterEngine } from './WaterEngine'
-import { WeatherEngine } from './WeatherEngine'
 
 type Props = {
   state: EnvironmentState
@@ -18,10 +17,65 @@ type Props = {
   lowPower: boolean
 }
 
-/**
- * Three.js + drei living layer — each engine reads shared mood independently.
- */
-export function LivingWorldCanvas({
+/** Distant painted plate — full-width backdrop under the procedural Sky. */
+function MountainBackdrop({ nightness }: { nightness: number }): React.JSX.Element {
+  const tex = useLoader(THREE.TextureLoader, landscapeUrl)
+  tex.colorSpace = THREE.SRGBColorSpace
+  return (
+    <mesh position={[0, 12, -90]}>
+      <planeGeometry args={[220, 90]} />
+      <meshBasicMaterial
+        map={tex}
+        toneMapped={false}
+        color={new THREE.Color().setScalar(1 - nightness * 0.55)}
+      />
+    </mesh>
+  )
+}
+
+function Ground(): React.JSX.Element {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+      <circleGeometry args={[55, 64]} />
+      <meshStandardMaterial color="#4a5c34" roughness={0.92} metalness={0} />
+    </mesh>
+  )
+}
+
+function CameraRig({ yaw }: { yaw: number }): null {
+  const { camera } = useThree()
+  useEffect(() => {
+    camera.position.set(0, 5.5, 16)
+    camera.lookAt(0, 1.2, -8)
+  }, [camera])
+  useFrame(() => {
+    // Gentle yaw from edge-pan without breaking the horizon framing
+    camera.rotation.y = THREE.MathUtils.degToRad(-yaw * 0.12)
+  })
+  return null
+}
+
+function FogMood({ mood }: { mood: MoodState }): null {
+  const { scene, gl } = useThree()
+  useFrame(() => {
+    const day = 1 - mood.nightness
+    // Keep a visible mid-band at night — never drop into a black slab
+    const fogCol = new THREE.Color().setHSL(
+      THREE.MathUtils.lerp(0.58, 0.08, mood.heat * 0.7),
+      0.22 + mood.heat * 0.18,
+      THREE.MathUtils.lerp(0.32, 0.64, day)
+    )
+    if (scene.fog instanceof THREE.FogExp2) {
+      scene.fog.color.copy(fogCol)
+      scene.fog.density = 0.006 + mood.load * 0.004 + mood.nightness * 0.002
+    }
+    gl.setClearColor(fogCol, 1)
+    gl.toneMappingExposure = 0.95 + day * 0.2 - mood.heat * 0.04
+  })
+  return null
+}
+
+function SceneBody({
   state,
   mood,
   yaw,
@@ -29,81 +83,64 @@ export function LivingWorldCanvas({
   lowPower
 }: Props): React.JSX.Element {
   const motion = state.userPreferences.motion !== 'off'
-  const night = mood.nightness
-  const day = 1 - mood.nightness
-  const auroraStrength =
-    Math.max(state.celestial.aurora, mood.load * 0.55) * Math.max(night, 0.15)
-  const showAurora =
-    state.userPreferences.celestialEffects &&
-    !lowPower &&
-    (night > 0.1 || auroraStrength > 0.08)
-  const weatherOn = state.userPreferences.weatherEffects && !lowPower
+  const sunDir = useMemo(() => {
+    const incl = THREE.MathUtils.lerp(0.49, 0.18, mood.nightness)
+    const theta = Math.PI * (incl - 0.5)
+    const phi = 2 * Math.PI * (0.25 - 0.5)
+    return new THREE.Vector3(Math.cos(phi), Math.max(0.05, Math.sin(theta)), Math.sin(phi)).normalize()
+  }, [mood.nightness])
 
-  // Process / churn spike → water ripple flash
-  const [spike, setSpike] = useState(0)
-  const lastChurn = useRef(state.system.processChurn)
-  useEffect(() => {
-    const delta = state.system.processChurn - lastChurn.current
-    lastChurn.current = state.system.processChurn
-    if (delta > 0.08 || state.system.cpuLoad > 0.85) {
-      setSpike((s) => Math.min(1, s + 0.55 + delta))
-    }
-  }, [state.system.processChurn, state.system.cpuLoad, state.system.sampledAt])
-
-  useEffect(() => {
-    if (spike <= 0.01) return
-    const t = window.setInterval(() => {
-      setSpike((s) => Math.max(0, s * 0.86 - 0.02))
-    }, 50)
-    return () => window.clearInterval(t)
-  }, [spike])
-
-  const dpr: [number, number] = lowPower ? [1, 1.1] : [1, 1.75]
+  const waterNormals = useLoader(THREE.TextureLoader, waterNormalsUrl)
 
   return (
-    <div className="living-canvas-host" aria-hidden>
+    <>
+      <CameraRig yaw={yaw} />
+      <FogMood mood={mood} />
+      <SkyCloudEngine state={state} mood={mood} lowPower={lowPower} />
+      <MountainBackdrop nightness={mood.nightness} />
+      <Ground />
+      {/* Lake sits mid-distance; grass is shoreline only */}
+      <group position={[0, 0.02, -6]}>
+        <WaterEngine mood={mood} motion={motion} sunDir={sunDir} normals={waterNormals} />
+      </group>
+      <VegetationEngine
+        mood={mood}
+        pointer={pointer}
+        motion={motion}
+        lowPower={lowPower}
+        sunDir={sunDir}
+      />
+    </>
+  )
+}
+
+/**
+ * Opaque Three.js living world — Sky + Water + thin grass (OSS stack).
+ * No CSS plate overlay (that caused the black half-screen).
+ */
+export function LivingWorldCanvas(props: Props): React.JSX.Element {
+  const dpr: [number, number] = props.lowPower ? [1, 1.15] : [1, 1.5]
+  return (
+    <div className="living-canvas-host living-canvas-opaque" aria-hidden>
       <Canvas
         dpr={dpr}
-        camera={{ position: [0, 0.2, 6.4], fov: 40, near: 0.1, far: 200 }}
+        shadows={!props.lowPower}
+        camera={{ position: [0, 5.5, 16], fov: 40, near: 0.3, far: 500 }}
         gl={{
-          alpha: true,
-          antialias: !lowPower,
-          powerPreference: lowPower ? 'low-power' : 'high-performance',
-          premultipliedAlpha: true
+          antialias: !props.lowPower,
+          powerPreference: props.lowPower ? 'low-power' : 'high-performance',
+          alpha: false
         }}
-        onCreated={({ gl }) => {
-          gl.setClearColor(0x000000, 0)
+        onCreated={({ gl, scene }) => {
+          gl.setClearColor(0x6a90b8, 1)
+          gl.toneMapping = THREE.ACESFilmicToneMapping
+          gl.toneMappingExposure = 1
+          scene.fog = new THREE.FogExp2(0x6a90b8, 0.01)
         }}
-        style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
+        style={{ width: '100%', height: '100%' }}
       >
         <Suspense fallback={null}>
-          <SkyCloudEngine state={state} mood={mood} yaw={yaw} lowPower={lowPower} />
-          {state.userPreferences.celestialEffects ? (
-            <CelestialEngine
-              day={day}
-              night={night}
-              moonGlow={state.celestial.moonGlow * (0.5 + (1 - mood.activity) * 0.5)}
-              energy={mood.load}
-              yawDeg={yaw}
-            />
-          ) : null}
-          <AuroraEngine strength={auroraStrength} energy={mood.load} visible={showAurora} />
-          <VegetationEngine
-            mood={mood}
-            pointer={pointer}
-            motion={motion}
-            lowPower={lowPower}
-          />
-          <WaterEngine mood={mood} motion={motion} spike={Math.max(spike, (1 - mood.activity) * 0.1)} />
-          <HeatHazeEngine heat={mood.heat} motion={motion} lowPower={lowPower} />
-          {weatherOn ? (
-            <WeatherEngine
-              rain={Math.max(state.weather.rain, mood.load > 0.65 ? mood.load * 0.4 : 0)}
-              wind={mood.wind}
-              fog={Math.max(state.weather.fog, mood.nightness * 0.15 * (1 - mood.activity))}
-              motion={motion}
-            />
-          ) : null}
+          <SceneBody {...props} />
         </Suspense>
       </Canvas>
     </div>

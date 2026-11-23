@@ -1,26 +1,26 @@
-# Living-world assets & licences (HAP-91)
+# Living-world assets & licences (HAP-91 rebuild)
 
-Every third-party piece used by the living scene. Prefer MIT / Apache / BSD / CC0.
+Licence rule: MIT / Apache / BSD / CC0 only. GPL or unclear → ask Lee.
 
-| Asset / package | Role | Licence | Source |
-|-----------------|------|---------|--------|
-| `three` | WebGL renderer | MIT | https://github.com/mrdoob/three.js |
-| `@react-three/fiber` | React renderer for three | MIT | https://github.com/pmndrs/react-three-fiber |
-| `@react-three/drei` | Clouds, Stars helpers | MIT | https://github.com/pmndrs/drei |
-| `drei-cloud.png` (bundled via drei import) | Cloud billboard texture | MIT (drei) | `@react-three/drei` |
-| `earthbound-landscape.jpg` | Terrain plate (existing desk art) | Project asset | `src/renderer/src/assets/` |
-| VegetationEngine (instanced grass) | Wind + cursor gust grass | MIT (original desk code) | Inspired by common instanced-grass technique; **not** a copy of GrassSystemThreeJS / al-ro sources |
-| WaterEngine / AuroraEngine / HeatHaze / Sky wash | Scene shaders | MIT (original desk code) | Tri-Cass Desk |
-| `systeminformation` | Telemetry for mood targets | MIT | https://github.com/sebhildebrandt/systeminformation |
+| Asset / package | Role | Licence | Source / how plugged in |
+|-----------------|------|---------|-------------------------|
+| `three` | WebGL core | MIT | npm `three` |
+| `@react-three/fiber` | React Three renderer | MIT | npm |
+| `@react-three/drei` `Sky` | Precomputed sky (three.js Sky addon) | MIT | `SkyCloudEngine` — day/night via inclination + turbidity from mood |
+| `@react-three/drei` `Clouds` / `Stars` | Cloud billboards + starfield | MIT | `SkyCloudEngine` |
+| `three-stdlib` `Water` | Reflective water mesh | MIT | `WaterEngine` — time / sun / tint from mood |
+| `waternormals.jpg` | Water normal map | MIT (three.js examples) | `src/renderer/src/assets/waternormals.jpg` from three.js `examples/textures/` |
+| GrassSystemThreeJS technique | Thin GPU-instanced grass + wind | MIT © mohamedachrefelouafi | Adapted into `VegetationEngine` (blade strip, curl, wind); https://github.com/achrefelouafi/GrassSystemThreeJS |
+| `earthbound-landscape.jpg` | Distant mountain billboard | Project asset | `MountainBackdrop` in canvas |
+| `systeminformation` | Telemetry → mood targets | MIT | main process |
 
-## Considered but not vendored this pass
-| Candidate | Why deferred |
-|-----------|----------------|
-| `@takram/three-atmosphere` / three-clouds | GPU-heavy; needs EffectComposer; evaluate after low-power baseline |
-| globe.gl / Tellux / CesiumJS | Optional planet view — next polish if Lee wants Earth browse |
-| GrassSystemThreeJS | MIT-friendly reference only; we wrote our own instanced field |
-| Poly Haven / ambientCG HDRIs | Not downloaded yet; plate + procedural lighting for now |
-| Open-Meteo / NASA GIBS | Outdoor weather APIs — desk policy remains **local telemetry metaphor** unless Lee opts in |
+## Considered / deferred
+| Candidate | Decision |
+|-----------|----------|
+| `@takram/three-atmosphere` / three-clouds | MIT — deferred (EffectComposer + GPU cost); drei Sky is the brief’s fallback |
+| globe.gl / Tellux / CesiumJS | Optional planet view — not this pass |
+| Poly Haven / ambientCG HDRIs | CC0 — deferred; soft lighting from Sky + directional for now |
+| Open-Meteo / NASA GIBS | Outdoor weather — desk stays local telemetry metaphor |
 
-## Low-power mode
-Mood debug → **Low-power scene** drops cloud density, star count, heat haze, and caps DPR to keep idle cost down.
+## Low-power
+Mood debug → **Low-power scene** reduces grass density, cloud/star counts, shadows, and DPR.

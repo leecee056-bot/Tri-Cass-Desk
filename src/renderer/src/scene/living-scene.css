@@ -8,7 +8,11 @@
   transition: transform 2s ease;
 }
 
-/* World moves under a fixed UI layer — 360° yaw scrolls tiled plates */
+.living-scene-3d {
+  background: #1a2838;
+}
+
+/* Opaque Three.js world fills the desk; UI floats above */
 .world-stage {
   position: absolute;
   inset: -28% -10%;
@@ -16,6 +20,13 @@
   height: 156%;
   transform: translate3d(0, var(--cam-y, 0), 0);
   will-change: transform;
+}
+
+.world-stage-3d {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
 }
 
 .plate-strip {
@@ -56,6 +67,16 @@
   inset: 0;
   z-index: 2;
   pointer-events: none;
+}
+
+.living-canvas-opaque {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.mood-wash.soft {
+  opacity: 0.45;
+  z-index: 2;
 }
 
 .day-night-veil {
@@ -176,8 +197,8 @@
 
 .mood-debug {
   position: absolute;
-  right: 14px;
-  top: 48px;
+  left: 14px;
+  bottom: 88px;
   z-index: 6;
   width: 210px;
   padding: 10px 12px;

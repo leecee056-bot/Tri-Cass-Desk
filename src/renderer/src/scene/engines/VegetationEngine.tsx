@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import { useLayoutEffect, useMemo, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { MoodState } from '../../../../shared/mood'
 
@@ -8,135 +8,208 @@ type Props = {
   pointer: { nx: number; ny: number; inside: boolean }
   motion: boolean
   lowPower: boolean
+  sunDir: THREE.Vector3
 }
 
 /**
- * Instanced grass field — wind + local cursor gust.
- * Original MIT desk code; technique inspired by common instanced grass demos
- * without vendoring third-party sources.
+ * Shoreline grass — thin GPU-instanced blades.
+ * Technique adapted from GrassSystemThreeJS (MIT © mohamedachrefelouafi).
+ * Kept on near shore only so the lake stays visible.
  */
 export function VegetationEngine({
   mood,
   pointer,
   motion,
-  lowPower
+  lowPower,
+  sunDir
 }: Props): React.JSX.Element {
-  const mesh = useRef<THREE.InstancedMesh>(null)
-  const mat = useRef<THREE.ShaderMaterial>(null)
-  const count = lowPower ? 420 : 1100
-  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const meshRef = useRef<THREE.Mesh>(null)
+  const maxCount = lowPower ? 5000 : 16000
 
-  const { offsets, scales } = useMemo(() => {
-    const offsetsArr = new Float32Array(count * 3)
-    const scalesArr = new Float32Array(count)
-    for (let i = 0; i < count; i++) {
-      offsetsArr[i * 3] = (Math.random() - 0.5) * 9.5
-      offsetsArr[i * 3 + 1] = -1.15 + Math.random() * 0.08
-      offsetsArr[i * 3 + 2] = -0.2 - Math.random() * 3.8
-      scalesArr[i] = 0.55 + Math.random() * 0.9
+  const { geometry, uniforms } = useMemo(() => {
+    const segments = 5
+    const positions: number[] = []
+    const indices: number[] = []
+    for (let j = 0; j <= segments; j++) {
+      const t = j / segments
+      positions.push(-0.5, t, 0, 0.5, t, 0)
+      if (j < segments) {
+        const a = j * 2
+        indices.push(a, a + 1, a + 3, a, a + 3, a + 2)
+      }
     }
-    return { offsets: offsetsArr, scales: scalesArr }
-  }, [count])
+    const geometry = new THREE.InstancedBufferGeometry()
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+    geometry.setIndex(indices)
 
-  useLayoutEffect(() => {
-    const m = mesh.current
-    if (!m) return
-    for (let i = 0; i < count; i++) {
-      dummy.position.set(offsets[i * 3]!, offsets[i * 3 + 1]!, offsets[i * 3 + 2]!)
-      dummy.scale.set(1, scales[i]!, 1)
-      dummy.updateMatrix()
-      m.setMatrixAt(i, dummy.matrix)
+    const iPos = new Float32Array(maxCount * 2)
+    const iYaw = new Float32Array(maxCount)
+    const iHeight = new Float32Array(maxCount)
+    const iWidth = new Float32Array(maxCount)
+    const iPhase = new Float32Array(maxCount)
+    const iCurlVar = new Float32Array(maxCount)
+    const iColorVar = new Float32Array(maxCount)
+
+    // Shore band: near camera (+Z) and sides of lake — not covering the water plane
+    for (let i = 0; i < maxCount; i++) {
+      const side = Math.random()
+      let x: number
+      let z: number
+      if (side < 0.55) {
+        // Front meadow
+        x = (Math.random() - 0.5) * 28
+        z = 2 + Math.random() * 10
+      } else if (side < 0.78) {
+        // Left bank
+        x = -10 - Math.random() * 8
+        z = -10 + Math.random() * 16
+      } else {
+        // Right bank
+        x = 10 + Math.random() * 8
+        z = -10 + Math.random() * 16
+      }
+      iPos[i * 2] = x
+      iPos[i * 2 + 1] = z
+      iYaw[i] = Math.random() * Math.PI * 2
+      iHeight[i] = 0.55 + Math.random() * 0.55
+      iWidth[i] = 0.7 + Math.random() * 0.45
+      iPhase[i] = Math.random() * Math.PI * 2
+      iCurlVar[i] = 0.55 + Math.random() * 0.8
+      iColorVar[i] = Math.random()
     }
-    m.instanceMatrix.needsUpdate = true
-  }, [count, offsets, scales, dummy])
+    geometry.setAttribute('iPos', new THREE.InstancedBufferAttribute(iPos, 2))
+    geometry.setAttribute('iYaw', new THREE.InstancedBufferAttribute(iYaw, 1))
+    geometry.setAttribute('iHeight', new THREE.InstancedBufferAttribute(iHeight, 1))
+    geometry.setAttribute('iWidth', new THREE.InstancedBufferAttribute(iWidth, 1))
+    geometry.setAttribute('iPhase', new THREE.InstancedBufferAttribute(iPhase, 1))
+    geometry.setAttribute('iCurlVar', new THREE.InstancedBufferAttribute(iCurlVar, 1))
+    geometry.setAttribute('iColorVar', new THREE.InstancedBufferAttribute(iColorVar, 1))
+    geometry.instanceCount = Math.floor(maxCount * (lowPower ? 0.4 : 0.7))
+    geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 2), 40)
 
-  const uniforms = useMemo(
-    () => ({
+    const uniforms = {
       uTime: { value: 0 },
-      uWind: { value: mood.wind },
-      uHeat: { value: mood.heat },
-      uGust: { value: 0 },
-      uGustPos: { value: new THREE.Vector2(0, -1) }
-    }),
-    []
+      uCurl: { value: 0.85 },
+      uHeight: { value: 0.55 },
+      uWidth: { value: 0.028 },
+      uWindDir: { value: new THREE.Vector2(1, 0.35).normalize() },
+      uWindStrength: { value: 0.35 },
+      uWindSpeed: { value: 1.2 },
+      uWindScale: { value: 0.35 },
+      uGust: { value: 0.4 },
+      uCursorGust: { value: 0 },
+      uCursorPos: { value: new THREE.Vector2(0, 6) },
+      uColorBase: { value: new THREE.Color(0x2a3a18) },
+      uColorTip: { value: new THREE.Color(0x8fbf45) },
+      uColorVarAmt: { value: 0.35 },
+      uHeat: { value: 0 },
+      uSunDir: { value: new THREE.Vector3(1, 1, 1) }
+    }
+
+    return { geometry, uniforms }
+  }, [maxCount, lowPower])
+
+  const material = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: VERT,
+        fragmentShader: FRAG,
+        side: THREE.DoubleSide
+      }),
+    [uniforms]
   )
 
   useFrame((state) => {
-    if (!mat.current) return
-    if (motion) mat.current.uniforms.uTime.value = state.clock.elapsedTime
-    mat.current.uniforms.uWind.value = THREE.MathUtils.lerp(
-      mat.current.uniforms.uWind.value,
-      mood.wind,
+    if (motion) uniforms.uTime.value = state.clock.elapsedTime
+    uniforms.uWindStrength.value = THREE.MathUtils.lerp(
+      uniforms.uWindStrength.value,
+      0.2 + mood.wind * 0.85,
       0.08
     )
-    mat.current.uniforms.uHeat.value = THREE.MathUtils.lerp(
-      mat.current.uniforms.uHeat.value,
-      mood.heat,
-      0.08
-    )
-    const gustX = (pointer.nx - 0.5) * 9
-    const gustZ = -0.4 - pointer.ny * 3.2
-    const strength = pointer.inside ? 0.35 + mood.activity * 0.45 : 0
-    mat.current.uniforms.uGust.value = THREE.MathUtils.lerp(
-      mat.current.uniforms.uGust.value,
-      strength,
+    uniforms.uGust.value = THREE.MathUtils.lerp(uniforms.uGust.value, 0.25 + mood.wind * 0.65, 0.08)
+    uniforms.uHeat.value = THREE.MathUtils.lerp(uniforms.uHeat.value, mood.heat, 0.08)
+    uniforms.uSunDir.value.copy(sunDir)
+    const cx = (pointer.nx - 0.5) * 24
+    const cz = 12 - pointer.ny * 14
+    uniforms.uCursorPos.value.set(cx, cz)
+    uniforms.uCursorGust.value = THREE.MathUtils.lerp(
+      uniforms.uCursorGust.value,
+      pointer.inside ? 0.5 + mood.activity * 0.4 : 0,
       0.12
     )
-    mat.current.uniforms.uGustPos.value.set(gustX, gustZ)
+    uniforms.uColorTip.value.setRGB(
+      THREE.MathUtils.lerp(0.56, 0.72, mood.heat),
+      THREE.MathUtils.lerp(0.75, 0.52, mood.heat),
+      THREE.MathUtils.lerp(0.27, 0.18, mood.heat)
+    )
   })
 
-  return (
-    <instancedMesh ref={mesh} args={[undefined, undefined, count]} frustumCulled={false} renderOrder={2}>
-      <planeGeometry args={[0.06, 0.55, 1, 4]} />
-      <shaderMaterial
-        ref={mat}
-        transparent
-        depthWrite={false}
-        side={THREE.DoubleSide}
-        uniforms={uniforms}
-        vertexShader={VERT}
-        fragmentShader={FRAG}
-      />
-    </instancedMesh>
-  )
+  return <mesh ref={meshRef} geometry={geometry} material={material} frustumCulled={false} />
 }
 
 const VERT = /* glsl */ `
+attribute vec2  iPos;
+attribute float iYaw;
+attribute float iHeight;
+attribute float iWidth;
+attribute float iPhase;
+attribute float iCurlVar;
+attribute float iColorVar;
 uniform float uTime;
-uniform float uWind;
+uniform float uCurl;
+uniform float uHeight;
+uniform float uWidth;
+uniform vec2  uWindDir;
+uniform float uWindStrength;
+uniform float uWindSpeed;
+uniform float uWindScale;
 uniform float uGust;
-uniform vec2 uGustPos;
-varying float vH;
-varying float vShade;
+uniform float uCursorGust;
+uniform vec2  uCursorPos;
+varying float vT;
+varying float vColorVar;
 
 void main() {
-  vH = uv.y;
-  mat4 im = instanceMatrix;
-  vec3 ip = vec3(im[3][0], im[3][1], im[3][2]);
-  float bend = (0.15 + uWind * 0.55) * uv.y * uv.y;
-  float sway = sin(uTime * (1.4 + uWind * 2.2) + ip.x * 2.1 + ip.z * 1.7) * bend;
-  float dist = length(ip.xz - uGustPos);
-  float gust = uGust * exp(-dist * dist * 0.35) * uv.y * uv.y;
-  vec3 p = position;
-  p.x += sway * 0.35 + gust * 0.55;
-  p.z += sway * 0.12 + gust * 0.2;
-  vShade = 0.55 + uv.y * 0.45;
-  gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(p, 1.0);
+  float t = position.y;
+  float side = position.x;
+  float h = uHeight * iHeight;
+  float w = uWidth * iWidth * (1.0 - t) * (0.7 + 0.3 * (1.0 - t));
+  float A = uCurl * iCurlVar;
+  float yA = abs(A) > 0.001 ? h * sin(A * t) / A : h * t;
+  float zA = abs(A) > 0.001 ? h * (1.0 - cos(A * t)) / A : 0.0;
+  vec3 pLocal = vec3(side * w, yA, zA);
+  float cy = cos(iYaw), sy = sin(iYaw);
+  vec3 pR = vec3(pLocal.x * cy + pLocal.z * sy, pLocal.y, -pLocal.x * sy + pLocal.z * cy);
+  float gph = dot(iPos, uWindDir) * uWindScale + uTime * uWindSpeed + iPhase;
+  float gust = sin(gph) * 0.6 + sin(gph * 0.5 + 1.7) * 0.4;
+  float flutter = sin(uTime * 8.0 + iPhase * 3.0) * 0.15 * uGust;
+  float sway = (gust + flutter) * uWindStrength;
+  vec2 windOff = uWindDir * sway * (t * t);
+  float dist = length(iPos - uCursorPos);
+  float cGust = uCursorGust * exp(-dist * dist * 0.06) * (t * t);
+  windOff += normalize(iPos - uCursorPos + vec2(0.001)) * cGust * 0.5;
+  vec3 gPos = vec3(iPos.x + pR.x + windOff.x, pR.y, iPos.y + pR.z + windOff.y);
+  vT = t;
+  vColorVar = iColorVar;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(gPos, 1.0);
 }
 `
 
 const FRAG = /* glsl */ `
+uniform vec3 uColorBase;
+uniform vec3 uColorTip;
+uniform float uColorVarAmt;
 uniform float uHeat;
-varying float vH;
-varying float vShade;
-
+uniform vec3 uSunDir;
+varying float vT;
+varying float vColorVar;
 void main() {
-  vec3 cool = vec3(0.18, 0.42, 0.22);
-  vec3 tip = vec3(0.45, 0.72, 0.28);
-  vec3 warm = vec3(0.55, 0.48, 0.18);
-  vec3 col = mix(cool, tip, vH);
-  col = mix(col, warm, uHeat * 0.35);
-  float a = smoothstep(0.0, 0.08, vH) * (0.55 + vShade * 0.35);
-  gl_FragColor = vec4(col, a);
+  vec3 gcol = mix(uColorBase, uColorTip, vT);
+  gcol *= mix(1.0 - uColorVarAmt, 1.0 + uColorVarAmt, vColorVar);
+  gcol *= mix(0.55, 1.0, smoothstep(0.0, 0.35, vT));
+  gcol = mix(gcol, vec3(0.55, 0.42, 0.18), uHeat * 0.25 * vT);
+  float lit = 0.7 + 0.3 * clamp(uSunDir.y, 0.0, 1.0);
+  gl_FragColor = vec4(gcol * lit, 1.0);
 }
 `
