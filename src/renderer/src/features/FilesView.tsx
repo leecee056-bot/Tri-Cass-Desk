@@ -66,7 +66,21 @@ export default function FilesView(): React.JSX.Element {
                 {e.isDirectory ? '▸ ' : ''}
                 {e.name}
               </span>
-              <span>{e.isDirectory ? 'dir' : `${Math.round(e.size / 1024)} KB`}</span>
+              <span className="feature-toolbar" style={{ gap: 4 }}>
+                {!e.isDirectory ? (
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={(ev) => {
+                      ev.stopPropagation()
+                      void window.desk?.binMove(e.path).then(() => void load(path))
+                    }}
+                  >
+                    Bin
+                  </button>
+                ) : null}
+                <span>{e.isDirectory ? 'dir' : `${Math.round(e.size / 1024)} KB`}</span>
+              </span>
             </div>
           ))}
         </div>

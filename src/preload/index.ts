@@ -47,7 +47,11 @@ const api: DeskApi = {
   snapshotsRestore: (id) => ipcRenderer.invoke(IPC.snapshotsRestore, id),
 
   hashText: (text, algo) => ipcRenderer.invoke(IPC.hashText, text, algo),
-  runSafeCommand: (commandId) => ipcRenderer.invoke(IPC.runSafeCommand, commandId)
+  runSafeCommand: (commandId) => ipcRenderer.invoke(IPC.runSafeCommand, commandId),
+  pickMediaFile: () => ipcRenderer.invoke(IPC.pickMediaFile),
+  binList: () => ipcRenderer.invoke(IPC.binList),
+  binMove: (targetPath) => ipcRenderer.invoke(IPC.binMove, targetPath),
+  binRestore: (name) => ipcRenderer.invoke(IPC.binRestore, name)
 }
 
 contextBridge.exposeInMainWorld('desk', api)

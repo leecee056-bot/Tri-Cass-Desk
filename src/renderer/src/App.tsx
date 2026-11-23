@@ -7,6 +7,10 @@ import ChatView from './features/ChatView'
 import FilesView from './features/FilesView'
 import SettingsView from './features/SettingsView'
 import VaultView from './features/VaultView'
+import BrowserSurface from './surfaces/BrowserSurface'
+import MediaSurface from './surfaces/MediaSurface'
+import TerminalSurface from './surfaces/TerminalSurface'
+import EditorSurface from './surfaces/EditorSurface'
 import ClockPanel from './shell/ClockPanel'
 import ControlsBar from './shell/ControlsBar'
 import Dock from './shell/Dock'
@@ -15,28 +19,37 @@ import SystemPanel from './shell/SystemPanel'
 import WorkspacePanel from './shell/WorkspacePanel'
 import ToolsHub from './tools/ToolsHub'
 import { TOOL_CATALOG } from './tools/catalog'
+import UniversalTool from './tools/engines/UniversalTool'
 import './shell/shell.css'
 import './features/features.css'
+import './surfaces/surfaces.css'
 
 function workspaceMeta(active: string): { title: string; subtitle: string } {
   switch (active) {
     case 'tools':
+    case 'launcher':
       return {
-        title: 'Tools',
-        subtitle: `${TOOL_CATALOG.filter((t) => t.status === 'live').length} live local tools`
+        title: 'Apps & Tools',
+        subtitle: `${TOOL_CATALOG.length} glass utilities`
       }
     case 'files':
-      return { title: 'Files', subtitle: 'Local workspace & home browser' }
+      return { title: 'Files', subtitle: 'Local workspace & home' }
     case 'agents':
-      return { title: 'Agents', subtitle: 'Allowlisted local machine agent' }
+      return { title: 'Agents', subtitle: 'Allowlisted local agent' }
     case 'vault':
-      return { title: 'Knowledge Vault', subtitle: 'Notes stored on this PC' }
+      return { title: 'Knowledge Vault', subtitle: 'Notes on this PC' }
     case 'browse':
-      return { title: 'Browse', subtitle: 'Open links in the system browser' }
+      return { title: 'Glass Browser', subtitle: 'In-desk browsing · frosted chrome' }
+    case 'media':
+      return { title: 'Media Player', subtitle: 'Local audio / video · VLC-class controls' }
+    case 'terminal':
+      return { title: 'Terminal', subtitle: 'xterm · allowlisted commands' }
+    case 'editor':
+      return { title: 'Editor', subtitle: 'Glass code desk (+ Monaco)' }
+    case 'bin':
+      return { title: 'Bin', subtitle: 'Soft-delete shelf' }
     case 'settings':
-      return { title: 'Settings', subtitle: 'Environment + workspace snapshots' }
-    case 'launcher':
-      return { title: 'Apps', subtitle: 'Dock launcher — pick a surface' }
+      return { title: 'Settings', subtitle: 'Environment + snapshots' }
     case 'chat':
     default:
       return { title: 'Chat', subtitle: 'Local Ollama chat' }
@@ -60,6 +73,7 @@ export default function App(): React.JSX.Element {
   }, [])
 
   const meta = workspaceMeta(active)
+  const binTool = TOOL_CATALOG.find((t) => t.name.toLowerCase().includes('recycle'))
 
   let body: React.ReactNode
   switch (active) {
@@ -77,7 +91,28 @@ export default function App(): React.JSX.Element {
       body = <VaultView />
       break
     case 'browse':
-      body = <BrowseView />
+      body = <BrowserSurface />
+      break
+    case 'media':
+      body = <MediaSurface />
+      break
+    case 'terminal':
+      body = <TerminalSurface />
+      break
+    case 'editor':
+      body = <EditorSurface />
+      break
+    case 'bin':
+      body = binTool ? (
+        <UniversalTool
+          tool={binTool}
+          state={state}
+          onOpenDock={setActive}
+          onClose={() => setActive('tools')}
+        />
+      ) : (
+        <p className="status-line">Bin shelf</p>
+      )
       break
     case 'settings':
       body = (
@@ -93,7 +128,7 @@ export default function App(): React.JSX.Element {
       break
     case 'chat':
     default:
-      body = <ChatView />
+      body = active === 'browse-legacy' ? <BrowseView /> : <ChatView />
       break
   }
 

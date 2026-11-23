@@ -1,5 +1,6 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
-import { join } from 'node:path'
+import { app, BrowserWindow, dialog, ipcMain } from 'electron'
+import { join, basename } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { EnvironmentEngine } from './environmentEngine'
 import { IPC } from '../shared/ipc'
 import type { EnvironmentState } from '../shared/environment'
@@ -32,6 +33,7 @@ import {
 } from './services/systemExtras'
 import { listSnapshots, restoreSnapshot, saveSnapshot } from './services/snapshots'
 import { deskDataDir, workspaceRoot } from './services/paths'
+import { binList, binMove, binRestore, binDir } from './services/bin'
 
 const engine = new EnvironmentEngine()
 let mainWindow: BrowserWindow | null = null
@@ -54,7 +56,8 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false
+      sandbox: false,
+      webviewTag: true
     }
   })
 
@@ -145,6 +148,28 @@ function registerIpc(): void {
     async (_e, text: string, algo: 'sha256' | 'sha1' | 'md5') => hashText(text, algo)
   )
   ipcMain.handle(IPC.runSafeCommand, async (_e, commandId: string) => runSafeCommand(commandId))
+
+  ipcMain.handle(IPC.pickMediaFile, async () => {
+    const res = await dialog.showOpenDialog(mainWindow!, {
+      properties: ['openFile'],
+      filters: [
+        { name: 'Media', extensions: ['mp4', 'webm', 'mkv', 'mov', 'mp3', 'wav', 'flac', 'ogg', 'm4a'] }
+      ]
+    })
+    if (res.canceled || !res.filePaths[0]) return null
+    const filePath = res.filePaths[0]
+    return {
+      path: filePath,
+      name: basename(filePath),
+      url: pathToFileURL(filePath).href
+    }
+  })
+
+  ipcMain.handle(IPC.binList, async () => binList())
+  ipcMain.handle(IPC.binMove, async (_e, targetPath: string) => binMove(targetPath))
+  ipcMain.handle(IPC.binRestore, async (_e, name: string) => binRestore(name, workspaceRoot()))
+
+  void binDir()
 }
 
 app.whenReady().then(() => {

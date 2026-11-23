@@ -1,0 +1,187 @@
+.glass-frame {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 340px;
+  border-radius: 22px;
+  border: 1px solid var(--rim);
+  background: rgba(10, 14, 28, 0.55);
+  backdrop-filter: blur(20px) saturate(1.25);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.glass-frame-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(170, 220, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.glass-frame-traffic {
+  display: flex;
+  gap: 7px;
+}
+
+.tf {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.tf.close {
+  background: #ff7a9a;
+  cursor: pointer;
+}
+
+.tf.dim {
+  background: rgba(122, 215, 255, 0.35);
+}
+
+.glass-frame-titles {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.glass-frame-titles strong {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.glass-frame-titles em {
+  font-style: normal;
+  font-size: 0.72rem;
+  color: var(--ink-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.glass-frame-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.glass-frame-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.browser-chrome {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  align-items: center;
+  border-bottom: 1px solid rgba(170, 220, 255, 0.1);
+}
+
+.browser-chrome input {
+  flex: 1;
+  border-radius: 999px;
+  border: 1px solid var(--rim);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+  padding: 8px 14px;
+  font: inherit;
+}
+
+.browser-webview,
+.media-stage video,
+.media-stage audio {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #000;
+}
+
+.browser-webview {
+  flex: 1;
+  min-height: 280px;
+}
+
+.media-stage {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(ellipse at center, rgba(80, 60, 140, 0.35), transparent 60%),
+    rgba(0, 0, 0, 0.45);
+  min-height: 240px;
+  padding: 12px;
+}
+
+.media-stage video {
+  max-height: 360px;
+  border-radius: 16px;
+}
+
+.media-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  align-items: center;
+  border-top: 1px solid rgba(170, 220, 255, 0.1);
+}
+
+.media-controls input[type='range'] {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.terminal-host {
+  flex: 1;
+  min-height: 260px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.editor-host {
+  flex: 1;
+  min-height: 280px;
+}
+
+.editor-host textarea {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  border: 0;
+  resize: none;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+  font-family: ui-monospace, 'Cascadia Code', monospace;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  padding: 14px;
+}
+
+.speed-dial {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  padding: 14px;
+}
+
+.speed-dial button {
+  border-radius: 18px;
+  border: 1px solid rgba(170, 220, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 18px 12px;
+  color: var(--ink);
+  text-align: center;
+}
+
+.speed-dial button:hover {
+  background: rgba(122, 215, 255, 0.12);
+}

@@ -50,7 +50,11 @@ export const IPC = {
   snapshotsRestore: 'desk:snapshots-restore',
 
   hashText: 'desk:hash-text',
-  runSafeCommand: 'desk:run-safe-command'
+  runSafeCommand: 'desk:run-safe-command',
+  pickMediaFile: 'desk:pick-media-file',
+  binList: 'desk:bin-list',
+  binMove: 'desk:bin-move',
+  binRestore: 'desk:bin-restore'
 } as const
 
 export type DeskApi = {
@@ -98,4 +102,9 @@ export type DeskApi = {
     algo: 'sha256' | 'sha1' | 'md5'
   ) => Promise<string>
   runSafeCommand: (commandId: string) => Promise<{ ok: boolean; output: string }>
+
+  pickMediaFile: () => Promise<{ url: string; name: string; path: string } | null>
+  binList: () => Promise<string[]>
+  binMove: (targetPath: string) => Promise<string>
+  binRestore: (name: string) => Promise<string>
 }

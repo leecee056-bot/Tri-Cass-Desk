@@ -168,9 +168,12 @@
   grid-row: 4;
   justify-self: center;
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
   padding: 10px 14px;
-  border-radius: 22px;
+  border-radius: 24px;
+  max-width: min(960px, 100%);
 }
 
 .dock-dim {
@@ -178,8 +181,8 @@
 }
 
 .dock-item {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: 14px;
   display: grid;
   place-items: center;

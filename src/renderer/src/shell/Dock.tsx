@@ -2,12 +2,16 @@ import './shell.css'
 
 const ITEMS = [
   { id: 'launcher', label: 'Apps', icon: '▦' },
+  { id: 'browse', label: 'Browser', icon: '◉' },
+  { id: 'media', label: 'Media', icon: '♫' },
   { id: 'files', label: 'Files', icon: '▤' },
   { id: 'chat', label: 'Chat', icon: '◎' },
   { id: 'agents', label: 'Agents', icon: '✶' },
   { id: 'vault', label: 'Vault', icon: '◇' },
+  { id: 'terminal', label: 'Terminal', icon: '▷' },
+  { id: 'editor', label: 'Editor', icon: '✎' },
   { id: 'tools', label: 'Tools', icon: '⬡' },
-  { id: 'browse', label: 'Browse', icon: '◉' },
+  { id: 'bin', label: 'Bin', icon: '⌀' },
   { id: 'settings', label: 'Settings', icon: '⚙' }
 ] as const
 
