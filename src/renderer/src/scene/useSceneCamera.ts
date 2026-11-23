@@ -6,6 +6,10 @@ export type CameraState = {
   pitch: number
   x: number
   y: number
+  /** Normalized pointer 0..1 for vegetation gusts */
+  pointerNx: number
+  pointerNy: number
+  pointerInside: boolean
 }
 
 const EDGE = 0.12
@@ -20,7 +24,15 @@ const YAW_TO_PX = 4.2
  * Windows stay fixed on screen.
  */
 export function useSceneCamera(enabled = true): CameraState {
-  const [cam, setCam] = useState<CameraState>({ yaw: 0, pitch: 0, x: 0, y: 0 })
+  const [cam, setCam] = useState<CameraState>({
+    yaw: 0,
+    pitch: 0,
+    x: 0,
+    y: 0,
+    pointerNx: 0.5,
+    pointerNy: 0.5,
+    pointerInside: false
+  })
   const abs = useRef({ yaw: 0, pitch: 0 })
   const ptr = useRef({ nx: 0.5, ny: 0.5, inside: false, dragging: false, lastX: 0, lastY: 0 })
 
@@ -34,8 +46,20 @@ export function useSceneCamera(enabled = true): CameraState {
         yaw: ((yawAbs % 360) + 360) % 360,
         pitch: pitchClamped,
         x: -(yawAbs * YAW_TO_PX),
-        y: pitchClamped * 6.5
+        y: pitchClamped * 6.5,
+        pointerNx: ptr.current.nx,
+        pointerNy: ptr.current.ny,
+        pointerInside: ptr.current.inside
       })
+    }
+
+    const publishPointer = (): void => {
+      setCam((c) => ({
+        ...c,
+        pointerNx: ptr.current.nx,
+        pointerNy: ptr.current.ny,
+        pointerInside: ptr.current.inside
+      }))
     }
 
     const onMove = (e: PointerEvent): void => {
@@ -44,6 +68,7 @@ export function useSceneCamera(enabled = true): CameraState {
       ptr.current.nx = e.clientX / w
       ptr.current.ny = e.clientY / h
       ptr.current.inside = true
+      publishPointer()
 
       if (ptr.current.dragging) {
         const dx = e.clientX - ptr.current.lastX
@@ -66,6 +91,7 @@ export function useSceneCamera(enabled = true): CameraState {
     const onLeave = (): void => {
       ptr.current.inside = false
       ptr.current.dragging = false
+      publishPointer()
     }
     const onWheel = (e: WheelEvent): void => {
       if (e.shiftKey) {
