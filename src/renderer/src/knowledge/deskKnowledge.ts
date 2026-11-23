@@ -52,7 +52,7 @@ The desk is a living companion environment, not a wallpaper.
 | Editor | VS Code — tabs, save, language |
 | Files | Finder/Explorer — browse, open, preview |
 | Browser | Chrome/Edge — tab strip, omnibox (URL/search), bookmark bar + star, history search, back/forward/reload/stop/home |
-| Terminal | iTerm/Windows Terminal — safe commands |
+| Terminal | iTerm/Windows Terminal — multi-session tabs, scrollback, allowlisted safe cmds chips |
 | Media | VLC/Music — playlist, transport (play/seek/vol), open multi-file, loop/shuffle |
 | Vault | Notes/secrets store — local encrypted-ish notes |
 | Atmosphere | Weather widget — local telemetry weather metaphor |

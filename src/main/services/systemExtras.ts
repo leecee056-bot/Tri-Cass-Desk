@@ -88,10 +88,74 @@ export function hashText(text: string, algo: 'sha256' | 'sha1' | 'md5'): string 
   return createHash(algo).update(text, 'utf8').digest('hex')
 }
 
-const SAFE_COMMANDS: Record<string, { bin: string; args: string[] }> = {
-  'node-version': { bin: 'node', args: ['-v'] },
-  'npm-version': { bin: 'npm', args: ['-v'] },
-  'ollama-list': { bin: 'ollama', args: ['list'] }
+export type SafeCommandMeta = {
+  id: string
+  label: string
+  hint: string
+}
+
+type SafeSpec =
+  | { kind: 'exec'; bin: string; args: string[] }
+  | { kind: 'builtin'; run: () => string | Promise<string> }
+
+const SAFE_COMMANDS: Record<string, SafeSpec & { meta: Omit<SafeCommandMeta, 'id'> }> = {
+  'node-version': {
+    kind: 'exec',
+    bin: 'node',
+    args: ['-v'],
+    meta: { label: 'node -v', hint: 'Node.js version' }
+  },
+  'npm-version': {
+    kind: 'exec',
+    bin: 'npm',
+    args: ['-v'],
+    meta: { label: 'npm -v', hint: 'npm version' }
+  },
+  'ollama-list': {
+    kind: 'exec',
+    bin: 'ollama',
+    args: ['list'],
+    meta: { label: 'ollama list', hint: 'Local Ollama models' }
+  },
+  uname: {
+    kind: 'exec',
+    bin: 'uname',
+    args: ['-a'],
+    meta: { label: 'uname -a', hint: 'Kernel / OS identity' }
+  },
+  date: {
+    kind: 'exec',
+    bin: 'date',
+    args: [],
+    meta: { label: 'date', hint: 'System clock' }
+  },
+  whoami: {
+    kind: 'exec',
+    bin: 'whoami',
+    args: [],
+    meta: { label: 'whoami', hint: 'Current user' }
+  },
+  'desk-info': {
+    kind: 'builtin',
+    meta: { label: 'desk-info', hint: 'Desk process info' },
+    run: () =>
+      [
+        `Tri-Cass Desk`,
+        `platform: ${process.platform} ${process.arch}`,
+        `node: ${process.version}`,
+        `pid: ${process.pid}`,
+        `cwd: ${process.cwd()}`
+      ].join('\n')
+  }
+}
+
+/** Catalog for Terminal chips / help — allowlisted only. */
+export function listSafeCommands(): SafeCommandMeta[] {
+  return Object.entries(SAFE_COMMANDS).map(([id, spec]) => ({
+    id,
+    label: spec.meta.label,
+    hint: spec.meta.hint
+  }))
 }
 
 export async function runSafeCommand(
@@ -100,6 +164,10 @@ export async function runSafeCommand(
   const spec = SAFE_COMMANDS[commandId]
   if (!spec) return { ok: false, output: 'Unknown or disallowed command' }
   try {
+    if (spec.kind === 'builtin') {
+      const output = await spec.run()
+      return { ok: true, output: output.trim() || '(no output)' }
+    }
     const { stdout, stderr } = await execFileAsync(spec.bin, spec.args, {
       timeout: 8000,
       windowsHide: true

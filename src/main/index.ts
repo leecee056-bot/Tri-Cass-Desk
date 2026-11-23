@@ -32,6 +32,7 @@ import {
   listDisks,
   listPorts,
   listProcesses,
+  listSafeCommands,
   runSafeCommand
 } from './services/systemExtras'
 import { listSnapshots, restoreSnapshot, saveSnapshot } from './services/snapshots'
@@ -224,6 +225,7 @@ function registerIpc(): void {
     async (_e, text: string, algo: 'sha256' | 'sha1' | 'md5') => hashText(text, algo)
   )
   ipcMain.handle(IPC.runSafeCommand, async (_e, commandId: string) => runSafeCommand(commandId))
+  ipcMain.handle(IPC.safeCommandsList, async () => listSafeCommands())
 
   ipcMain.handle(IPC.pickMediaFile, async () => {
     const res = await dialog.showOpenDialog(mainWindow!, {

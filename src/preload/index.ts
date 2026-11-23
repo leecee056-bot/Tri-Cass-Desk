@@ -62,6 +62,7 @@ const api: DeskApi = {
 
   hashText: (text, algo) => ipcRenderer.invoke(IPC.hashText, text, algo),
   runSafeCommand: (commandId) => ipcRenderer.invoke(IPC.runSafeCommand, commandId),
+  safeCommandsList: () => ipcRenderer.invoke(IPC.safeCommandsList),
   pickMediaFile: () => ipcRenderer.invoke(IPC.pickMediaFile),
   binList: () => ipcRenderer.invoke(IPC.binList),
   binMove: (targetPath) => ipcRenderer.invoke(IPC.binMove, targetPath),

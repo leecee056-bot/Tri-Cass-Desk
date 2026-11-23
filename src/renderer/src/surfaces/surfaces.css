@@ -392,11 +392,89 @@
   accent-color: var(--accent);
 }
 
+.terminal-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.terminal-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px 0;
+  overflow-x: auto;
+  align-items: flex-end;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.terminal-tab {
+  border-radius: 8px 8px 0 0;
+  border: 1px solid rgba(170, 220, 255, 0.14);
+  border-bottom: 0;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink-dim);
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  max-width: 140px;
+}
+
+.terminal-tab.on {
+  background: #070b16;
+  color: var(--ink);
+}
+
+.terminal-tab.add {
+  max-width: none;
+  padding-inline: 10px;
+}
+
 .terminal-host {
   flex: 1;
-  min-height: 260px;
-  padding: 8px;
-  background: rgba(0, 0, 0, 0.45);
+  min-height: 220px;
+  padding: 8px 10px;
+  background: #070b16;
+  overflow: hidden;
+}
+
+.terminal-host .xterm {
+  height: 100%;
+}
+
+.terminal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 10px;
+  border-top: 1px solid rgba(170, 220, 255, 0.1);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.terminal-chips-label {
+  font-size: 0.68rem;
+  color: var(--ink-dim);
+  margin-right: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.terminal-chip {
+  border: 1px solid rgba(122, 215, 255, 0.22);
+  background: rgba(122, 215, 255, 0.08);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-family: ui-monospace, Cascadia Code, monospace;
+}
+
+.terminal-chip:hover {
+  background: rgba(122, 215, 255, 0.18);
 }
 
 .editor-host {

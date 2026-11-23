@@ -56,6 +56,7 @@ export const IPC = {
 
   hashText: 'desk:hash-text',
   runSafeCommand: 'desk:run-safe-command',
+  safeCommandsList: 'desk:safe-commands-list',
   pickMediaFile: 'desk:pick-media-file',
   binList: 'desk:bin-list',
   binMove: 'desk:bin-move',
@@ -128,6 +129,7 @@ export type DeskApi = {
     algo: 'sha256' | 'sha1' | 'md5'
   ) => Promise<string>
   runSafeCommand: (commandId: string) => Promise<{ ok: boolean; output: string }>
+  safeCommandsList: () => Promise<Array<{ id: string; label: string; hint: string }>>
 
   pickMediaFile: () => Promise<Array<{ url: string; name: string; path: string }>>
   binList: () => Promise<string[]>
