@@ -3,29 +3,29 @@ import type { EnvironmentState } from '../../../shared/environment'
 
 const fallback: EnvironmentState = {
   solar: {
-    phase: 'civil_twilight',
-    daylight: 0.35,
+    phase: 'night',
+    daylight: 0.12,
     clockLabel: '--:--',
     dateLabel: '—'
   },
   weather: {
     condition: 'cloudy',
-    rain: 0.1,
-    cloudCover: 0.4,
-    fog: 0.1,
-    wind: 0.1,
+    rain: 0.05,
+    cloudCover: 0.45,
+    fog: 0.08,
+    wind: 0.35,
     heatShimmer: 0,
-    skyWarmth: 0.4
+    skyWarmth: 0.25
   },
   celestial: {
-    starVisibility: 0.5,
-    milkyWay: 0.2,
-    aurora: 0.15,
-    moonGlow: 0.4,
+    starVisibility: 0.85,
+    milkyWay: 0.4,
+    aurora: 0.72,
+    moonGlow: 0.45,
     artistic: true
   },
   system: {
-    cpuLoad: 0.12,
+    cpuLoad: 0.28,
     ramUsedRatio: 0.34,
     gpuLoad: null,
     cpuTempC: null,
@@ -33,7 +33,7 @@ const fallback: EnvironmentState = {
     diskIoMbps: 0,
     diskUsedRatio: null,
     processCount: 0,
-    processChurn: 0,
+    processChurn: 0.15,
     sampledAt: Date.now()
   },
   activity: { workspaceState: 'active', protectedActivity: false },
