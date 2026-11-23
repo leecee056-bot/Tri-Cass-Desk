@@ -39,7 +39,7 @@ export const APP_META: Record<
 > = {
   chat: { title: 'Chat', w: 440, h: 520, icon: '◎' },
   agents: { title: 'Agents', w: 420, h: 460, icon: '✶' },
-  files: { title: 'Files', w: 560, h: 480, icon: '▤' },
+  files: { title: 'Files', w: 760, h: 540, icon: '▤' },
   vault: { title: 'Vault', w: 560, h: 480, icon: '◇' },
   browse: { title: 'Browser', w: 720, h: 560, icon: '◉' },
   media: { title: 'Media', w: 720, h: 480, icon: '♫' },

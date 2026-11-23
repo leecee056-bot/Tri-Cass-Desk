@@ -18,9 +18,12 @@ import { randomUUID } from 'node:crypto'
 import {
   getHomeDir,
   listDirectory,
+  mkdirDir,
   openExternal,
   openPath,
   readTextFile,
+  renamePath,
+  userFolder,
   writeTextFile
 } from './services/files'
 import { deleteNote, getNote, listNotes, saveNote } from './services/vault'
@@ -194,6 +197,14 @@ function registerIpc(): void {
   ipcMain.handle(IPC.readTextFile, async (_e, filePath: string) => readTextFile(filePath))
   ipcMain.handle(IPC.writeTextFile, async (_e, filePath: string, content: string) =>
     writeTextFile(filePath, content)
+  )
+  ipcMain.handle(IPC.mkdirDir, async (_e, dirPath: string) => mkdirDir(dirPath))
+  ipcMain.handle(IPC.renamePath, async (_e, fromPath: string, newName: string) =>
+    renamePath(fromPath, newName)
+  )
+  ipcMain.handle(
+    IPC.userFolder,
+    async (_e, name: 'Desktop' | 'Documents' | 'Downloads') => userFolder(name)
   )
   ipcMain.handle(IPC.homeDir, async () => getHomeDir())
   ipcMain.handle(IPC.openPath, async (_e, target: string) => openPath(target))

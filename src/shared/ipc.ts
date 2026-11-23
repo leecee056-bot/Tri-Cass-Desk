@@ -34,6 +34,9 @@ export const IPC = {
   listDir: 'desk:list-dir',
   readTextFile: 'desk:read-text-file',
   writeTextFile: 'desk:write-text-file',
+  mkdirDir: 'desk:mkdir-dir',
+  renamePath: 'desk:rename-path',
+  userFolder: 'desk:user-folder',
   homeDir: 'desk:home-dir',
   openPath: 'desk:open-path',
   openExternal: 'desk:open-external',
@@ -104,6 +107,9 @@ export type DeskApi = {
   listDir: (dirPath?: string) => Promise<{ path: string; entries: FileEntry[] }>
   readTextFile: (filePath: string) => Promise<string>
   writeTextFile: (filePath: string, content: string) => Promise<void>
+  mkdirDir: (dirPath: string) => Promise<string>
+  renamePath: (fromPath: string, newName: string) => Promise<string>
+  userFolder: (name: 'Desktop' | 'Documents' | 'Downloads') => Promise<string>
   homeDir: () => Promise<string>
   openPath: (target: string) => Promise<void>
   openExternal: (url: string) => Promise<void>

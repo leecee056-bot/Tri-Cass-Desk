@@ -1,6 +1,14 @@
 import { homedir } from 'node:os'
-import { readdirSync, statSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
-import { join, normalize, resolve, sep } from 'node:path'
+import {
+  readdirSync,
+  statSync,
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  mkdirSync,
+  renameSync
+} from 'node:fs'
+import { join, normalize, resolve, sep, basename, dirname } from 'node:path'
 import { shell } from 'electron'
 import type { FileEntry } from '../../shared/types'
 import { workspaceRoot } from './paths'
@@ -59,6 +67,29 @@ export function readTextFile(filePath: string): string {
 export function writeTextFile(filePath: string, content: string): void {
   const path = assertSafePath(filePath)
   writeFileSync(path, content, 'utf8')
+}
+
+export function mkdirDir(dirPath: string): string {
+  const path = assertSafePath(dirPath)
+  if (existsSync(path)) throw new Error('Already exists')
+  mkdirSync(path, { recursive: false })
+  return path
+}
+
+export function renamePath(fromPath: string, newName: string): string {
+  const from = assertSafePath(fromPath)
+  const clean = basename(newName.trim())
+  if (!clean || clean === '.' || clean === '..' || /[\\/]/.test(clean)) {
+    throw new Error('Invalid name')
+  }
+  const to = join(dirname(from), clean)
+  if (existsSync(to)) throw new Error('Target already exists')
+  renameSync(from, to)
+  return to
+}
+
+export function userFolder(name: 'Desktop' | 'Documents' | 'Downloads'): string {
+  return join(homedir(), name)
 }
 
 export async function openPath(target: string): Promise<void> {
