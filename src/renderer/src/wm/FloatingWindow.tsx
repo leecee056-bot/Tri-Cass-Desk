@@ -11,6 +11,7 @@ type Props = {
   children: React.ReactNode
 }
 
+/** Concept-style glass frame — no Apple traffic lights. */
 export default function FloatingWindow({
   win,
   onFocus,
@@ -57,12 +58,15 @@ export default function FloatingWindow({
           window.addEventListener('mouseup', up)
         }}
       >
-        <div className="float-traffic">
-          <button type="button" className="ft close" aria-label="Close" onClick={onClose} />
-          <button type="button" className="ft min" aria-label="Minimize" onClick={onMinimize} />
-          <span className="ft dim" />
-        </div>
         <div className="float-title">{win.title}</div>
+        <div className="float-actions">
+          <button type="button" className="fa min" aria-label="Minimize" onClick={onMinimize}>
+            −
+          </button>
+          <button type="button" className="fa close" aria-label="Close" onClick={onClose}>
+            ×
+          </button>
+        </div>
       </header>
       <div className="float-body">{children}</div>
     </section>

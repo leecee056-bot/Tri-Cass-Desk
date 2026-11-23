@@ -6,102 +6,110 @@
   background: transparent;
 }
 
-/* Concept-like frosted glass — light, translucent, thin rim */
+/*
+  Concept glass — soft frosted panels, thin rim, no Apple traffic lights.
+  Title + ghost ×/− controls only.
+*/
 .float-win {
   position: absolute;
   display: flex;
   flex-direction: column;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(18, 22, 38, 0.28);
-  backdrop-filter: blur(28px) saturate(1.55);
-  -webkit-backdrop-filter: blur(28px) saturate(1.55);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(32px) saturate(1.65);
+  -webkit-backdrop-filter: blur(32px) saturate(1.65);
   box-shadow:
-    0 18px 50px rgba(0, 0, 0, 0.38),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+    0 20px 55px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
   overflow: hidden;
   min-width: 220px;
   min-height: 140px;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, opacity 1.2s ease;
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    background 0.8s ease,
+    opacity 1.2s ease;
 }
 
 .float-win:hover {
-  border-color: rgba(255, 255, 255, 0.32);
-  box-shadow:
-    0 22px 58px rgba(0, 0, 0, 0.42),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .desk-root.resting .float-win {
-  opacity: 0.78;
+  opacity: 0.8;
 }
 
 .desk-root.ambient_idle .float-win {
-  opacity: 0.52;
+  opacity: 0.55;
 }
 
 .float-bar {
-  display: grid;
-  grid-template-columns: auto 1fr;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
-  padding: 8px 12px;
+  padding: 10px 14px 6px;
   cursor: grab;
   user-select: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  background: transparent;
+  border-bottom: 0;
 }
 
 .float-bar:active {
   cursor: grabbing;
 }
 
-.float-traffic {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.ft {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  border: 0;
-  padding: 0;
-  display: inline-block;
-  opacity: 0.92;
-}
-
-.ft.close {
-  background: #ff6b86;
-  cursor: pointer;
-}
-
-.ft.min {
-  background: #ffd27a;
-  cursor: pointer;
-}
-
-.ft.dim {
-  background: rgba(122, 215, 255, 0.45);
-}
-
 .float-title {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 500;
-  letter-spacing: 0.01em;
-  color: rgba(232, 238, 252, 0.92);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(232, 238, 252, 0.78);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.float-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.float-win:hover .float-actions,
+.float-win:focus-within .float-actions {
+  opacity: 1;
+}
+
+.fa {
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 0.95rem;
+  line-height: 1;
+  color: rgba(232, 238, 252, 0.7);
+  background: transparent;
+}
+
+.fa:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.fa.close:hover {
+  background: rgba(255, 100, 130, 0.28);
 }
 
 .float-body {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 12px 14px 14px;
+  padding: 4px 14px 14px;
 }
 
 .desk-dock-wrap {
@@ -114,12 +122,13 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  pointer-events: auto;
 }
 
 .wake-chip {
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(12, 16, 32, 0.45);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(16px);
   padding: 8px 16px;
   font-size: 0.82rem;
@@ -141,7 +150,7 @@
 .mini-tray button {
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(12, 16, 32, 0.45);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
   padding: 4px 10px;
   font-size: 0.72rem;

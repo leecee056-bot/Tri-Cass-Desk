@@ -87,7 +87,7 @@ function startPolling(): void {
   void broadcastEnvironment()
   pollTimer = setInterval(() => {
     void broadcastEnvironment()
-  }, 2000)
+  }, 1000)
 }
 
 function registerIpc(): void {

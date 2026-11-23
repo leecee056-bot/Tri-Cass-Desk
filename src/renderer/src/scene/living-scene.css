@@ -5,39 +5,42 @@
   transform: scale(var(--idle-scale, 1));
   transition: transform 2s ease;
   background: #050814;
+  /* Scene receives pointer for breeze; windows sit above in z-index */
+  z-index: 0;
 }
 
 .scene-plate {
   position: absolute;
-  inset: -2%;
-  width: 104%;
-  height: 104%;
+  inset: -3%;
+  width: 106%;
+  height: 106%;
   object-fit: cover;
   object-position: center center;
   pointer-events: none;
-  transform: translate3d(calc(var(--parallax, 0) * -0.35px), calc(var(--heat, 0) * -4px), 0)
-    scale(calc(1 + var(--load, 0) * 0.015));
-  transition: transform 2.8s ease-out, filter 1.6s ease;
-  filter: saturate(calc(1 + var(--load, 0) * 0.12)) contrast(1.04)
-    brightness(calc(0.92 + var(--lake-glow, 0.2) * 0.25));
+  transform: translate3d(
+      calc((var(--mx, 0.5) - 0.5) * -18px + var(--parallax, 0) * -0.4px),
+      calc((var(--my, 0.5) - 0.5) * -10px),
+      0
+    )
+    scale(calc(1.02 + var(--load, 0) * 0.02));
+  transition: filter 1.4s ease;
+  filter: saturate(calc(1.05 + var(--load, 0) * 0.15)) contrast(1.05)
+    brightness(calc(0.9 + var(--lake-glow, 0.25) * 0.28));
+  animation: plate-breathe 12s ease-in-out infinite;
 }
 
-.scene-lake-sheen {
+.mood-wash {
   position: absolute;
-  left: 12%;
-  right: 12%;
-  bottom: 10%;
-  height: 22%;
-  border-radius: 50%;
+  inset: 0;
   pointer-events: none;
   background: radial-gradient(
-    ellipse at center,
-    rgba(180, 210, 255, calc(var(--lake-glow, 0.2) * 0.35)) 0%,
+    ellipse 70% 55% at 50% 40%,
+    var(--mood-tint) 0%,
     transparent 70%
   );
-  filter: blur(8px);
   mix-blend-mode: soft-light;
-  animation: sheen 7s ease-in-out infinite;
+  transition: background 1.2s ease;
+  animation: mood-pulse 5s ease-in-out infinite;
 }
 
 .scene-grade {
@@ -45,10 +48,10 @@
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(180deg, var(--grade-top) 0%, transparent 40%),
-    linear-gradient(180deg, transparent 45%, var(--grade-mid) 72%, var(--grade-bottom) 100%);
+    linear-gradient(180deg, var(--grade-top) 0%, transparent 42%),
+    linear-gradient(180deg, transparent 48%, var(--grade-mid) 74%, var(--grade-bottom) 100%);
   mix-blend-mode: soft-light;
-  transition: background 1.2s ease;
+  transition: background 1s ease;
 }
 
 .fx-canvas {
@@ -57,31 +60,99 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
+  z-index: 2;
+}
+
+/* —— Vegetation: continuous breeze + stronger near pointer —— */
+.flora-layer {
+  position: absolute;
+  bottom: 0;
+  width: 28%;
+  height: 38%;
+  z-index: 1;
+  pointer-events: none;
+  transform-origin: bottom center;
+}
+
+.flora-layer.left {
+  left: 0;
+  animation: breeze-left calc(3.2s / max(var(--breeze, 0.5), 0.25)) ease-in-out infinite;
+}
+
+.flora-layer.right {
+  right: 0;
+  animation: breeze-right calc(3.6s / max(var(--breeze, 0.5), 0.25)) ease-in-out infinite;
+}
+
+.flora-stem {
+  position: absolute;
+  bottom: 4%;
+  width: 10px;
+  height: calc(28% + var(--i) * 4%);
+  left: calc(8% + var(--i) * 9%);
+  border-radius: 40% 40% 20% 20%;
+  background: linear-gradient(
+    180deg,
+    rgba(180, 90, 255, 0.55),
+    rgba(40, 20, 60, 0.15) 70%,
+    transparent
+  );
+  transform-origin: bottom center;
+  filter: blur(0.4px);
+  animation: stem-sway calc(2.4s + var(--i) * 0.18s) ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.2s);
+}
+
+.flora-layer.right .flora-stem {
+  left: auto;
+  right: calc(8% + var(--i) * 9%);
+}
+
+.tree-sway {
+  position: absolute;
+  bottom: 0;
+  width: 22%;
+  height: 55%;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 80% at 50% 90%, rgba(6, 18, 12, 0.35), transparent 70%);
+  transform-origin: 50% 100%;
+}
+
+.tree-sway.left {
+  left: -2%;
+  animation: tree-breeze 5.5s ease-in-out infinite;
+}
+
+.tree-sway.right {
+  right: -2%;
+  animation: tree-breeze-rev 6.2s ease-in-out infinite;
 }
 
 .scene-vignette {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 78% 68% at 50% 42%, transparent 42%, rgba(0, 0, 0, 0.32) 100%);
+  z-index: 3;
+  background: radial-gradient(ellipse 78% 68% at 50% 42%, transparent 42%, rgba(0, 0, 0, 0.3) 100%);
 }
 
 .scene-live {
   position: absolute;
-  left: 18px;
-  top: 14px;
-  z-index: 2;
+  left: 16px;
+  top: 12px;
+  z-index: 4;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
   border-radius: 999px;
-  font-size: 0.72rem;
-  letter-spacing: 0.02em;
-  color: rgba(232, 238, 252, 0.82);
-  background: rgba(8, 12, 24, 0.35);
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  color: rgba(232, 238, 252, 0.85);
+  background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
   pointer-events: none;
 }
 
@@ -89,20 +160,84 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #7dffb3;
-  box-shadow: 0 0 10px rgba(125, 255, 179, 0.85);
-  animation: live-pulse 1.6s ease-in-out infinite;
+  background: var(--mood-accent, #7dffb3);
+  box-shadow: 0 0 12px var(--mood-accent, #7dffb3);
+  animation: live-pulse 1.4s ease-in-out infinite;
 }
 
-@keyframes sheen {
+@keyframes plate-breathe {
   0%,
   100% {
-    opacity: 0.55;
-    transform: translateY(0);
+    filter: saturate(calc(1.05 + var(--load, 0) * 0.15)) contrast(1.05)
+      brightness(calc(0.9 + var(--lake-glow, 0.25) * 0.28));
   }
   50% {
-    opacity: 0.9;
-    transform: translateY(-3px);
+    filter: saturate(calc(1.12 + var(--load, 0) * 0.18)) contrast(1.06)
+      brightness(calc(0.94 + var(--lake-glow, 0.25) * 0.32));
+  }
+}
+
+@keyframes mood-pulse {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes breeze-left {
+  0%,
+  100% {
+    transform: skewX(calc(var(--breeze, 0.5) * -1.2deg))
+      translateX(calc((var(--mx, 0.5) - 0.25) * -6px));
+  }
+  50% {
+    transform: skewX(calc(var(--breeze, 0.5) * 1.8deg))
+      translateX(calc((var(--mx, 0.5) - 0.25) * -10px));
+  }
+}
+
+@keyframes breeze-right {
+  0%,
+  100% {
+    transform: skewX(calc(var(--breeze, 0.5) * 1.2deg))
+      translateX(calc((var(--mx, 0.5) - 0.75) * -6px));
+  }
+  50% {
+    transform: skewX(calc(var(--breeze, 0.5) * -1.6deg))
+      translateX(calc((var(--mx, 0.5) - 0.75) * -10px));
+  }
+}
+
+@keyframes stem-sway {
+  0%,
+  100% {
+    transform: rotate(calc(var(--breeze, 0.5) * -4deg + (var(--mx, 0.5) - 0.5) * -6deg));
+  }
+  50% {
+    transform: rotate(calc(var(--breeze, 0.5) * 6deg + (var(--mx, 0.5) - 0.5) * -8deg));
+  }
+}
+
+@keyframes tree-breeze {
+  0%,
+  100% {
+    transform: rotate(-0.6deg) skewX(-0.4deg);
+  }
+  50% {
+    transform: rotate(1.1deg) skewX(0.8deg);
+  }
+}
+
+@keyframes tree-breeze-rev {
+  0%,
+  100% {
+    transform: rotate(0.7deg) skewX(0.5deg);
+  }
+  50% {
+    transform: rotate(-1deg) skewX(-0.7deg);
   }
 }
 
@@ -113,18 +248,20 @@
     transform: scale(1);
   }
   50% {
-    opacity: 0.55;
-    transform: scale(0.85);
+    opacity: 0.5;
+    transform: scale(0.82);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .living-scene,
   .scene-plate,
-  .scene-lake-sheen,
+  .mood-wash,
+  .flora-layer,
+  .flora-stem,
+  .tree-sway,
   .live-dot {
-    animation: none;
+    animation: none !important;
     transition: none;
-    transform: none;
   }
 }
