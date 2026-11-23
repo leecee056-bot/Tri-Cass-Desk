@@ -167,7 +167,8 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
     }
   }, [celestial, weather.rain, weather.wind, weather.fog, userPreferences.motion])
 
-  const refOpacity = 0.42 + solar.daylight * 0.2 - weather.fog * 0.15
+  // Keep plate subtle so concept-art mock widgets never read as real UI.
+  const refOpacity = 0.18 + solar.daylight * 0.08 - weather.fog * 0.08
 
   return (
     <div
