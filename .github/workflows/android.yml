@@ -26,18 +26,27 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      # Do not request obsolete sdkmanager package "tools" (removed upstream).
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Install Android build packages
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+          yes | sdkmanager --licenses >/dev/null || true
+        working-directory: ${{ github.workspace }}
       - name: Install mobile deps
         run: npm ci
       - name: Build web + sync Capacitor
         run: npm run cap:sync
-      - name: Assemble release APK (unsigned debug for sideload)
+      - name: Assemble debug APK (sideload)
         run: |
           cd android
           ./gradlew assembleDebug
           mkdir -p ../dist-apk
-          cp app/build/outputs/apk/debug/app-debug.apk ../dist-apk/Tri-Cass-Desk-${{ github.ref_name }}-android.apk
+          cp app/build/outputs/apk/debug/app-debug.apk \
+            "../dist-apk/Tri-Cass-Desk-${GITHUB_REF_NAME}-android.apk"
       - uses: softprops/action-gh-release@v2
         with:
           files: mobile/dist-apk/Tri-Cass-Desk-*-android.apk
