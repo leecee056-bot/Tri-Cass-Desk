@@ -1,6 +1,6 @@
 {
   "name": "tri-cass-desk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": false,
   "description": "Tri-Cass OS Desk — local-only living companion desktop",
   "main": "./out/main/index.js",
@@ -103,9 +103,7 @@
       "shortcutName": "Tri-Cass Desk",
       "installerIcon": "build/icon.png",
       "uninstallerIcon": "build/icon.png",
-      "installerHeaderIcon": "build/icon.png",
-      "displayLanguageSelector": false,
-      "installerLanguages": ["English"]
+      "installerHeaderIcon": "build/icon.png"
     }
   }
 }

@@ -29,16 +29,14 @@ jobs:
         run: npm run typecheck
 
       - name: Build Windows installer + portable
-        run: npm run pack:win
+        run: npm run pack:win -- --publish never
 
       - name: Upload release artifacts
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            release/Tri-Cass-Desk-*.exe
-            release/latest.yml
+          files: release/Tri-Cass-Desk-*.exe
           generate_release_notes: true
           draft: false
-          fail_on_unmatched_files: false
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
