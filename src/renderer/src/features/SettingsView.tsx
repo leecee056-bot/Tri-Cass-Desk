@@ -351,7 +351,7 @@ export default function SettingsView({
               </div>
             </div>
             <pre className="settings-about">{aboutLines.join('\n') || 'Loading…'}</pre>
-            <p className="status-line">Tri-Cass OS · Desk · v0.2.0</p>
+            <p className="status-line">Tri-Cass OS · Desk · v0.2.1</p>
           </div>
         ) : null}
       </section>
