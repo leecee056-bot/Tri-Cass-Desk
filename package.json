@@ -1,8 +1,8 @@
 {
   "name": "tri-cass-desk",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": false,
-  "description": "Tri-Cass OS Desk — local-only living companion desktop",
+  "description": "Tri-Cass OS Desk \u2014 local-only living companion desktop",
   "main": "./out/main/index.js",
   "author": "Lee Cee",
   "license": "MIT",
@@ -61,7 +61,7 @@
   "build": {
     "appId": "os.tricass.desk",
     "productName": "Tri-Cass Desk",
-    "copyright": "Copyright © Tri-Cass OS",
+    "copyright": "Copyright \u00a9 Tri-Cass OS",
     "directories": {
       "output": "release",
       "buildResources": "build"
@@ -92,7 +92,7 @@
           ]
         }
       ],
-      "icon": "build/icon.png",
+      "icon": "build/icon.ico",
       "artifactName": "Tri-Cass-Desk-${version}-${os}-${arch}.${ext}"
     },
     "nsis": {
@@ -101,9 +101,9 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Tri-Cass Desk",
-      "installerIcon": "build/icon.png",
-      "uninstallerIcon": "build/icon.png",
-      "installerHeaderIcon": "build/icon.png"
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico"
     }
   }
 }
