@@ -45,6 +45,17 @@ jobs:
       - run: npm run typecheck
       - name: Build Linux x64 AppImage + deb
         run: npm run pack:linux -- --publish never
+      # electron-builder names x64 as x86_64 (AppImage) / amd64 (deb) — normalize for site URLs
+      - name: Normalize linux x64 artifact names
+        run: |
+          cd release
+          for f in Tri-Cass-Desk-*-linux-x86_64.AppImage; do
+            [ -f "$f" ] && mv "$f" "${f/-linux-x86_64./-linux-x64.}"
+          done
+          for f in Tri-Cass-Desk-*-linux-amd64.deb; do
+            [ -f "$f" ] && mv "$f" "${f/-linux-amd64./-linux-x64.}"
+          done
+          ls -la Tri-Cass-Desk-*-linux-*
       - uses: softprops/action-gh-release@v2
         with:
           files: |
