@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useEnvironment } from './hooks/useEnvironment'
 import LivingScene from './scene/LivingScene'
 import Dock from './shell/Dock'
+import { BootSplash } from './shell/BootSplash'
 import FloatingWindow from './wm/FloatingWindow'
 import AppHost from './wm/AppHost'
 import { useWindowManager } from './wm/useWindowManager'
@@ -13,6 +14,8 @@ import './wm/wm.css'
 export default function App(): React.JSX.Element {
   const { state, setPreferences, wake } = useEnvironment()
   const { windows, openApp, focus, close, move, minimize, maximize } = useWindowManager()
+  const [booting, setBooting] = useState(true)
+  const finishBoot = useCallback(() => setBooting(false), [])
 
   useEffect(() => {
     let last = 0
@@ -50,6 +53,7 @@ export default function App(): React.JSX.Element {
         .filter(Boolean)
         .join(' ')}
     >
+      {booting ? <BootSplash onFinished={finishBoot} /> : null}
       <LivingScene state={state} />
 
       {windows.map((win) => (

@@ -351,7 +351,7 @@ export default function SettingsView({
               </div>
             </div>
             <pre className="settings-about">{aboutLines.join('\n') || 'Loading…'}</pre>
-            <p className="status-line">Tri-Cass Desk · v0.1.0 · HAP-90 System Settings</p>
+            <p className="status-line">Tri-Cass OS · Desk · v0.2.0</p>
           </div>
         ) : null}
       </section>

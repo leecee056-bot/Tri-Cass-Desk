@@ -67,7 +67,7 @@ function createWindow(): void {
     minHeight: 700,
     backgroundColor: '#00000000',
     transparent: true,
-    title: 'Tri-Cass Desk',
+    title: 'Tri-Cass OS · Desk',
     icon: join(__dirname, '../../build/icon.png'),
     frame: false,
     titleBarStyle: 'hidden',

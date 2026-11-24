@@ -1,11 +1,16 @@
 {
   "name": "tri-cass-desk",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Tri-Cass Desk — local-only living companion desktop",
+  "version": "0.2.0",
+  "private": false,
+  "description": "Tri-Cass OS Desk — local-only living companion desktop",
   "main": "./out/main/index.js",
   "author": "Lee Cee",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leecee056-bot/Tri-Cass-Desk.git"
+  },
+  "homepage": "https://github.com/leecee056-bot/Tri-Cass-Desk#readme",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
@@ -56,7 +61,7 @@
   "build": {
     "appId": "os.tricass.desk",
     "productName": "Tri-Cass Desk",
-    "copyright": "Copyright © Tri-Cass",
+    "copyright": "Copyright © Tri-Cass OS",
     "directories": {
       "output": "release",
       "buildResources": "build"
@@ -98,7 +103,9 @@
       "shortcutName": "Tri-Cass Desk",
       "installerIcon": "build/icon.png",
       "uninstallerIcon": "build/icon.png",
-      "installerHeaderIcon": "build/icon.png"
+      "installerHeaderIcon": "build/icon.png",
+      "displayLanguageSelector": false,
+      "installerLanguages": ["English"]
     }
   }
 }
