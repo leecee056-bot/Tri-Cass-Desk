@@ -76,9 +76,9 @@ export interface EnvironmentState {
 }
 
 export const defaultPreferences: EnvironmentState['userPreferences'] = {
-  motion: 'full',
-  celestialEffects: true,
-  weatherEffects: true,
+  motion: 'off',
+  celestialEffects: false,
+  weatherEffects: false,
   pauseAdaptation: false,
   reduceTransparency: false,
   compactDock: false,

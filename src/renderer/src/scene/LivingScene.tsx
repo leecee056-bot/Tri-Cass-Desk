@@ -1,11 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { EnvironmentState } from '../../../shared/environment'
-import type { MoodOverrides } from '../../../shared/mood'
-import { LivingWorldCanvas } from './engines/LivingWorldCanvas'
-import { SceneErrorBoundary } from './engines/SceneErrorBoundary'
-import MoodDebugPanel from './MoodDebugPanel'
+import { LiteLivingBackdrop } from './engines/LiteLivingBackdrop'
 import { useMoodState } from './useMoodState'
-import { useSceneCamera } from './useSceneCamera'
 import './living-scene.css'
 
 type Props = {
@@ -13,16 +9,11 @@ type Props = {
 }
 
 /**
- * Living companion world — real-time Three.js scene (Sky / Water / grass OSS stack)
- * with shared mood lerp. Windows stay fixed; edge-pan yaws the world slightly.
+ * Lite living companion — CSS backdrop only (no WebGL / Three.js).
+ * Interactive 3D art was removed after v0.2.3 hard-crash reports on low-GPU hosts.
  */
 export default function LivingScene({ state }: Props): React.JSX.Element {
-  const cam = useSceneCamera(state.userPreferences.motion !== 'off')
-  const [overrides, setOverrides] = useState<MoodOverrides>({})
-  const [lowPower, setLowPower] = useState(
-    () => state.userPreferences.motion === 'reduced' || state.userPreferences.motion === 'off'
-  )
-  const { mood } = useMoodState(state, overrides)
+  const { mood } = useMoodState(state, {})
   const { solar, weather, system, health } = state
 
   const tint = useMemo(() => {
@@ -38,7 +29,7 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
 
   return (
     <div
-      className={`living-scene living-scene-3d ${lowPower ? 'low-power' : ''}`}
+      className="living-scene living-scene-lite"
       style={
         {
           '--mood-tint': tint,
@@ -54,35 +45,14 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
       data-condition={weather.condition}
     >
       <div className="world-stage world-stage-3d">
-        <SceneErrorBoundary>
-          <LivingWorldCanvas
-            state={state}
-            mood={mood}
-            yaw={cam.yaw}
-            pointer={{
-              nx: cam.pointerNx,
-              ny: cam.pointerNy,
-              inside: cam.pointerInside
-            }}
-            lowPower={lowPower}
-          />
-        </SceneErrorBoundary>
+        <LiteLivingBackdrop state={state} mood={mood} />
         <div className="mood-wash soft" />
-      </div>
-      <MoodDebugPanel
-        mood={mood}
-        overrides={overrides}
-        onChange={setOverrides}
-        lowPower={lowPower}
-        onLowPower={setLowPower}
-      />
-      <div className="edge-hint" aria-hidden>
-        Edge-pan · Alt-drag · cursor breeze · mood debug
+        <div className="scene-vignette" />
       </div>
       <div className="scene-live" aria-live="polite">
         <span className="live-dot" />
-        Living 3D · heat {Math.round(mood.heat * 100)} · load {Math.round(mood.load * 100)} · night{' '}
-        {Math.round(mood.nightness * 100)} · wind {Math.round(mood.wind * 100)} · CPU{' '}
+        Lite · {health.band} · heat {Math.round(mood.heat * 100)} · load{' '}
+        {Math.round(mood.load * 100)} · night {Math.round(mood.nightness * 100)} · CPU{' '}
         {Math.round(system.cpuLoad * 100)}%
       </div>
     </div>

@@ -12,6 +12,113 @@
   background: #1a2838;
 }
 
+.living-scene-lite {
+  background: #142033;
+}
+
+/* CSS-only lakeside — no WebGL */
+.lite-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.lite-sky {
+  position: absolute;
+  inset: 0 0 38% 0;
+  background:
+    radial-gradient(
+      ellipse 70% 55% at 72% 28%,
+      rgba(255, 214, 140, calc(0.35 * var(--lite-day, 0.7))) 0%,
+      transparent 55%
+    ),
+    linear-gradient(
+      180deg,
+      rgb(
+        calc(18 + 70 * var(--lite-day, 0.7)),
+        calc(28 + 90 * var(--lite-day, 0.7)),
+        calc(48 + 110 * var(--lite-day, 0.7))
+      )
+        0%,
+      rgb(
+        calc(40 + 100 * var(--lite-day, 0.7)),
+        calc(70 + 80 * var(--lite-day, 0.7)),
+        calc(90 + 70 * var(--lite-day, 0.7))
+      )
+        100%
+    );
+}
+
+.lite-haze {
+  position: absolute;
+  inset: 18% 0 42% 0;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(180, 200, 220, calc(0.12 + var(--lite-cloud, 0.2) * 0.25))
+  );
+}
+
+.lite-sun {
+  position: absolute;
+  width: 12vmin;
+  height: 12vmin;
+  border-radius: 50%;
+  right: 18%;
+  top: 16%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 236, 180, calc(0.85 * var(--lite-day, 0.7))) 0%,
+    rgba(255, 180, 90, calc(0.35 * var(--lite-day, 0.7))) 45%,
+    transparent 70%
+  );
+  filter: blur(2px);
+  opacity: calc(0.25 + 0.75 * var(--lite-day, 0.7));
+}
+
+.lite-hills {
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  bottom: 34%;
+  height: 28%;
+  background:
+    radial-gradient(ellipse 55% 100% at 20% 100%, #2a4a38 0%, transparent 70%),
+    radial-gradient(ellipse 60% 110% at 55% 100%, #243f32 0%, transparent 72%),
+    radial-gradient(ellipse 50% 100% at 85% 100%, #1f3a2e 0%, transparent 70%);
+  opacity: calc(0.55 + 0.35 * var(--lite-day, 0.7));
+}
+
+.lite-water {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(70, 130, 160, calc(0.35 + 0.25 * var(--lite-day, 0.7))) 0%,
+      rgba(24, 52, 72, 0.95) 55%,
+      rgba(12, 28, 40, 1) 100%
+    );
+}
+
+.lite-shore {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 38%;
+  height: 8%;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(62, 78, 52, 0.55) 40%,
+    rgba(40, 52, 38, 0.8)
+  );
+}
+
 /* Opaque Three.js world fills the desk; UI floats above */
 .world-stage {
   position: absolute;

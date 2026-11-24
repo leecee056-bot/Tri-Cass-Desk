@@ -63,9 +63,9 @@ function livingFallback(now = Date.now()): EnvironmentState {
     },
     freshness: 'simulated',
     userPreferences: {
-      motion: 'full',
-      celestialEffects: true,
-      weatherEffects: true,
+      motion: 'off',
+      celestialEffects: false,
+      weatherEffects: false,
       pauseAdaptation: false,
       reduceTransparency: false,
       compactDock: false,

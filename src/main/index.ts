@@ -280,6 +280,9 @@ function registerIpc(): void {
   void binDir()
 }
 
+// Lite build: avoid GPU driver hard-crashes seen with WebGL living-world (v0.2.3).
+app.disableHardwareAcceleration()
+
 app.whenReady().then(() => {
   engine.hydrate(loadPreferences(), savePreferences)
   registerIpc()

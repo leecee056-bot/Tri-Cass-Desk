@@ -178,9 +178,9 @@ export default function SettingsView({
                   void (async () => {
                     if (!window.desk?.resetPreferences) {
                       onChange({
-                        motion: 'full',
-                        celestialEffects: true,
-                        weatherEffects: true,
+                        motion: 'off',
+                        celestialEffects: false,
+                        weatherEffects: false,
                         pauseAdaptation: false,
                         reduceTransparency: false,
                         compactDock: false,
@@ -215,8 +215,9 @@ export default function SettingsView({
               onChange={(v) => onChange({ celestialEffects: v })}
             />
             <p className="settings-help">
-              Edge-pan for 360° yaw · Alt/⌘-drag to orbit · Shift+wheel yaw · Alt+wheel pitch.
-              Windows stay fixed on screen.
+              Lite build: the WebGL lakeside / interactive 3D art is off (safer on low-GPU PCs).
+              Mood still follows CPU load via a CSS backdrop. Full 3D returns in a later opt-in
+              build.
             </p>
           </div>
         ) : null}
