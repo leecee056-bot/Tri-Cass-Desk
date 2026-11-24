@@ -147,7 +147,8 @@
   pointer-events: none;
   background: radial-gradient(ellipse 65% 50% at 50% 40%, var(--mood-tint), transparent 70%);
   mix-blend-mode: soft-light;
-  animation: mood-pulse 6s ease-in-out infinite;
+  animation: none;
+  opacity: 0.85;
 }
 
 .scene-vignette {
@@ -175,7 +176,7 @@
 .scene-live {
   position: absolute;
   left: 16px;
-  top: 12px;
+  top: 44px;
   z-index: 5;
   display: inline-flex;
   align-items: center;
@@ -185,9 +186,9 @@
   font-size: 0.7rem;
   letter-spacing: 0.03em;
   color: rgba(232, 238, 252, 0.88);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(10, 16, 28, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(14px);
+  backdrop-filter: none;
   pointer-events: none;
 }
 
@@ -196,8 +197,8 @@
   height: 7px;
   border-radius: 50%;
   background: #7dffb3;
-  box-shadow: 0 0 12px #7dffb3;
-  animation: live-pulse 1.4s ease-in-out infinite;
+  box-shadow: none;
+  animation: none;
 }
 
 @keyframes sky-slide {

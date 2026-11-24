@@ -1,6 +1,6 @@
 {
   "name": "tri-cass-desk",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "private": false,
   "description": "Tri-Cass OS Desk Lite — themed wallpapers, no WebGL living-world",
   "main": "./out/main/index.js",

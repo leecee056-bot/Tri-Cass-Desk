@@ -89,7 +89,7 @@ export function useEnvironment(): {
     const boot = async (): Promise<void> => {
       if (!window.desk) {
         // Keep simulated telemetry alive so engines always have motion drivers
-        timer = window.setInterval(() => setState(livingFallback()), 1000)
+        timer = window.setInterval(() => setState(livingFallback()), 15_000)
         return
       }
       const initial = await window.desk.getEnvironment()
@@ -104,7 +104,7 @@ export function useEnvironment(): {
     }
   }, [])
 
-  // Even with live Electron telemetry, tick the clock label locally every second
+  // Local clock label only — cheap, no telemetry
   useEffect(() => {
     if (!live) return
     const t = window.setInterval(() => {
@@ -127,7 +127,7 @@ export function useEnvironment(): {
           }
         }
       })
-    }, 1000)
+    }, 30_000)
     return () => window.clearInterval(t)
   }, [live])
 

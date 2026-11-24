@@ -8,6 +8,9 @@ const api: DeskApi = {
   resetPreferences: () => ipcRenderer.invoke(IPC.resetPreferences),
   wakeWorkspace: () => ipcRenderer.invoke(IPC.wakeWorkspace),
   noteActivity: () => ipcRenderer.invoke(IPC.noteActivity),
+  windowClose: () => ipcRenderer.invoke(IPC.windowClose),
+  windowMinimize: () => ipcRenderer.invoke(IPC.windowMinimize),
+  windowMaximize: () => ipcRenderer.invoke(IPC.windowMaximize),
   onEnvironmentUpdated: (cb) => {
     const listener = (_event: Electron.IpcRendererEvent, state: EnvironmentState): void => {
       cb(state)

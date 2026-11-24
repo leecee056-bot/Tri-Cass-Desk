@@ -11,9 +11,9 @@ Local-only living companion for **Tri-Cass OS**. Earthbound / Celestial atmosphe
 3. Run the setup (or portable), launch **Tri-Cass Desk**
 4. On first launch you’ll see the **Tri-Cass OS** boot splash with the brand logo
 
-**Current recommended:** **v0.2.5 Lite** — glass desk + tools, four wallpaper themes (Earth / Space / Nature / Cosmic) in Settings → Appearance. No WebGL. Quiet launch (no windows until you open them from the dock).
+**Current recommended:** **v0.2.6 Lite** — themed wallpapers, quiet launch, window fits the screen with min/max/close chrome, light CPU (no WebGL, no heavy telemetry poll, no glass blur).
 
-**Do not use v0.2.3** — marked broken after a hard PC crash tied to the WebGL living-world.
+**Do not use v0.2.3–v0.2.5** if they crashed or pegged CPU — use **v0.2.6+**.
 
 Link that Releases page from the Tri-Cass site as: **Download → unzip/run setup → launch**.
 
