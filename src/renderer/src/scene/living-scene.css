@@ -2,177 +2,271 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
+  background: #050814;
+  z-index: 0;
   transform: scale(var(--idle-scale, 1));
-  transition: transform 1.8s ease;
-  background: linear-gradient(
-    180deg,
-    var(--sky-top) 0%,
-    var(--sky-mid) 42%,
-    var(--sky-horizon) 68%,
-    #1a1028 100%
-  );
+  transition: transform 2s ease;
 }
 
-.sky {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 80% 45% at 70% 18%, rgba(160, 120, 255, 0.28), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 30% 25%, rgba(80, 200, 255, 0.12), transparent 55%);
-  pointer-events: none;
+.living-scene-3d {
+  background: #1a2838;
 }
 
-.clouds {
+/* Opaque Three.js world fills the desk; UI floats above */
+.world-stage {
   position: absolute;
-  inset: 0;
-  opacity: calc(0.15 + var(--cloud) * 0.55);
-  background:
-    radial-gradient(ellipse 40% 18% at 20% 28%, rgba(220, 230, 255, 0.35), transparent 70%),
-    radial-gradient(ellipse 50% 20% at 65% 22%, rgba(200, 210, 240, 0.28), transparent 70%),
-    radial-gradient(ellipse 35% 16% at 85% 34%, rgba(180, 190, 220, 0.22), transparent 70%);
-  filter: blur(2px);
-  animation: drift 48s linear infinite;
-  pointer-events: none;
+  inset: -28% -10%;
+  width: 120%;
+  height: 156%;
+  transform: translate3d(0, var(--cam-y, 0), 0);
+  will-change: transform;
 }
 
-.moon {
-  position: absolute;
-  top: 9%;
-  right: 14%;
-  width: min(14vw, 150px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 35%, #f4f0ff 0%, #c9c0e8 45%, #7a7398 100%);
-  box-shadow:
-    0 0 40px rgba(220, 210, 255, 0.45),
-    0 0 120px rgba(140, 160, 255, 0.25);
-  pointer-events: none;
-}
-
-.fx-canvas {
-  position: absolute;
+.world-stage-3d {
   inset: 0;
   width: 100%;
   height: 100%;
+  transform: none;
+}
+
+.plate-strip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -100%;
+  display: flex;
+  width: 300%;
+  height: 100%;
+  z-index: 1;
   pointer-events: none;
+  /* cam.x scrolls forever; tiles repeat the landscape for 360° */
+  transform: translate3d(var(--cam-x, 0), 0, 0);
+  will-change: transform;
 }
 
-.ridges {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 18%;
-  height: 42%;
-  background:
-    linear-gradient(180deg, transparent, rgba(10, 8, 20, 0.35)),
-    radial-gradient(ellipse 70% 80% at 50% 100%, #2a2038 0%, transparent 70%),
-    linear-gradient(115deg, transparent 20%, #1c142c 21%, #241a34 40%, transparent 41%),
-    linear-gradient(250deg, transparent 30%, #171022 31%, #20182e 55%, transparent 56%);
-  clip-path: polygon(0% 55%, 8% 48%, 18% 52%, 28% 30%, 40% 44%, 52% 18%, 64% 40%, 76% 28%, 88% 46%, 100% 36%, 100% 100%, 0% 100%);
-  filter: drop-shadow(0 -10px 30px rgba(0, 0, 0, 0.35));
-}
-
-.waterfall {
-  position: absolute;
-  left: 46%;
-  bottom: 28%;
-  width: 3.5%;
-  height: 22%;
-  background: linear-gradient(180deg, rgba(200, 230, 255, 0.55), rgba(140, 190, 255, 0.05));
-  filter: blur(1px);
-  opacity: 0.75;
-  animation: fall 1.8s linear infinite;
-}
-
-.lake {
-  position: absolute;
-  left: 10%;
-  right: 10%;
-  bottom: 8%;
-  height: 24%;
-  border-radius: 50% 50% 40% 40%;
-  background:
-    linear-gradient(180deg, rgba(80, 140, 200, 0.35), rgba(20, 30, 50, 0.75)),
-    linear-gradient(90deg, transparent, rgba(255, 200, 140, 0.15), transparent);
-  box-shadow: inset 0 10px 40px rgba(255, 255, 255, 0.08);
-  filter: blur(0.2px);
-  transform: perspective(400px) rotateX(55deg) scaleY(0.55);
-  opacity: 0.9;
-}
-
-.trees {
-  position: absolute;
-  bottom: 6%;
-  width: 22%;
-  height: 48%;
-  background:
-    radial-gradient(ellipse 40% 30% at 50% 80%, rgba(20, 40, 30, 0.9), transparent 70%),
-    repeating-linear-gradient(
-      95deg,
-      transparent,
-      transparent 18px,
-      rgba(18, 40, 28, 0.85) 18px,
-      rgba(18, 40, 28, 0.85) 30px
-    );
-  mask-image: linear-gradient(180deg, transparent 0%, #000 25%, #000 100%);
+.scene-plate {
+  flex: 0 0 33.333%;
+  width: 33.333%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
   pointer-events: none;
+  filter: saturate(calc(1.02 + var(--load, 0) * 0.18))
+    brightness(calc(0.72 + var(--day, 0.4) * 0.38 + var(--warmth, 0.2) * 0.18))
+    sepia(calc(var(--heat, 0) * 0.28));
+  transition: filter 1.4s ease;
 }
 
-.trees.left {
-  left: -2%;
-  transform: scaleX(-1);
+.living-scene.low-power .scene-plate {
+  filter: saturate(0.95) brightness(0.85);
 }
 
-.trees.right {
-  right: -2%;
-}
-
-.flora {
-  position: absolute;
-  left: 4%;
-  bottom: 4%;
-  width: 28%;
-  height: 18%;
-  background:
-    radial-gradient(circle at 20% 60%, rgba(180, 80, 255, 0.55) 0 4px, transparent 5px),
-    radial-gradient(circle at 35% 40%, rgba(200, 100, 255, 0.5) 0 5px, transparent 6px),
-    radial-gradient(circle at 50% 70%, rgba(160, 70, 255, 0.45) 0 4px, transparent 5px),
-    radial-gradient(circle at 70% 50%, rgba(220, 120, 255, 0.4) 0 6px, transparent 7px);
-  filter: blur(0.4px);
-  pointer-events: none;
-}
-
-.vignette {
+/* Three.js / drei living engines sit over the plate */
+.living-canvas-host {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.35) 100%);
+  z-index: 2;
   pointer-events: none;
-  opacity: calc(0.35 + var(--shimmer) * 0.25);
 }
 
-@keyframes drift {
+.living-canvas-opaque {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.mood-wash.soft {
+  opacity: 0.45;
+  z-index: 2;
+}
+
+.day-night-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: rgba(2, 6, 18, calc(var(--night, 0.4) * 0.28));
+  transition: background 2s ease;
+  mix-blend-mode: multiply;
+}
+
+.mood-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(ellipse 65% 50% at 50% 40%, var(--mood-tint), transparent 70%);
+  mix-blend-mode: soft-light;
+  animation: mood-pulse 6s ease-in-out infinite;
+}
+
+.scene-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  background: radial-gradient(ellipse 80% 70% at 50% 45%, transparent 45%, rgba(0, 0, 0, 0.35) 100%);
+}
+
+.edge-hint {
+  position: absolute;
+  right: 16px;
+  bottom: 88px;
+  z-index: 5;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(232, 238, 252, 0.45);
+  pointer-events: none;
+  opacity: 0;
+  animation: hint-fade 8s ease 2s forwards;
+}
+
+.scene-live {
+  position: absolute;
+  left: 16px;
+  top: 12px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  color: rgba(232, 238, 252, 0.88);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px);
+  pointer-events: none;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7dffb3;
+  box-shadow: 0 0 12px #7dffb3;
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes sky-slide {
   from {
-    transform: translateX(0);
+    transform: translateX(-8%);
   }
   to {
-    transform: translateX(-4%);
+    transform: translateX(8%);
   }
 }
 
-@keyframes fall {
-  from {
-    background-position: 0 0;
+@keyframes mood-pulse {
+  0%,
+  100% {
+    opacity: 0.8;
   }
-  to {
-    background-position: 0 24px;
+  50% {
+    opacity: 1;
   }
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes hint-fade {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.7;
+  }
+  80% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.mood-debug {
+  position: absolute;
+  left: 14px;
+  bottom: 88px;
+  z-index: 6;
+  width: 210px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(10, 16, 28, 0.72);
+  border: 1px solid rgba(140, 210, 255, 0.35);
+  backdrop-filter: blur(18px) saturate(1.3);
+  color: rgba(232, 238, 252, 0.92);
+  font-size: 0.72rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.mood-debug header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.mood-debug-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mood-debug-row span {
+  display: flex;
+  justify-content: space-between;
+}
+
+.mood-debug-row em {
+  font-style: normal;
+  color: rgba(122, 215, 255, 0.9);
+}
+
+.mood-debug-row input[type='range'] {
+  width: 100%;
+  accent-color: #7ad7ff;
+}
+
+.mood-debug-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(232, 238, 252, 0.8);
+}
+
+.mood-debug-hint {
+  margin: 2px 0 0;
+  font-size: 0.62rem;
+  color: rgba(180, 200, 230, 0.65);
+  line-height: 1.35;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .clouds,
-  .waterfall {
-    animation: none;
+  .living-scene,
+  .world-stage,
+  .sky-drift,
+  .mood-wash,
+  .live-dot {
+    animation: none !important;
+    transition: none;
+  }
+  .world-stage {
+    transform: none;
   }
 }

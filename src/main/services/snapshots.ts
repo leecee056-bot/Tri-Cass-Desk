@@ -37,3 +37,11 @@ export function saveSnapshot(activeDock: string, label?: string): WorkspaceSnaps
 export function restoreSnapshot(id: string): WorkspaceSnapshot | null {
   return load().find((s) => s.id === id) ?? null
 }
+
+export function deleteSnapshot(id: string): boolean {
+  const list = load()
+  const next = list.filter((s) => s.id !== id)
+  if (next.length === list.length) return false
+  save(next)
+  return true
+}

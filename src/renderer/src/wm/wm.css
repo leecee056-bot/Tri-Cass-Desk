@@ -1,0 +1,279 @@
+.desk-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+}
+
+.desk-root.reduce-transparency .float-win {
+  --glass-fill: rgba(14, 22, 38, 0.82);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+}
+
+.desk-root.reduce-transparency .dock {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)),
+    rgba(10, 16, 28, 0.78) !important;
+  backdrop-filter: blur(16px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.2) !important;
+}
+
+.desk-root.compact-dock .dock {
+  gap: 2px;
+  padding: 8px 12px;
+}
+
+.desk-root.compact-dock .dock-item {
+  width: 40px;
+  height: 40px;
+}
+
+.desk-root.compact-dock .dock-ico {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+
+/*
+  Earthbound concept glass:
+  luminous cyan rim, deep frost, specular top catch, soft depth —
+  not flat grey cards or Apple traffic lights.
+*/
+.float-win {
+  --glass-fill: rgba(18, 28, 48, 0.34);
+  --glass-fill-hover: rgba(22, 34, 58, 0.42);
+  --glass-rim: rgba(90, 205, 255, 0.78);
+  --glass-rim-hot: rgba(140, 235, 255, 0.95);
+  --glass-glow: rgba(60, 185, 255, 0.48);
+
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px;
+  border: 1px solid var(--glass-rim);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 38%, transparent 62%),
+    var(--glass-fill);
+  backdrop-filter: blur(40px) saturate(1.85);
+  -webkit-backdrop-filter: blur(40px) saturate(1.85);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 1px 0 rgba(255, 255, 255, 0.28) inset,
+    0 0 24px var(--glass-glow),
+    0 22px 60px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  min-width: 220px;
+  min-height: 140px;
+  isolation: isolate;
+  transition:
+    box-shadow 0.28s ease,
+    border-color 0.28s ease,
+    background 0.5s ease,
+    opacity 1.2s ease;
+}
+
+.float-win::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.04) 12%,
+    transparent 32%
+  );
+  mix-blend-mode: soft-light;
+}
+
+.float-win::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: calc(22px - 1px);
+  pointer-events: none;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 -18px 40px rgba(8, 16, 32, 0.18);
+}
+
+.float-win:hover {
+  border-color: var(--glass-rim-hot);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.03) 40%, transparent 65%),
+    var(--glass-fill-hover);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 1px 0 rgba(255, 255, 255, 0.34) inset,
+    0 0 32px rgba(140, 210, 255, 0.32),
+    0 26px 70px rgba(0, 0, 0, 0.5);
+}
+
+.float-win:focus-within {
+  border-color: var(--glass-rim-hot);
+}
+
+.desk-root.resting .float-win {
+  opacity: 0.82;
+}
+
+.desk-root.ambient_idle .float-win {
+  opacity: 0.58;
+}
+
+.float-bar {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 14px 8px;
+  cursor: grab;
+  user-select: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.float-bar:active {
+  cursor: grabbing;
+}
+
+.float-title {
+  font-size: 0.72rem;
+  font-weight: 560;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(236, 244, 255, 0.82);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.float-win.maximized {
+  border-radius: 18px;
+  z-index: 20000 !important;
+}
+
+/* Concept focus: maximized window owns the stage — others tuck away */
+.desk-root.has-maximized .float-win:not(.maximized) {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.float-actions {
+  display: flex;
+  gap: 5px;
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+}
+
+.float-win:hover .float-actions,
+.float-win:focus-within .float-actions {
+  opacity: 1;
+}
+
+.fa {
+  width: 24px;
+  height: 22px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: rgba(232, 238, 252, 0.78);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.fa:hover {
+  background: rgba(170, 220, 255, 0.18);
+  border-color: rgba(190, 230, 255, 0.35);
+  color: #fff;
+}
+
+.fa.close:hover {
+  background: rgba(255, 110, 140, 0.32);
+  border-color: rgba(255, 150, 170, 0.45);
+}
+
+.float-body {
+  position: relative;
+  z-index: 3;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 6px 14px 14px;
+}
+
+/* Resize grip — subtle concept corner */
+.float-win:not(.maximized) .float-resize {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 14px;
+  height: 14px;
+  z-index: 4;
+  cursor: nwse-resize;
+  opacity: 0.35;
+  background:
+    linear-gradient(135deg, transparent 50%, rgba(220, 240, 255, 0.55) 50%) no-repeat,
+    linear-gradient(135deg, transparent 65%, rgba(220, 240, 255, 0.35) 65%);
+  border-radius: 0 0 12px 0;
+}
+
+.desk-dock-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.wake-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(200, 230, 255, 0.35);
+  background: rgba(18, 28, 48, 0.4);
+  backdrop-filter: blur(20px) saturate(1.6);
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  color: var(--ink);
+  box-shadow:
+    0 0 18px rgba(120, 200, 255, 0.2),
+    0 10px 28px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.desk-dock-wrap.idle {
+  opacity: 0.9;
+}
+
+.mini-tray {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.mini-tray button {
+  border-radius: 999px;
+  border: 1px solid rgba(200, 230, 255, 0.28);
+  background: rgba(18, 28, 48, 0.35);
+  backdrop-filter: blur(14px);
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  color: var(--ink-dim);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}

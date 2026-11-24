@@ -1,21 +1,29 @@
 {
   "name": "tri-cass-desk",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Tri-Cass Desk — local-only living companion desktop",
+  "version": "0.2.0",
+  "private": false,
+  "description": "Tri-Cass OS Desk — local-only living companion desktop",
   "main": "./out/main/index.js",
   "author": "Lee Cee",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leecee056-bot/Tri-Cass-Desk.git"
+  },
+  "homepage": "https://github.com/leecee056-bot/Tri-Cass-Desk#readme",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json",
-    "pack:win": "npm run build && electron-builder --win --dir"
+    "pack:win": "npm run build && electron-builder --win nsis portable",
+    "pack:win:dir": "npm run build && electron-builder --win --dir"
   },
   "dependencies": {
     "@fontsource/fraunces": "^5.2.6",
     "@fontsource/outfit": "^5.2.5",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
     "date-fns": "^4.4.0",
@@ -31,6 +39,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "systeminformation": "^5.25.11",
+    "three": "^0.187.0",
     "uuid": "^14.0.3"
   },
   "devDependencies": {
@@ -40,6 +49,7 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
+    "@types/three": "^0.187.0",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.4.1",
     "electron": "^35.2.1",
@@ -51,16 +61,51 @@
   "build": {
     "appId": "os.tricass.desk",
     "productName": "Tri-Cass Desk",
+    "copyright": "Copyright © Tri-Cass OS",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
     "files": [
-      "out/**/*"
+      "out/**/*",
+      "build/icon.png"
     ],
+    "extraResources": [
+      {
+        "from": "build/icon.png",
+        "to": "icon.png"
+      }
+    ],
+    "icon": "build/icon.png",
     "win": {
       "target": [
-        "nsis"
-      ]
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "Tri-Cass-Desk-${version}-${os}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Tri-Cass Desk",
+      "installerIcon": "build/icon.png",
+      "uninstallerIcon": "build/icon.png",
+      "installerHeaderIcon": "build/icon.png",
+      "displayLanguageSelector": false,
+      "installerLanguages": ["English"]
     }
   }
 }

@@ -17,6 +17,9 @@ export function vaultDir(): string {
 export function workspaceRoot(): string {
   const dir = join(deskDataDir(), 'workspace')
   mkdirSync(dir, { recursive: true })
+  for (const name of ['Creative', 'Ideas', 'Assets', 'Archive']) {
+    mkdirSync(join(dir, name), { recursive: true })
+  }
   return dir
 }
 
@@ -26,4 +29,8 @@ export function chatHistoryPath(): string {
 
 export function snapshotsPath(): string {
   return join(deskDataDir(), 'snapshots.json')
+}
+
+export function preferencesPath(): string {
+  return join(deskDataDir(), 'preferences.json')
 }

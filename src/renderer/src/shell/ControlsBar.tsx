@@ -16,7 +16,7 @@ export default function ControlsBar({ state, onChange, onWake }: Props): React.J
           checked={p.weatherEffects}
           onChange={(e) => onChange({ weatherEffects: e.target.checked })}
         />
-        Load weather
+        Load atmosphere
       </label>
       <label>
         <input

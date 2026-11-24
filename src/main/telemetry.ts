@@ -12,13 +12,14 @@ function clamp01(n: number): number {
 
 /** Best-effort local metrics. Missing sensors → null / zeros, never fabricated weather. */
 export async function sampleSystem(): Promise<SystemSnapshot> {
-  const [load, mem, temp, graphics, disks, processes] = await Promise.all([
+  const [load, mem, temp, graphics, disks, processes, fsSize] = await Promise.all([
     si.currentLoad().catch(() => null),
     si.mem().catch(() => null),
     si.cpuTemperature().catch(() => null),
     si.graphics().catch(() => null),
     si.disksIO().catch(() => null),
-    si.processes().catch(() => null)
+    si.processes().catch(() => null),
+    si.fsSize().catch(() => null)
   ])
 
   const cpuLoad = clamp01((load?.currentLoad ?? 0) / 100)
@@ -58,6 +59,13 @@ export async function sampleSystem(): Promise<SystemSnapshot> {
   const processChurn = clamp01(Math.abs(processCount - lastProcessCount) / 40)
   lastProcessCount = processCount
 
+  let diskUsedRatio: number | null = null
+  if (Array.isArray(fsSize) && fsSize.length) {
+    const total = fsSize.reduce((a, d) => a + (d.size || 0), 0)
+    const used = fsSize.reduce((a, d) => a + (d.used || 0), 0)
+    if (total > 0) diskUsedRatio = clamp01(used / total)
+  }
+
   return {
     cpuLoad,
     ramUsedRatio,
@@ -65,6 +73,7 @@ export async function sampleSystem(): Promise<SystemSnapshot> {
     cpuTempC,
     gpuTempC,
     diskIoMbps,
+    diskUsedRatio,
     processCount,
     processChurn,
     sampledAt: now

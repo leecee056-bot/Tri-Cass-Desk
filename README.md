@@ -1,33 +1,56 @@
 # Tri-Cass Desk
 
-Local-only living companion for **Tri-Cass OS** — Earthbound/Celestial atmosphere driven by machine telemetry (not weather APIs), plus a full glass-styled utility suite.
+Local-only living companion for **Tri-Cass OS**. Earthbound / Celestial atmosphere is driven by **machine telemetry** (CPU / RAM / GPU / disk / processes) — not outdoor weather APIs — with a frosted glass window manager and utility suite.
 
-## Highlights
+## Download (site-ready)
 
-- **Living scene** — CPU/RAM/GPU/temp/disk → rain, clouds, aurora, heat, wind; clock → day/night
-- **240 tools** across companion, system, browser, media, creative, dev, knowledge, office, security, network, fun
-- **Glass surfaces** (rounded frosted chrome — no sharp OS windows):
-  - In-desk **Browser** (Electron `webview`)
-  - **Media player** (local audio/video, speed/loop/volume)
-  - **Terminal** ([xterm](https://xtermjs.org/) + allowlisted commands)
-  - **Editor** (glass textarea + optional [Monaco](https://microsoft.github.io/monaco-editor/))
-  - **Bin** soft-delete shelf
-- Ready-made libs: `qrcode`, `jszip`, `marked`+`dompurify`, `papaparse`, `date-fns`, `uuid`, `@xterm/xterm`, `monaco-editor`
+1. Open **[Releases](https://github.com/leecee056-bot/Tri-Cass-Desk/releases/latest)**
+2. Download Windows x64:
+   - **`Tri-Cass-Desk-*-win-x64.exe`** — NSIS setup (desktop + Start Menu shortcut, Tri-Cass icon)
+   - or the **portable** `.exe` from the same release if you prefer no installer
+3. Run the setup (or portable), launch **Tri-Cass Desk**
+4. On first launch you’ll see the **Tri-Cass OS** boot splash with the brand logo
 
-## Develop (Windows)
+Link that Releases page from the Tri-Cass site as: **Download → unzip/run setup → launch**.
+
+## Brand
+
+- Boot splash: Tri-Cass OS wordmark + mascot logo
+- Desktop / Start Menu / installer icons: `build/icon.png`
+- Window title: **Tri-Cass OS · Desk**
+
+## Develop
 
 ```bash
 npm install
 npm run dev
 ```
 
-Optional: local [Ollama](https://ollama.com) for chat.
+Optional: local [Ollama](https://ollama.com) for AI chat (dock → Chat).
 
 ```bash
 npm run typecheck
 npm run build
-npm run pack:win
+npm run pack:win        # NSIS installer + portable (Windows runner / wine)
+npm run pack:win:dir    # unpacked dir for smoke tests
 ```
+
+Tag a release to publish Windows builds via GitHub Actions:
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+## What is reactive (not a flat wallpaper)
+
+- Polls local telemetry ~every 2s → `EnvironmentState`
+- Scene grade, sky, water, grass, and mood panels follow load / clock / activity
+- Idle states dim glass and scale the scene; wake restores workspace
+
+## Apps (same glass style)
+
+Dock opens floating frosted windows: Apps, Files, Browser, Editor, Notes, Media, **Chat** (Ollama), Settings, Bin — plus Mood / Atmosphere / Projects / System companions.
 
 ## License
 

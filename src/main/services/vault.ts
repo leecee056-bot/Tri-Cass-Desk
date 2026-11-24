@@ -30,11 +30,18 @@ export function getNote(id: string): VaultNote | null {
 
 export function saveNote(input: Partial<VaultNote> & { title: string; body: string }): VaultNote {
   const id = input.id || randomUUID()
+  const existing = existsSync(notePath(id)) ? getNote(id) : null
   const note: VaultNote = {
     id,
     title: input.title.trim() || 'Untitled',
     body: input.body,
-    updatedAt: Date.now()
+    updatedAt: Date.now(),
+    kind: input.kind ?? existing?.kind ?? 'note',
+    username: input.username ?? existing?.username ?? '',
+    password: input.password ?? existing?.password ?? '',
+    url: input.url ?? existing?.url ?? '',
+    folder: input.folder ?? existing?.folder ?? 'Personal',
+    favorite: input.favorite ?? existing?.favorite ?? false
   }
   writeFileSync(notePath(id), JSON.stringify(note, null, 2), 'utf8')
   return note

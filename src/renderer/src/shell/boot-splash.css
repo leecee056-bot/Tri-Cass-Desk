@@ -1,0 +1,124 @@
+.boot-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1.1rem;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 42%, #0a2a48 0%, transparent 62%),
+    linear-gradient(165deg, #020814 0%, #041628 48%, #01060f 100%);
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  pointer-events: none;
+}
+
+.boot-splash-in,
+.boot-splash-hold {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.boot-splash-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.boot-splash-glow {
+  position: absolute;
+  width: min(42vw, 28rem);
+  height: min(42vw, 28rem);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 220, 255, 0.18), transparent 68%);
+  filter: blur(8px);
+  animation: boot-pulse 2.4s ease-in-out infinite;
+}
+
+.boot-splash-logo {
+  position: relative;
+  width: clamp(7.5rem, 16vw, 11rem);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 28px rgba(0, 210, 255, 0.4));
+  animation: boot-rise 0.7s ease-out both;
+}
+
+.boot-splash-copy {
+  position: relative;
+  text-align: center;
+  animation: boot-rise 0.7s ease-out 0.12s both;
+}
+
+.boot-splash-brand {
+  margin: 0;
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.55rem, 3.4vw, 2.15rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e8f7ff;
+  text-shadow: 0 0 24px rgba(0, 200, 255, 0.45);
+}
+
+.boot-splash-product {
+  margin: 0.35rem 0 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: rgba(160, 220, 240, 0.78);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.boot-splash-bar {
+  position: relative;
+  width: min(12rem, 40vw);
+  height: 2px;
+  margin-top: 0.6rem;
+  border-radius: 999px;
+  background: rgba(0, 180, 220, 0.18);
+  overflow: hidden;
+  animation: boot-rise 0.7s ease-out 0.2s both;
+}
+
+.boot-splash-bar span {
+  display: block;
+  height: 100%;
+  width: 40%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, #5ce8ff, transparent);
+  animation: boot-scan 1.6s ease-in-out infinite;
+}
+
+@keyframes boot-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes boot-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes boot-scan {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(280%);
+  }
+}

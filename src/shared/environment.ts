@@ -18,6 +18,8 @@ export interface SystemSnapshot {
   cpuTempC: number | null
   gpuTempC: number | null
   diskIoMbps: number
+  /** Aggregate disk used / size across mounts; null if unavailable. */
+  diskUsedRatio: number | null
   processCount: number
   processChurn: number
   sampledAt: number
@@ -64,6 +66,12 @@ export interface EnvironmentState {
     celestialEffects: boolean
     weatherEffects: boolean
     pauseAdaptation: boolean
+    /** Soften glass / panel blur for readability. */
+    reduceTransparency: boolean
+    /** Compact dock icon spacing. */
+    compactDock: boolean
+    /** Prefer 24-hour clock labels in widgets. */
+    clock24h: boolean
   }
 }
 
@@ -71,5 +79,8 @@ export const defaultPreferences: EnvironmentState['userPreferences'] = {
   motion: 'full',
   celestialEffects: true,
   weatherEffects: true,
-  pauseAdaptation: false
+  pauseAdaptation: false,
+  reduceTransparency: false,
+  compactDock: false,
+  clock24h: false
 }

@@ -21,11 +21,20 @@ export type FileEntry = {
   mtimeMs: number
 }
 
+export type VaultItemKind = 'note' | 'login'
+
 export type VaultNote = {
   id: string
   title: string
   body: string
   updatedAt: number
+  /** Bitwarden-lite fields (optional for older notes). */
+  kind?: VaultItemKind
+  username?: string
+  password?: string
+  url?: string
+  folder?: string
+  favorite?: boolean
 }
 
 export type ProcessRow = {
@@ -66,7 +75,16 @@ export type WorkspaceSnapshot = {
 
 export type AgentStep = {
   at: number
-  kind: 'thought' | 'tool' | 'result' | 'error'
+  kind:
+    | 'thought'
+    | 'tool'
+    | 'result'
+    | 'error'
+    | 'plan'
+    | 'note'
+    | 'llm'
+    | 'permission'
+    | 'knowledge'
   text: string
 }
 
@@ -74,5 +92,6 @@ export type AgentRun = {
   id: string
   prompt: string
   steps: AgentStep[]
-  status: 'running' | 'done' | 'error'
+  status?: 'running' | 'done' | 'error'
+  at?: number
 }
