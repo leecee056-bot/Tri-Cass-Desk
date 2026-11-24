@@ -17,9 +17,10 @@ export function vaultDir(): string {
 export function workspaceRoot(): string {
   const dir = join(deskDataDir(), 'workspace')
   mkdirSync(dir, { recursive: true })
-  for (const name of ['Creative', 'Ideas', 'Assets', 'Archive']) {
+  for (const name of ['Creative', 'Ideas', 'Assets', 'Archive', 'projects']) {
     mkdirSync(join(dir, name), { recursive: true })
   }
+  mkdirSync(join(dir, '.tri-cass'), { recursive: true })
   return dir
 }
 

@@ -6,6 +6,8 @@ import './surfaces.css'
 type Props = {
   title?: string
   initial?: string
+  /** Absolute path to open (agent / Files hand-off). */
+  filePath?: string
   onClose?: () => void
 }
 
@@ -86,13 +88,28 @@ function blankTab(partial?: Partial<TabDoc>): TabDoc {
 export default function EditorSurface({
   title = 'Code Editor',
   initial,
+  filePath,
   onClose
 }: Props): React.JSX.Element {
   const [tabs, setTabs] = useState<TabDoc[]>(() => [
-    blankTab(initial != null ? { value: initial, dirty: false } : undefined)
+    blankTab(
+      filePath
+        ? {
+            title: basename(filePath),
+            path: filePath,
+            language: langFromPath(filePath),
+            value: initial ?? '// loading…\n',
+            dirty: false
+          }
+        : initial != null
+          ? { value: initial, dirty: false }
+          : undefined
+    )
   ])
   const [activeId, setActiveId] = useState(() => tabs[0]!.id)
-  const [status, setStatus] = useState('VS Code–class local editor')
+  const [status, setStatus] = useState(
+    filePath ? `Opened from agent · ${basename(filePath)}` : 'VS Code–class local editor'
+  )
   const [cursor, setCursor] = useState({ line: 1, col: 1 })
   const [wordWrap, setWordWrap] = useState(true)
   const [minimap, setMinimap] = useState(true)
@@ -114,6 +131,21 @@ export default function EditorSurface({
       list.map((t) => (t.id === activeIdRef.current ? { ...t, ...partial } : t))
     )
   }, [])
+
+  // Load path from agent hand-off when content was not inlined
+  useEffect(() => {
+    if (!filePath || initial != null || !window.desk?.readTextFile) return
+    void window.desk.readTextFile(filePath).then(
+      (text) => {
+        skipDirtyRef.current = true
+        patchActive({ value: text, dirty: false, path: filePath, title: basename(filePath) })
+        setStatus(`Loaded ${basename(filePath)}`)
+      },
+      (err: unknown) => {
+        setStatus(err instanceof Error ? err.message : 'Failed to open file')
+      }
+    )
+  }, [filePath, initial, patchActive])
 
   // Create Monaco once
   useEffect(() => {

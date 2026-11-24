@@ -58,6 +58,8 @@ export type ChatGenerateOpts = {
   numPredict?: number
   /** Per-request abort timeout (ms). Default 180s stream / 120s one-shot. */
   timeoutMs?: number
+  /** Ollama response format — use 'json' for Cline grammar loops. */
+  format?: 'json'
 }
 
 /** One-shot completion against an explicit message list (multi-session UI). */
@@ -87,7 +89,7 @@ function buildChatPayload(
     opts.system?.trim() ||
     'You are Tri-Cass Desk, a local offline companion. Be concise and practical. Never claim network weather or cloud services.'
 
-  return {
+  const payload: Record<string, unknown> = {
     model: chosen,
     stream,
     options: {
@@ -99,6 +101,8 @@ function buildChatPayload(
       ...messages.filter((m) => m.role === 'user' || m.role === 'assistant').slice(-PROMPT_WINDOW)
     ]
   }
+  if (opts.format === 'json') payload.format = 'json'
+  return payload
 }
 
 export async function chatGenerate(

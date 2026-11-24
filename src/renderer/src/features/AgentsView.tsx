@@ -31,14 +31,20 @@ function parsePermission(text: string): { path: string; content: string } | null
   return null
 }
 
+type Props = {
+  openApp?: (appId: string, title?: string, payload?: Record<string, string>) => void
+}
+
 /**
- * OpenCode-inspired local agents: inspect / plan / build with multi-round tool loop + KB.
+ * OpenCode inspect/plan + Cline-slim grammar build (workspace checkpoints, sandbox run, Editor).
  */
-export default function AgentsView(): React.JSX.Element {
+export default function AgentsView({ openApp }: Props = {}): React.JSX.Element {
   const [mode, setMode] = useState<AgentMode>('inspect')
   const [prompt, setPrompt] = useState('Summarize disk and CPU health')
   const [busy, setBusy] = useState(false)
-  const [status, setStatus] = useState('OpenCode loop · local tools + streaming-capable Ollama')
+  const [status, setStatus] = useState(
+    'Cline grammar on build · checkpoints · sandbox run · local Ollama'
+  )
   const [sessions, setSessions] = useState<AgentSession[]>(() => {
     try {
       return JSON.parse(localStorage.getItem(KEY) || '[]') as AgentSession[]
@@ -136,7 +142,19 @@ export default function AgentsView(): React.JSX.Element {
     if (!pendingWrite || !window.desk) return
     await window.desk.writeTextFile(pendingWrite.path, pendingWrite.content)
     setStatus(`Wrote ${pendingWrite.path}`)
+    openApp?.('editor', pendingWrite.path.split(/[/\\]/).pop() || 'Editor', {
+      path: pendingWrite.path,
+      content: pendingWrite.content
+    })
     setPendingWrite(null)
+  }
+
+  const openInEditor = (): void => {
+    if (!pendingWrite) return
+    openApp?.('editor', pendingWrite.path.split(/[/\\]/).pop() || 'Editor', {
+      path: pendingWrite.path,
+      content: pendingWrite.content
+    })
   }
 
   return (
@@ -159,8 +177,8 @@ export default function AgentsView(): React.JSX.Element {
       </div>
 
       <p className="status-line">
-        OpenCode-style multi-round loop — <strong>inspect</strong> (tools + LLM summary),{' '}
-        <strong>plan</strong> (read-only tools), <strong>build</strong> (tools + approve writes).{' '}
+        <strong>inspect</strong> (tools), <strong>plan</strong> (checklist → .tri-cass/plan.md),{' '}
+        <strong>build</strong> (Cline JSON grammar · checkpoints · stuck×3 · sandbox python/node).{' '}
         {status}
       </p>
 
@@ -196,7 +214,10 @@ export default function AgentsView(): React.JSX.Element {
           </p>
           <pre className="agent-write-preview">{pendingWrite.content.slice(0, 800)}</pre>
           <button type="button" className="btn" onClick={() => void approveWrite()}>
-            Approve write
+            Approve + open Editor
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={openInEditor}>
+            Preview in Editor
           </button>
           <button type="button" className="btn btn-ghost" onClick={() => setPendingWrite(null)}>
             Reject
@@ -224,8 +245,8 @@ export default function AgentsView(): React.JSX.Element {
         <div className="agent-log">
           {!active?.run ? (
             <p className="status-line">
-              Tips: “cpu load”, “vault notes”, “list files”, “read ~/path/file.ts” — plan/build use
-              LLM tool rounds until FINAL.
+              Tips: inspect “cpu load”; plan a multi-file app; build writes under workspace/projects/
+              with grammar JSON, checkpoints, and Editor review.
             </p>
           ) : (
             active.run.steps.map((s, i) => {

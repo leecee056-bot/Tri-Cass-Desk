@@ -31,6 +31,9 @@ export const IPC = {
 
   agentRun: 'desk:agent-run',
   agentLoop: 'desk:agent-loop',
+  agentCheckpointsList: 'desk:agent-checkpoints-list',
+  agentCheckpointCreate: 'desk:agent-checkpoint-create',
+  agentCheckpointRestore: 'desk:agent-checkpoint-restore',
 
   listDir: 'desk:list-dir',
   readTextFile: 'desk:read-text-file',
@@ -109,6 +112,16 @@ export type DeskApi = {
     prompt: string,
     opts?: { mode?: 'inspect' | 'plan' | 'build'; model?: string; temperature?: number }
   ) => Promise<AgentRun>
+  agentCheckpointsList: () => Promise<
+    Array<{ id: string; label: string; createdAt: number; fileCount: number }>
+  >
+  agentCheckpointCreate: (label?: string) => Promise<{
+    id: string
+    label: string
+    createdAt: number
+    fileCount: number
+  }>
+  agentCheckpointRestore: (id: string) => Promise<string>
 
   listDir: (dirPath?: string) => Promise<{ path: string; entries: FileEntry[] }>
   readTextFile: (filePath: string) => Promise<string>

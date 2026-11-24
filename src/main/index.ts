@@ -13,7 +13,13 @@ import {
   loadChatHistory,
   ollamaStatus
 } from './services/ollama'
-import { runAgent, runAgentLoop } from './services/agent'
+import {
+  runAgent,
+  runAgentLoop,
+  listCheckpoints,
+  createCheckpoint,
+  restoreCheckpoint
+} from './services/agent'
 import { randomUUID } from 'node:crypto'
 import {
   getHomeDir,
@@ -205,6 +211,11 @@ function registerIpc(): void {
       opts?: { mode?: 'inspect' | 'plan' | 'build'; model?: string; temperature?: number }
     ) => runAgentLoop(prompt, opts)
   )
+  ipcMain.handle(IPC.agentCheckpointsList, async () => listCheckpoints())
+  ipcMain.handle(IPC.agentCheckpointCreate, async (_e, label?: string) =>
+    createCheckpoint(label || 'manual')
+  )
+  ipcMain.handle(IPC.agentCheckpointRestore, async (_e, id: string) => restoreCheckpoint(id))
 
   ipcMain.handle(IPC.listDir, async (_e, dirPath?: string) => listDirectory(dirPath))
   ipcMain.handle(IPC.readTextFile, async (_e, filePath: string) => readTextFile(filePath))
