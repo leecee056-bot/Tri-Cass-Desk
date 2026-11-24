@@ -107,12 +107,7 @@
       ],
       "category": "Utility",
       "icon": "build/icon.png",
-      "artifactName": "Tri-Cass-Desk-${version}-${os}-${arch}.${ext}",
-      "desktop": {
-        "Name": "Tri-Cass Desk",
-        "Comment": "Local-only living companion for Tri-Cass OS",
-        "Categories": "Utility;Office;"
-      }
+      "artifactName": "Tri-Cass-Desk-${version}-${os}-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,
