@@ -40,8 +40,13 @@
   width: clamp(7.5rem, 16vw, 11rem);
   height: auto;
   object-fit: contain;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   filter: drop-shadow(0 0 28px rgba(0, 210, 255, 0.4));
   animation: boot-rise 0.7s ease-out both;
+  /* keep pixel mascot crisp */
+  image-rendering: pixelated;
 }
 
 .boot-splash-copy {
