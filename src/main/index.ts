@@ -322,8 +322,8 @@ function registerIpc(): void {
   void binDir()
 }
 
-// Lite build: avoid GPU driver hard-crashes seen with WebGL living-world (v0.2.3).
-app.disableHardwareAcceleration()
+// Hardware acceleration stays on so optional Living 3D WebGL can run.
+// Heavy systeminformation polling (the 100% CPU culprit) is already removed.
 
 app.whenReady().then(() => {
   engine.hydrate(loadPreferences(), savePreferences)

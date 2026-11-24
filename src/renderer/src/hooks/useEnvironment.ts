@@ -63,14 +63,15 @@ function livingFallback(now = Date.now()): EnvironmentState {
     },
     freshness: 'simulated',
     userPreferences: {
-      motion: 'off',
+      motion: 'reduced',
       celestialEffects: false,
       weatherEffects: false,
       pauseAdaptation: false,
       reduceTransparency: false,
       compactDock: false,
       clock24h: false,
-      deskTheme: 'nature'
+      deskTheme: 'nature',
+      livingWorld3d: true
     }
   }
 }

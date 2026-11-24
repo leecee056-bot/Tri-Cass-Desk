@@ -1,7 +1,12 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { EnvironmentState } from '../../../shared/environment'
+import type { MoodOverrides } from '../../../shared/mood'
 import { LiteLivingBackdrop } from './engines/LiteLivingBackdrop'
+import { LivingWorldCanvas } from './engines/LivingWorldCanvas'
+import { SceneErrorBoundary } from './engines/SceneErrorBoundary'
+import MoodDebugPanel from './MoodDebugPanel'
 import { useMoodState } from './useMoodState'
+import { useSceneCamera } from './useSceneCamera'
 import './living-scene.css'
 
 type Props = {
@@ -9,11 +14,19 @@ type Props = {
 }
 
 /**
- * Lite living companion — CSS backdrop only (no WebGL / Three.js).
- * Interactive 3D art was removed after v0.2.3 hard-crash reports on low-GPU hosts.
+ * Living companion — interactive Three.js lakeside when enabled, else themed wallpaper.
+ * CPU-heavy systeminformation polling was removed (that pegged Windows at ~100%).
+ * WebGL stays behind an error boundary so a GPU failure falls back to wallpaper.
  */
 export default function LivingScene({ state }: Props): React.JSX.Element {
-  const { mood } = useMoodState(state, {})
+  const want3d = state.userPreferences.livingWorld3d !== false
+  const motionOn = state.userPreferences.motion !== 'off'
+  const cam = useSceneCamera(want3d && motionOn)
+  const [overrides, setOverrides] = useState<MoodOverrides>({})
+  const [lowPower, setLowPower] = useState(
+    () => state.userPreferences.motion !== 'full'
+  )
+  const { mood } = useMoodState(state, overrides)
   const { solar, weather, system, health } = state
 
   const tint = useMemo(() => {
@@ -27,9 +40,11 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
     return hues[health.band]
   }, [health.band])
 
+  const wallpaper = <LiteLivingBackdrop state={state} mood={mood} />
+
   return (
     <div
-      className="living-scene living-scene-lite"
+      className={`living-scene living-scene-3d ${lowPower ? 'low-power' : ''} ${want3d ? '' : 'living-scene-lite'}`}
       style={
         {
           '--mood-tint': tint,
@@ -45,15 +60,39 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
       data-condition={weather.condition}
     >
       <div className="world-stage world-stage-3d">
-        <LiteLivingBackdrop state={state} mood={mood} />
+        {want3d ? (
+          <SceneErrorBoundary fallback={wallpaper}>
+            <LivingWorldCanvas
+              state={state}
+              mood={mood}
+              yaw={cam.yaw}
+              pointer={{
+                nx: cam.pointerNx,
+                ny: cam.pointerNy,
+                inside: cam.pointerInside
+              }}
+              lowPower={lowPower || state.userPreferences.motion !== 'full'}
+            />
+          </SceneErrorBoundary>
+        ) : (
+          wallpaper
+        )}
         <div className="mood-wash soft" />
-        <div className="scene-vignette" />
+        {!want3d ? <div className="scene-vignette" /> : null}
       </div>
+      {want3d ? (
+        <MoodDebugPanel
+          mood={mood}
+          overrides={overrides}
+          onChange={setOverrides}
+          lowPower={lowPower}
+          onLowPower={setLowPower}
+        />
+      ) : null}
       <div className="scene-live" aria-live="polite">
         <span className="live-dot" />
-        {(state.userPreferences.deskTheme ?? 'nature').replace(/^\w/, (c) => c.toUpperCase())} ·{' '}
-        {health.band} · heat {Math.round(mood.heat * 100)} · load {Math.round(mood.load * 100)} ·
-        CPU {Math.round(system.cpuLoad * 100)}%
+        {want3d ? 'Living 3D' : (state.userPreferences.deskTheme ?? 'nature')} · {health.band} ·
+        load {Math.round(mood.load * 100)} · CPU {Math.round(system.cpuLoad * 100)}%
       </div>
     </div>
   )

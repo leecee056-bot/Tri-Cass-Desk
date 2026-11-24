@@ -11,9 +11,11 @@ Local-only living companion for **Tri-Cass OS**. Earthbound / Celestial atmosphe
 3. Run the setup (or portable), launch **Tri-Cass Desk**
 4. On first launch you’ll see the **Tri-Cass OS** boot splash with the brand logo
 
-**Current recommended:** **v0.2.6 Lite** — themed wallpapers, quiet launch, window fits the screen with min/max/close chrome, light CPU (no WebGL, no heavy telemetry poll, no glass blur).
+**Current recommended:** **v0.3.0** — interactive living world is back, but with the **CPU-safe telemetry** fix (no heavy 1s process/GPU scans). Also: themes, quiet launch, window fits the screen, closable chrome. Turn off **Settings → Living world → Interactive living world** to use wallpaper-only if 3D feels heavy.
 
-**Do not use v0.2.3–v0.2.5** if they crashed or pegged CPU — use **v0.2.6+**.
+**Safe wallpaper-only:** **v0.2.6 Lite** if you want zero WebGL.
+
+**Do not use v0.2.3–v0.2.5** — crashed / pegged CPU.
 
 Link that Releases page from the Tri-Cass site as: **Download → unzip/run setup → launch**.
 
@@ -49,10 +51,10 @@ git push origin v0.2.0
 ## What is reactive (not a flat wallpaper)
 
 - Polls local telemetry ~every 2s → `EnvironmentState`
-- Lite backdrop uses a chosen wallpaper theme (Earth / Space / Nature / Cosmic) — **no WebGL**
+- Optional Three.js lakeside (low-power defaults) or wallpaper themes (Earth / Space / Nature / Cosmic)
+- Light CPU/RAM sampling every ~15s (not process/GPU scans)
 - Idle states dim glass; wake restores workspace
 - Launch starts with an empty desk; open apps from the dock
-- Full Three.js lakeside is parked until an opt-in “full art” build
 
 ## Apps (same glass style)
 

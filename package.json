@@ -1,8 +1,8 @@
 {
   "name": "tri-cass-desk",
-  "version": "0.2.6",
+  "version": "0.3.0",
   "private": false,
-  "description": "Tri-Cass OS Desk Lite — themed wallpapers, no WebGL living-world",
+  "description": "Tri-Cass OS Desk — living 3D + themes, CPU-safe telemetry",
   "main": "./out/main/index.js",
   "author": "Lee Cee",
   "license": "MIT",

@@ -235,22 +235,26 @@ function SceneBody({
  * Opaque Three.js living world — Sky + Water + grass + Poly Haven / ambientCG props.
  */
 export function LivingWorldCanvas(props: Props): React.JSX.Element {
-  const dpr: [number, number] = props.lowPower ? [1, 1.15] : [1, 1.5]
+  // Cap pixel ratio hard — high DPR + shadows was part of the crash cocktail with heavy telemetry
+  const dpr: [number, number] = props.lowPower ? [1, 1] : [1, 1.25]
   return (
     <div className="living-canvas-host living-canvas-opaque" aria-hidden>
       <Canvas
         dpr={dpr}
-        shadows={!props.lowPower}
+        shadows={false}
+        frameloop={props.state.userPreferences.motion === 'off' ? 'demand' : 'always'}
         camera={{ position: [0, 5.2, 15.5], fov: 42, near: 0.3, far: 500 }}
         gl={{
-          antialias: !props.lowPower,
-          powerPreference: props.lowPower ? 'low-power' : 'high-performance',
-          alpha: false
+          antialias: false,
+          powerPreference: 'low-power',
+          alpha: false,
+          stencil: false,
+          depth: true
         }}
         onCreated={({ gl, scene }) => {
           gl.setClearColor(0x7aa8c8, 1)
           gl.toneMapping = THREE.ACESFilmicToneMapping
-          gl.toneMappingExposure = 1.1
+          gl.toneMappingExposure = 1.05
           scene.fog = new THREE.FogExp2(0x7aa8c8, 0.004)
         }}
         style={{ width: '100%', height: '100%' }}

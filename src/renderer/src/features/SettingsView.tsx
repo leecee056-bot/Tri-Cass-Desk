@@ -179,14 +179,15 @@ export default function SettingsView({
                   void (async () => {
                     if (!window.desk?.resetPreferences) {
                       onChange({
-                        motion: 'off',
+                        motion: 'reduced',
                         celestialEffects: false,
                         weatherEffects: false,
                         pauseAdaptation: false,
                         reduceTransparency: false,
                         compactDock: false,
                         clock24h: false,
-                        deskTheme: 'nature'
+                        deskTheme: 'nature',
+                        livingWorld3d: true
                       })
                       setStatus('Defaults applied (local)')
                       return
@@ -205,8 +206,14 @@ export default function SettingsView({
         {pane === 'living' ? (
           <div className="settings-group">
             <Toggle
+              label="Interactive living world (3D)"
+              detail="Three.js lakeside. Turn off to use wallpaper themes only if it feels heavy."
+              checked={p.livingWorld3d !== false}
+              onChange={(v) => onChange({ livingWorld3d: v })}
+            />
+            <Toggle
               label="Telemetry weather layers"
-              detail="Rain / cloud / fog mapped from CPU & process churn — not outdoor APIs"
+              detail="Rain / cloud / fog mapped from light CPU/RAM samples — not outdoor APIs"
               checked={p.weatherEffects}
               onChange={(v) => onChange({ weatherEffects: v })}
             />
@@ -217,9 +224,8 @@ export default function SettingsView({
               onChange={(v) => onChange({ celestialEffects: v })}
             />
             <p className="settings-help">
-              Lite build: the WebGL lakeside / interactive 3D art is off (safer on low-GPU PCs).
-              Mood still follows CPU load via a CSS backdrop. Full 3D returns in a later opt-in
-              build.
+              Defaults to reduced motion / low-power GPU. Prefer Motion → Off or disable 3D if the
+              desk feels laggy. Wallpaper themes still apply when 3D is off.
             </p>
           </div>
         ) : null}
