@@ -69,7 +69,8 @@ function livingFallback(now = Date.now()): EnvironmentState {
       pauseAdaptation: false,
       reduceTransparency: false,
       compactDock: false,
-      clock24h: false
+      clock24h: false,
+      deskTheme: 'nature'
     }
   }
 }

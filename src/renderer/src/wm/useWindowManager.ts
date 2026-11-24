@@ -4,96 +4,9 @@ import { APP_META, type DeskWindow } from './types'
 let zCounter = 20
 let idCounter = 1
 
+/** Fresh launch — empty desk. Apps open only from the dock. */
 function layoutDefaults(): DeskWindow[] {
-  const W = typeof window !== 'undefined' ? window.innerWidth : 1440
-  const H = typeof window !== 'undefined' ? window.innerHeight : 900
-  const right = (w: number, pad = 28): number => Math.max(24, W - w - pad)
-  const bottom = (h: number, pad = 110): number => Math.max(48, H - h - pad)
-
-  return [
-    {
-      id: 'w-health',
-      appId: 'health',
-      title: 'Mood',
-      x: 32,
-      y: 40,
-      w: 300,
-      h: 480,
-      z: 8
-    },
-    {
-      id: 'w-browse',
-      appId: 'browse',
-      title: 'Browser',
-      x: 290,
-      y: 36,
-      w: Math.min(520, Math.round(W * 0.36)),
-      h: Math.min(400, Math.round(H * 0.42)),
-      z: 10
-    },
-    {
-      id: 'w-media',
-      appId: 'media',
-      title: 'Media',
-      x: Math.round(W * 0.48),
-      y: bottom(280),
-      w: 280,
-      h: 260,
-      z: 12,
-      minimized: true
-    },
-    {
-      id: 'w-atmosphere',
-      appId: 'atmosphere',
-      title: 'Atmosphere',
-      x: right(340),
-      y: 32,
-      w: 340,
-      h: 460,
-      z: 9
-    },
-    {
-      id: 'w-projects',
-      appId: 'projects',
-      title: 'Projects',
-      x: right(420),
-      y: 320,
-      w: 360,
-      h: 420,
-      z: 7
-    },
-    {
-      id: 'w-system',
-      appId: 'system',
-      title: 'System',
-      x: right(400),
-      y: bottom(480),
-      w: 400,
-      h: 480,
-      z: 11
-    },
-    {
-      id: 'w-notes',
-      appId: 'notes',
-      title: 'Notes',
-      x: 32,
-      y: Math.max(72, bottom(520)),
-      w: 720,
-      h: 520,
-      z: 6
-    },
-    {
-      id: 'w-chat',
-      appId: 'chat',
-      title: 'Chat',
-      x: Math.max(48, Math.round(W * 0.08)),
-      y: bottom(420),
-      w: Math.min(480, Math.round(W * 0.34)),
-      h: 400,
-      z: 14,
-      minimized: false
-    }
-  ]
+  return []
 }
 
 function stagger(n: number): { x: number; y: number } {
@@ -101,7 +14,7 @@ function stagger(n: number): { x: number; y: number } {
 }
 
 export function useWindowManager() {
-  const [windows, setWindows] = useState<DeskWindow[]>(() => layoutDefaults())
+  const [windows, setWindows] = useState<DeskWindow[]>(layoutDefaults)
 
   const focus = useCallback((id: string) => {
     zCounter += 1

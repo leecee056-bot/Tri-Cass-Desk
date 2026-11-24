@@ -1,5 +1,6 @@
 import type { EnvironmentState } from '../../../../shared/environment'
 import type { MoodState } from '../../../../shared/mood'
+import { themeById } from '../themes'
 
 type Props = {
   state: EnvironmentState
@@ -7,14 +8,17 @@ type Props = {
 }
 
 /**
- * CPU-light desk backdrop — CSS only. No WebGL / Three.js / Poly Haven meshes.
- * Ships in the lite Windows build after v0.2.3 GPU hard-crash reports.
+ * Lite desk backdrop — themed wallpaper image + light mood wash.
+ * No WebGL / Three.js (safer after v0.2.3 GPU hard-crash reports).
  */
 export function LiteLivingBackdrop({ state, mood }: Props): React.JSX.Element {
+  const theme = themeById(state.userPreferences.deskTheme)
   const { solar, weather, health } = state
+
   return (
     <div
       className="lite-backdrop"
+      data-theme={theme.id}
       data-phase={solar.phase}
       data-condition={weather.condition}
       data-mood={health.band}
@@ -24,17 +28,13 @@ export function LiteLivingBackdrop({ state, mood }: Props): React.JSX.Element {
           '--lite-night': String(mood.nightness),
           '--lite-heat': String(mood.heat),
           '--lite-load': String(mood.load),
-          '--lite-wind': String(mood.wind),
-          '--lite-cloud': String(weather.cloudCover)
+          '--lite-wash': theme.wash
         } as React.CSSProperties
       }
     >
-      <div className="lite-sky" />
-      <div className="lite-haze" />
-      <div className="lite-sun" />
-      <div className="lite-hills" />
-      <div className="lite-water" />
-      <div className="lite-shore" />
+      <img className="lite-wallpaper" src={theme.image} alt="" draggable={false} />
+      <div className="lite-theme-veil" />
+      <div className="lite-mood-tint" />
     </div>
   )
 }

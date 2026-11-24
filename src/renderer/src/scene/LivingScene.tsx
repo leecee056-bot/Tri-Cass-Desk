@@ -51,9 +51,9 @@ export default function LivingScene({ state }: Props): React.JSX.Element {
       </div>
       <div className="scene-live" aria-live="polite">
         <span className="live-dot" />
-        Lite · {health.band} · heat {Math.round(mood.heat * 100)} · load{' '}
-        {Math.round(mood.load * 100)} · night {Math.round(mood.nightness * 100)} · CPU{' '}
-        {Math.round(system.cpuLoad * 100)}%
+        {(state.userPreferences.deskTheme ?? 'nature').replace(/^\w/, (c) => c.toUpperCase())} ·{' '}
+        {health.band} · heat {Math.round(mood.heat * 100)} · load {Math.round(mood.load * 100)} ·
+        CPU {Math.round(system.cpuLoad * 100)}%
       </div>
     </div>
   )

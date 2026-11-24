@@ -10,6 +10,7 @@ export type SolarPhase =
   | 'daylight'
 
 export type MotionPreference = 'full' | 'reduced' | 'off'
+export type DeskThemeId = 'earth' | 'space' | 'nature' | 'cosmic'
 
 export interface SystemSnapshot {
   cpuLoad: number
@@ -72,6 +73,8 @@ export interface EnvironmentState {
     compactDock: boolean
     /** Prefer 24-hour clock labels in widgets. */
     clock24h: boolean
+    /** Static desk wallpaper theme (lite build). */
+    deskTheme: DeskThemeId
   }
 }
 
@@ -82,5 +85,6 @@ export const defaultPreferences: EnvironmentState['userPreferences'] = {
   pauseAdaptation: false,
   reduceTransparency: false,
   compactDock: false,
-  clock24h: false
+  clock24h: false,
+  deskTheme: 'nature'
 }

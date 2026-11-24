@@ -11,7 +11,7 @@ Local-only living companion for **Tri-Cass OS**. Earthbound / Celestial atmosphe
 3. Run the setup (or portable), launch **Tri-Cass Desk**
 4. On first launch you’ll see the **Tri-Cass OS** boot splash with the brand logo
 
-**Current recommended:** **v0.2.4 Lite** — glass desk + tools, CSS mood backdrop only (no WebGL / interactive 3D art). Safer on modest GPUs.
+**Current recommended:** **v0.2.5 Lite** — glass desk + tools, four wallpaper themes (Earth / Space / Nature / Cosmic) in Settings → Appearance. No WebGL. Quiet launch (no windows until you open them from the dock).
 
 **Do not use v0.2.3** — marked broken after a hard PC crash tied to the WebGL living-world.
 
@@ -49,8 +49,9 @@ git push origin v0.2.0
 ## What is reactive (not a flat wallpaper)
 
 - Polls local telemetry ~every 2s → `EnvironmentState`
-- Lite backdrop (CSS sky / hills / water) follows load / clock / mood — **no WebGL**
+- Lite backdrop uses a chosen wallpaper theme (Earth / Space / Nature / Cosmic) — **no WebGL**
 - Idle states dim glass; wake restores workspace
+- Launch starts with an empty desk; open apps from the dock
 - Full Three.js lakeside is parked until an opt-in “full art” build
 
 ## Apps (same glass style)
