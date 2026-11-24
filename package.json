@@ -1,6 +1,6 @@
 {
   "name": "tri-cass-desk",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "private": false,
   "description": "Tri-Cass OS Desk \u2014 local-only living companion desktop",
   "main": "./out/main/index.js",
@@ -16,8 +16,11 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json",
-    "pack:win": "npm run build && electron-builder --win nsis portable",
-    "pack:win:dir": "npm run build && electron-builder --win --dir"
+    "pack:win": "npm run build && electron-builder --win nsis portable --x64 --ia32",
+    "pack:win:dir": "npm run build && electron-builder --win --dir",
+    "pack:linux": "npm run build && electron-builder --linux AppImage deb --x64",
+    "pack:linux:arm64": "npm run build && electron-builder --linux AppImage --arm64",
+    "pack:all:ci": "electron-builder --publish never"
   },
   "dependencies": {
     "@fontsource/fraunces": "^5.2.6",
@@ -81,19 +84,35 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64", "ia32"]
         },
         {
           "target": "portable",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64", "ia32"]
         }
       ],
       "icon": "build/icon.ico",
       "artifactName": "Tri-Cass-Desk-${version}-${os}-${arch}.${ext}"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        }
+      ],
+      "category": "Utility",
+      "icon": "build/icon.png",
+      "artifactName": "Tri-Cass-Desk-${version}-${os}-${arch}.${ext}",
+      "desktop": {
+        "Name": "Tri-Cass Desk",
+        "Comment": "Local-only living companion for Tri-Cass OS",
+        "Categories": "Utility;Office;"
+      }
     },
     "nsis": {
       "oneClick": false,
@@ -104,6 +123,9 @@
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",
       "installerHeaderIcon": "build/icon.ico"
+    },
+    "portable": {
+      "artifactName": "Tri-Cass-Desk-${version}-${os}-${arch}-portable.${ext}"
     }
   }
 }

@@ -5,13 +5,15 @@ Local-only living companion for **Tri-Cass OS**. Earthbound / Celestial atmosphe
 ## Download (site-ready)
 
 1. Open **[Releases](https://github.com/leecee056-bot/Tri-Cass-Desk/releases/latest)**
-2. Download Windows x64:
-   - **`Tri-Cass-Desk-*-win-x64.exe`** — NSIS setup (desktop + Start Menu shortcut, Tri-Cass icon)
-   - or the **portable** `.exe` from the same release if you prefer no installer
-3. Run the setup (or portable), launch **Tri-Cass Desk**
-4. On first launch you’ll see the **Tri-Cass OS** boot splash with the brand logo
+2. Pick a format:
+   - **Windows** — `Tri-Cass-Desk-*-win-x64.exe` / `*-win-ia32.exe` (NSIS setup or portable; low-spec PCs use ia32)
+   - **Linux x64** — `.AppImage` or `.deb`
+   - **Raspberry Pi / aarch64** — `Tri-Cass-Desk-*-linux-arm64.AppImage`
+   - **Android phone + Android TV** — `Tri-Cass-Desk-*-android.apk` (Capacitor lite shell — chat + vault; not the full Electron Desk)
+3. Run the installer / AppImage / sideload the APK
+4. On first desktop launch you’ll see the **Tri-Cass OS** boot splash with the brand logo
 
-Link that Releases page from the Tri-Cass site as: **Download → unzip/run setup → launch**.
+Link that Releases page from the Tri-Cass site as: **Download → pick format → launch**.
 
 ## Brand
 
@@ -39,16 +41,21 @@ Dock → **Agents**:
 ```bash
 npm run typecheck
 npm run build
-npm run pack:win        # NSIS installer + portable (Windows runner / wine)
-npm run pack:win:dir    # unpacked dir for smoke tests
+npm run pack:win           # NSIS + portable, x64 + ia32
+npm run pack:linux         # AppImage + deb (x64)
+npm run pack:linux:arm64   # AppImage for Pi / aarch64
 ```
 
-Tag a release to publish Windows builds via GitHub Actions:
+Tag a release to publish desktop + Android builds via GitHub Actions:
 
 ```bash
-git tag v0.2.0
-git push origin v0.2.0
+git tag v0.4.0
+git push origin v0.4.0
 ```
+
+### Android (Capacitor)
+
+See [`mobile/README.md`](mobile/README.md). Full Electron Desk does **not** wrap to APK; the Capacitor app is the phone/TV product surface.
 
 ## What is reactive (not a flat wallpaper)
 

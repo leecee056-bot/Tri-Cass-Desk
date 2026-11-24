@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Tri-Cass Desk</string>
+    <string name="title_activity_main">Tri-Cass Desk</string>
+    <string name="package_name">os.tricass.desk.mobile</string>
+    <string name="custom_url_scheme">os.tricass.desk.mobile</string>
+</resources>
