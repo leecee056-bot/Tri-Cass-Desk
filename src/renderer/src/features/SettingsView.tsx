@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { EnvironmentState } from '../../../shared/environment'
+import type { DeskThemeId, EnvironmentState } from '../../../shared/environment'
 import type { WorkspaceSnapshot } from '../../../shared/types'
+import { DESK_THEMES } from '../scene/themes'
 import './features.css'
 
 type Props = {
@@ -15,7 +16,7 @@ type PaneId = 'general' | 'living' | 'appearance' | 'workspace' | 'privacy' | 'a
 const PANES: Array<{ id: PaneId; label: string; hint: string }> = [
   { id: 'general', label: 'General', hint: 'Motion & adaptation' },
   { id: 'living', label: 'Living world', hint: 'Weather & sky' },
-  { id: 'appearance', label: 'Appearance', hint: 'Glass & dock' },
+  { id: 'appearance', label: 'Appearance', hint: 'Themes & glass' },
   { id: 'workspace', label: 'Workspace', hint: 'Snapshots' },
   { id: 'privacy', label: 'Privacy', hint: 'Local-only' },
   { id: 'about', label: 'About', hint: 'Desk info' }
@@ -178,13 +179,15 @@ export default function SettingsView({
                   void (async () => {
                     if (!window.desk?.resetPreferences) {
                       onChange({
-                        motion: 'full',
-                        celestialEffects: true,
-                        weatherEffects: true,
+                        motion: 'reduced',
+                        celestialEffects: false,
+                        weatherEffects: false,
                         pauseAdaptation: false,
                         reduceTransparency: false,
                         compactDock: false,
-                        clock24h: false
+                        clock24h: false,
+                        deskTheme: 'nature',
+                        livingWorld3d: true
                       })
                       setStatus('Defaults applied (local)')
                       return
@@ -203,8 +206,14 @@ export default function SettingsView({
         {pane === 'living' ? (
           <div className="settings-group">
             <Toggle
+              label="Interactive living world (3D)"
+              detail="Three.js lakeside. Turn off to use wallpaper themes only if it feels heavy."
+              checked={p.livingWorld3d !== false}
+              onChange={(v) => onChange({ livingWorld3d: v })}
+            />
+            <Toggle
               label="Telemetry weather layers"
-              detail="Rain / cloud / fog mapped from CPU & process churn — not outdoor APIs"
+              detail="Rain / cloud / fog mapped from light CPU/RAM samples — not outdoor APIs"
               checked={p.weatherEffects}
               onChange={(v) => onChange({ weatherEffects: v })}
             />
@@ -215,14 +224,39 @@ export default function SettingsView({
               onChange={(v) => onChange({ celestialEffects: v })}
             />
             <p className="settings-help">
-              Edge-pan for 360° yaw · Alt/⌘-drag to orbit · Shift+wheel yaw · Alt+wheel pitch.
-              Windows stay fixed on screen.
+              Defaults to reduced motion / low-power GPU. Prefer Motion → Off or disable 3D if the
+              desk feels laggy. Wallpaper themes still apply when 3D is off.
             </p>
           </div>
         ) : null}
 
         {pane === 'appearance' ? (
           <div className="settings-group">
+            <div className="settings-theme-block">
+              <strong className="settings-theme-title">Desk theme</strong>
+              <em className="settings-theme-hint">Wallpaper + matching wash · four presets</em>
+              <div className="settings-theme-grid" role="listbox" aria-label="Desk theme">
+                {DESK_THEMES.map((theme) => {
+                  const active = (p.deskTheme ?? 'nature') === theme.id
+                  return (
+                    <button
+                      key={theme.id}
+                      type="button"
+                      role="option"
+                      aria-selected={active}
+                      className={`settings-theme-card ${active ? 'is-active' : ''}`}
+                      onClick={() => onChange({ deskTheme: theme.id as DeskThemeId })}
+                    >
+                      <img src={theme.image} alt="" draggable={false} />
+                      <span>
+                        <strong>{theme.label}</strong>
+                        <em>{theme.hint}</em>
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
             <Toggle
               label="Reduce transparency"
               detail="Raise panel opacity for clearer reading"

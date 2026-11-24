@@ -18,6 +18,9 @@ export const IPC = {
   resetPreferences: 'desk:reset-preferences',
   wakeWorkspace: 'desk:wake-workspace',
   noteActivity: 'desk:note-activity',
+  windowClose: 'desk:window-close',
+  windowMinimize: 'desk:window-minimize',
+  windowMaximize: 'desk:window-maximize',
 
   chatHistory: 'desk:chat-history',
   chatSend: 'desk:chat-send',
@@ -79,6 +82,9 @@ export type DeskApi = {
   resetPreferences: () => Promise<EnvironmentState>
   wakeWorkspace: () => Promise<void>
   noteActivity: () => Promise<void>
+  windowClose: () => Promise<void>
+  windowMinimize: () => Promise<void>
+  windowMaximize: () => Promise<void>
   onEnvironmentUpdated: (cb: (state: EnvironmentState) => void) => () => void
 
   chatHistory: () => Promise<ChatMessage[]>

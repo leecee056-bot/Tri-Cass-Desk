@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, screen } from 'electron'
 import { join, basename } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { EnvironmentEngine } from './environmentEngine'
@@ -60,29 +60,59 @@ function createWindow(): void {
   deskDataDir()
   workspaceRoot()
 
+  const { workArea } = screen.getPrimaryDisplay()
+  const margin = 40
+  const width = Math.max(720, Math.min(1280, workArea.width - margin * 2))
+  const height = Math.max(520, Math.min(800, workArea.height - margin * 2))
+  const x = Math.round(workArea.x + (workArea.width - width) / 2)
+  const y = Math.round(workArea.y + (workArea.height - height) / 2)
+
   mainWindow = new BrowserWindow({
-    width: 1480,
-    height: 920,
-    minWidth: 1100,
-    minHeight: 700,
-    backgroundColor: '#00000000',
-    transparent: true,
+    x,
+    y,
+    width,
+    height,
+    minWidth: 640,
+    minHeight: 480,
+    backgroundColor: '#0a1220',
+    transparent: false,
+    show: false,
     title: 'Tri-Cass OS · Desk',
     icon: join(__dirname, '../../build/icon.png'),
     frame: false,
     titleBarStyle: 'hidden',
     autoHideMenuBar: true,
+    resizable: true,
+    maximizable: true,
+    minimizable: true,
+    closable: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
-      webviewTag: true
+      webviewTag: true,
+      backgroundThrottling: true
     }
   })
 
+  mainWindow.once('ready-to-show', () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    // Never open larger than the usable desktop
+    const area = screen.getDisplayMatching(mainWindow.getBounds()).workArea
+    const b = mainWindow.getBounds()
+    if (b.width > area.width - 24 || b.height > area.height - 24) {
+      mainWindow.setBounds({
+        x: area.x + 12,
+        y: area.y + 12,
+        width: Math.min(b.width, area.width - 24),
+        height: Math.min(b.height, area.height - 24)
+      })
+    }
+    mainWindow.show()
+  })
+
   mainWindow.on('focus', () => engine.noteActivity())
-  mainWindow.webContents.on('before-input-event', () => engine.noteActivity())
 
   if (process.env.ELECTRON_RENDERER_URL) {
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
@@ -101,9 +131,10 @@ async function broadcastEnvironment(): Promise<void> {
 function startPolling(): void {
   if (pollTimer) clearInterval(pollTimer)
   void broadcastEnvironment()
+  // Lite: slow poll — old 1s systeminformation stack pegged Windows CPUs
   pollTimer = setInterval(() => {
     void broadcastEnvironment()
-  }, 1000)
+  }, 15_000)
 }
 
 function registerIpc(): void {
@@ -125,6 +156,17 @@ function registerIpc(): void {
   })
   ipcMain.handle(IPC.noteActivity, async () => {
     engine.noteActivity()
+  })
+  ipcMain.handle(IPC.windowClose, async () => {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.close()
+  })
+  ipcMain.handle(IPC.windowMinimize, async () => {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.minimize()
+  })
+  ipcMain.handle(IPC.windowMaximize, async () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    if (mainWindow.isMaximized()) mainWindow.unmaximize()
+    else mainWindow.maximize()
   })
 
   ipcMain.handle(IPC.chatHistory, async () => loadChatHistory())
@@ -279,6 +321,9 @@ function registerIpc(): void {
 
   void binDir()
 }
+
+// Hardware acceleration stays on so optional Living 3D WebGL can run.
+// Heavy systeminformation polling (the 100% CPU culprit) is already removed.
 
 app.whenReady().then(() => {
   engine.hydrate(loadPreferences(), savePreferences)

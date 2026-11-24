@@ -10,6 +10,7 @@ export type SolarPhase =
   | 'daylight'
 
 export type MotionPreference = 'full' | 'reduced' | 'off'
+export type DeskThemeId = 'earth' | 'space' | 'nature' | 'cosmic'
 
 export interface SystemSnapshot {
   cpuLoad: number
@@ -72,15 +73,21 @@ export interface EnvironmentState {
     compactDock: boolean
     /** Prefer 24-hour clock labels in widgets. */
     clock24h: boolean
+    /** Static desk wallpaper theme (used when 3D is off / fails). */
+    deskTheme: DeskThemeId
+    /** Interactive Three.js lakeside (needs GPU; falls back to wallpaper on error). */
+    livingWorld3d: boolean
   }
 }
 
 export const defaultPreferences: EnvironmentState['userPreferences'] = {
-  motion: 'full',
-  celestialEffects: true,
-  weatherEffects: true,
+  motion: 'reduced',
+  celestialEffects: false,
+  weatherEffects: false,
   pauseAdaptation: false,
   reduceTransparency: false,
   compactDock: false,
-  clock24h: false
+  clock24h: false,
+  deskTheme: 'nature',
+  livingWorld3d: true
 }

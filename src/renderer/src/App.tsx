@@ -3,6 +3,7 @@ import { useEnvironment } from './hooks/useEnvironment'
 import LivingScene from './scene/LivingScene'
 import Dock from './shell/Dock'
 import { BootSplash } from './shell/BootSplash'
+import { WindowChrome } from './shell/WindowChrome'
 import FloatingWindow from './wm/FloatingWindow'
 import AppHost from './wm/AppHost'
 import { useWindowManager } from './wm/useWindowManager'
@@ -21,16 +22,15 @@ export default function App(): React.JSX.Element {
     let last = 0
     const ping = (): void => {
       const now = Date.now()
-      if (now - last < 400) return
+      if (now - last < 4000) return
       last = now
       void window.desk?.noteActivity()
     }
+    // No pointermove — that was IPC-spamming on every mouse wiggle
     window.addEventListener('pointerdown', ping)
-    window.addEventListener('pointermove', ping)
     window.addEventListener('keydown', ping)
     return () => {
       window.removeEventListener('pointerdown', ping)
-      window.removeEventListener('pointermove', ping)
       window.removeEventListener('keydown', ping)
     }
   }, [])
@@ -54,6 +54,7 @@ export default function App(): React.JSX.Element {
         .join(' ')}
     >
       {booting ? <BootSplash onFinished={finishBoot} /> : null}
+      <WindowChrome />
       <LivingScene state={state} />
 
       {windows.map((win) => (

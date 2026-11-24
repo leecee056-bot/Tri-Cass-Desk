@@ -1,12 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 import type { EnvironmentState } from '../../../shared/environment'
-import {
-  clamp01,
-  defaultMood,
-  lerpMood,
-  type MoodOverrides,
-  type MoodState
-} from '../../../shared/mood'
+import { clamp01, type MoodOverrides, type MoodState } from '../../../shared/mood'
 
 function targetFromEnv(state: EnvironmentState): MoodState {
   const sys = state.system
@@ -46,16 +40,14 @@ function targetFromEnv(state: EnvironmentState): MoodState {
 }
 
 /**
- * Telemetry → smoothed mood. Optional debug overrides replace targets when enabled.
+ * Lite mood — no requestAnimationFrame loop (that ran forever and burned CPU).
+ * Updates only when environment / overrides change.
  */
 export function useMoodState(
   state: EnvironmentState,
   overrides: MoodOverrides
 ): { mood: MoodState; target: MoodState } {
-  const [mood, setMood] = useState<MoodState>(defaultMood)
-  const current = useRef(defaultMood)
-
-  const target = useMemo(() => {
+  const mood = useMemo(() => {
     const base = targetFromEnv(state)
     if (!overrides.enabled) return base
     return {
@@ -75,17 +67,5 @@ export function useMoodState(
     overrides.activity
   ])
 
-  useEffect(() => {
-    let raf = 0
-    const tick = (): void => {
-      // ~ease toward target each frame (~0.06 ≈ smooth without snap)
-      current.current = lerpMood(current.current, target, 0.06)
-      setMood({ ...current.current })
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [target])
-
-  return { mood, target }
+  return { mood, target: mood }
 }
