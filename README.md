@@ -26,7 +26,15 @@ npm install
 npm run dev
 ```
 
-Optional: local [Ollama](https://ollama.com) for AI chat (dock → Chat).
+Optional: local [Ollama](https://ollama.com) for AI chat (dock → Chat) and Agents.
+
+### Agents (Cline-slim)
+
+Dock → **Agents**:
+
+- **inspect** — local tools + short LLM summary
+- **plan** — read-only checklist saved to workspace `.tri-cass/plan.md` + `.tri-cass-rules`
+- **build** — JSON one-tool grammar loop (write/edit/read/list/run/checkpoints/finish), sandboxed `python`/`node` under `workspace/projects/`, post-write checks, stuck×3 → rollback, approve/open in the Monaco **Editor**
 
 ```bash
 npm run typecheck

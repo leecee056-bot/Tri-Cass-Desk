@@ -56,7 +56,7 @@ export default function AppHost({
     case 'chat':
       return <ChatView onCloseWindow={close} openApp={openApp} />
     case 'agents':
-      return <AgentsView />
+      return <AgentsView openApp={openApp} />
     case 'files':
       return <FilesView />
     case 'vault':
@@ -68,7 +68,14 @@ export default function AppHost({
     case 'terminal':
       return <TerminalSurface onClose={close} />
     case 'editor':
-      return <EditorSurface onClose={close} />
+      return (
+        <EditorSurface
+          onClose={close}
+          filePath={win.payload?.path}
+          initial={win.payload?.content}
+          title={win.payload?.path ? win.payload.path.split(/[/\\]/).pop() : undefined}
+        />
+      )
     case 'tools':
       return (
         <ToolsHub

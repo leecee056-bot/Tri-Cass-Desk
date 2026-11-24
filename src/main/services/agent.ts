@@ -1,12 +1,37 @@
 import { randomUUID } from 'node:crypto'
 import { homedir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve, normalize, relative, sep, dirname } from 'node:path'
+import { mkdirSync } from 'node:fs'
 import type { AgentRun, AgentStep } from '../../shared/types'
 import { listProcesses, listDisks, hashText } from './systemExtras'
 import { listNotes } from './vault'
 import { chatGenerate, ollamaStatus, listModels } from './ollama'
 import { sampleSystem } from '../telemetry'
 import { listDirectory, readTextFile, writeTextFile, getHomeDir } from './files'
+import { workspaceRoot } from './paths'
+import {
+  GRAMMAR_SYSTEM,
+  MAX_GRAMMAR_STEPS,
+  parseGrammarCall,
+  type GrammarCall
+} from './agentCline/grammar'
+import {
+  createCheckpoint,
+  listCheckpoints,
+  restoreCheckpoint
+} from './agentCline/checkpoints'
+import { createStuckTracker, isStuck, recordError, rollbackLatest } from './agentCline/stuck'
+import { postWriteVerify } from './agentCline/postWrite'
+import { runSandboxed } from './agentCline/sandboxRun'
+import {
+  ensureRulesFile,
+  loadPlanText,
+  loadRulesText,
+  parseModeIntent,
+  savePlanText,
+  wantsBuildPlan
+} from './agentCline/planRules'
+import { ensureCodingPack, searchCodingPack } from './agentCline/codingPack'
 
 async function step(kind: AgentStep['kind'], text: string): Promise<AgentStep> {
   return { at: Date.now(), kind, text }
@@ -20,6 +45,7 @@ You are the local Tri-Cass Desk companion (offline-first, Ollama).
 - After editing TypeScript: suggest \`npm run typecheck\` and \`npm run build\`.
 - Packaging for Windows: \`npm run pack:win\`.
 - Nexus-OS-V1 is a separate product — do not modify it from Desk tasks.
+- Build/act mode uses the Cline-slim JSON grammar against the Desk workspace (+ projects/).
 `
 
 const TOOL_CATALOG = `Available tools (call at most one per turn):
@@ -48,6 +74,26 @@ export type AgentLoopOpts = {
   model?: string
   temperature?: number
   maxRounds?: number
+  /** Prefer JSON grammar loop (default for build). */
+  protocol?: 'text' | 'grammar'
+}
+
+function resolveWorkspacePath(raw: string): string {
+  const root = workspaceRoot()
+  const trimmed = (raw || '').trim()
+  if (!trimmed || trimmed === '.' || trimmed === './') return root
+  if (trimmed.startsWith('~')) return join(homedir(), trimmed.slice(1))
+  if (trimmed.startsWith('/') || /^[A-Za-z]:[\\/]/.test(trimmed)) {
+    return resolve(normalize(trimmed))
+  }
+  return resolve(root, trimmed)
+}
+
+function toRel(path: string): string {
+  const root = workspaceRoot()
+  const rel = relative(root, path)
+  if (!rel || rel.startsWith('..')) return path
+  return rel.split(sep).join('/')
 }
 
 async function execTool(name: string, args: Record<string, string>): Promise<string> {
@@ -126,7 +172,6 @@ function parseToolCall(text: string): { name: string; args: Record<string, strin
     const eq = part.indexOf('=')
     if (eq > 0) args[part.slice(0, eq)] = part.slice(eq + 1)
   }
-  // multi-line path= support: TOOL read_file\npath: foo
   for (const line of text.split('\n')) {
     const m = line.trim().match(/^(path|text)\s*[:=]\s*(.+)$/i)
     if (m) args[m[1]!.toLowerCase()] = m[2]!.trim()
@@ -142,15 +187,305 @@ function parseWriteProposal(text: string): { path: string; content: string } | n
   return null
 }
 
+async function execGrammarTool(call: GrammarCall, push: (k: AgentStep['kind'], t: string) => Promise<void>): Promise<{
+  ok: boolean
+  text: string
+  wrote?: { path: string; content: string }
+}> {
+  const { tool, args } = call
+  switch (tool) {
+    case 'finish':
+      return { ok: true, text: args.message || '(done)' }
+    case 'list_dir': {
+      const path = resolveWorkspacePath(args.path || '')
+      try {
+        const { path: resolved, entries } = listDirectory(path)
+        return {
+          ok: true,
+          text:
+            `list_dir ${toRel(resolved) || resolved}\n` +
+            entries
+              .slice(0, 60)
+              .map((e) => `${e.isDirectory ? 'dir' : 'file'} ${e.name}`)
+              .join('\n')
+        }
+      } catch (e) {
+        return { ok: false, text: e instanceof Error ? e.message : String(e) }
+      }
+    }
+    case 'read_file': {
+      const path = resolveWorkspacePath(args.path || '')
+      try {
+        const body = readTextFile(path)
+        return { ok: true, text: `read_file ${toRel(path)}\n${body.slice(0, 8000)}` }
+      } catch (e) {
+        return { ok: false, text: e instanceof Error ? e.message : String(e) }
+      }
+    }
+    case 'write_file': {
+      const path = resolveWorkspacePath(args.path || '')
+      const content = args.content ?? ''
+      if (!args.path) return { ok: false, text: 'write_file needs path' }
+      mkdirSync(dirname(path), { recursive: true })
+      writeTextFile(path, content)
+      const verify = await postWriteVerify({ path: toRel(path), content })
+      await push('note', `post-write: ${verify.detail}`)
+      return {
+        ok: verify.ok,
+        text: verify.ok
+          ? `wrote ${toRel(path)} (${content.length} chars) · ${verify.detail}`
+          : `wrote ${toRel(path)} but verify failed: ${verify.detail}`,
+        wrote: { path, content }
+      }
+    }
+    case 'edit_file': {
+      const path = resolveWorkspacePath(args.path || '')
+      const old = args.old ?? ''
+      const neu = args.new ?? ''
+      if (!args.path || !old) return { ok: false, text: 'edit_file needs path and old' }
+      let body: string
+      try {
+        body = readTextFile(path)
+      } catch (e) {
+        return { ok: false, text: e instanceof Error ? e.message : String(e) }
+      }
+      if (!body.includes(old)) return { ok: false, text: 'edit_file: old text not found' }
+      const next = body.replace(old, neu)
+      writeTextFile(path, next)
+      const verify = await postWriteVerify({ path: toRel(path), content: next })
+      await push('note', `post-write: ${verify.detail}`)
+      return {
+        ok: verify.ok,
+        text: verify.ok
+          ? `edited ${toRel(path)} · ${verify.detail}`
+          : `edited ${toRel(path)} but verify failed: ${verify.detail}`,
+        wrote: { path, content: next }
+      }
+    }
+    case 'run': {
+      const res = await runSandboxed({
+        project: args.project || '',
+        command: args.command || '',
+        timeout: args.timeout
+      })
+      return { ok: res.ok, text: res.text }
+    }
+    case 'search_knowledge': {
+      const vault = listNotes()
+        .filter((n) => {
+          const q = (args.query || '').toLowerCase()
+          if (!q) return true
+          return (
+            n.title.toLowerCase().includes(q) ||
+            (n.body || '').toLowerCase().includes(q)
+          )
+        })
+        .slice(0, 5)
+        .map((n) => `• ${n.title}`)
+        .join('\n')
+      const pack = searchCodingPack(args.query || '')
+      return {
+        ok: true,
+        text: `Vault:\n${vault || '(none)'}\n\nCoding pack:\n${pack}`
+      }
+    }
+    case 'create_checkpoint': {
+      const meta = createCheckpoint(args.label || 'agent')
+      return {
+        ok: true,
+        text: `checkpoint ${meta.id} · ${meta.label} · ${meta.fileCount} files`
+      }
+    }
+    case 'list_checkpoints': {
+      const items = listCheckpoints()
+      if (!items.length) return { ok: true, text: 'No checkpoints yet.' }
+      return {
+        ok: true,
+        text: items
+          .map((m) => `${m.id}  ${m.label}  files=${m.fileCount}  ${new Date(m.createdAt).toISOString()}`)
+          .join('\n')
+      }
+    }
+    case 'restore_checkpoint': {
+      return { ok: true, text: restoreCheckpoint(args.id || 'latest') }
+    }
+    default:
+      return { ok: false, text: `Unknown tool: ${tool}` }
+  }
+}
+
+/**
+ * Cline-slim JSON grammar loop for build/act (workspace + Editor-friendly).
+ */
+async function runGrammarLoop(prompt: string, opts: AgentLoopOpts, run: AgentRun): Promise<AgentRun> {
+  const push = async (kind: AgentStep['kind'], text: string): Promise<void> => {
+    run.steps.push(await step(kind, text))
+  }
+
+  ensureRulesFile()
+  ensureCodingPack()
+  const rules = loadRulesText()
+  const plan = loadPlanText()
+
+  const intent = parseModeIntent(prompt)
+  if (intent === 'plan' || (opts.mode === 'plan' && !intent)) {
+    await push('plan', 'Plan mode — drafting checklist into .tri-cass/plan.md (no writes).')
+  }
+  if (intent === 'accept') {
+    await push('note', 'Plan accepted — switching to act/grammar build.')
+  }
+  if (!plan && wantsBuildPlan(prompt) && opts.mode !== 'build') {
+    await push(
+      'note',
+      'Tip: multi-file builds work best after a short plan. Say "plan mode" or use Plan in Agents.'
+    )
+  }
+
+  const status = await ollamaStatus()
+  if (!status.ok) {
+    await push('error', `Ollama offline: ${status.detail}`)
+    run.status = 'error'
+    return run
+  }
+
+  // Baseline checkpoint before mutating turns
+  const baseline = createCheckpoint('pre-agent')
+  await push('note', `Checkpoint ${baseline.id} saved before grammar loop.`)
+
+  const stuck = createStuckTracker()
+  const history: Array<{ role: 'user' | 'assistant'; content: string }> = [
+    { role: 'user', content: prompt }
+  ]
+
+  const system = [
+    GRAMMAR_SYSTEM,
+    'Workspace root is the Desk workspace (projects/ for sandboxed run).',
+    `Project rules:\n${rules.slice(0, 2500)}`,
+    plan ? `Current plan.md:\n${plan.slice(0, 1500)}` : '',
+    opts.mode === 'plan'
+      ? 'PLAN ONLY: do not call write_file or edit_file. Prefer finish with a markdown checklist; you may ask to save the plan.'
+      : ''
+  ]
+    .filter(Boolean)
+    .join('\n\n')
+
+  let lastWrote: { path: string; content: string } | null = null
+
+  for (let i = 0; i < (opts.maxRounds ?? MAX_GRAMMAR_STEPS); i++) {
+    await push('plan', `Grammar step ${i + 1}/${opts.maxRounds ?? MAX_GRAMMAR_STEPS}`)
+    const reply = await chatGenerate(history, {
+      model: opts.model,
+      temperature: opts.temperature ?? 0.2,
+      system,
+      numPredict: 768,
+      format: 'json',
+      timeoutMs: 240_000
+    })
+    await push('llm', reply)
+    history.push({ role: 'assistant', content: reply })
+
+    const call = parseGrammarCall(reply)
+    if (!call) {
+      await push('error', 'Model did not return a valid grammar JSON tool call.')
+      const streak = recordError(stuck, 'invalid grammar json')
+      if (isStuck(streak)) {
+        const msg = rollbackLatest(baseline.id)
+        await push('result', `Stuck ×3 on invalid JSON. ${msg}`)
+        run.status = 'done'
+        return run
+      }
+      history.push({
+        role: 'user',
+        content: 'Invalid JSON. Reply with one {"tool":"...","args":{...}} object only.'
+      })
+      continue
+    }
+
+    if (call.tool === 'finish') {
+      const message = call.args.message || '(done)'
+      // If plan mode produced a checklist, persist it
+      if (opts.mode === 'plan' && message.includes('-')) {
+        savePlanText(`# Plan\n\n${message}\n`)
+        await push('note', 'Saved plan to .tri-cass/plan.md')
+      }
+      await push('result', message)
+      if (lastWrote) {
+        await push(
+          'permission',
+          JSON.stringify({
+            path: lastWrote.path,
+            content: lastWrote.content,
+            preview: lastWrote.content.slice(0, 400),
+            openEditor: true
+          })
+        )
+      }
+      run.status = 'done'
+      return run
+    }
+
+    if (opts.mode === 'plan' && (call.tool === 'write_file' || call.tool === 'edit_file')) {
+      await push('note', 'Plan mode blocked write — use finish with a checklist instead.')
+      history.push({
+        role: 'user',
+        content: 'Plan mode: do not write files. Call finish with a markdown checklist.'
+      })
+      continue
+    }
+
+    try {
+      const out = await execGrammarTool(call, push)
+      await push('tool', `${call.tool} →\n${out.text}`)
+      if (out.wrote) lastWrote = out.wrote
+      if (!out.ok) {
+        const streak = recordError(stuck, out.text)
+        if (isStuck(streak)) {
+          const msg = rollbackLatest(baseline.id)
+          await push(
+            'result',
+            `Stuck on the same error ${streak} times. ${msg} Stopped — change approach (smaller edit).`
+          )
+          run.status = 'done'
+          return run
+        }
+      } else if (call.tool === 'write_file' || call.tool === 'edit_file') {
+        createCheckpoint(`after-${call.tool}`)
+      }
+      history.push({
+        role: 'user',
+        content: `Tool result for ${call.tool}:\n${out.text}\n\nContinue with one JSON tool call (or finish).`
+      })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      await push('error', `${call.tool}: ${msg}`)
+      const streak = recordError(stuck, msg)
+      if (isStuck(streak)) {
+        const rb = rollbackLatest(baseline.id)
+        await push('result', `Stuck ×3. ${rb}`)
+        run.status = 'done'
+        return run
+      }
+      history.push({
+        role: 'user',
+        content: `Tool ${call.tool} failed: ${msg}\nContinue with another tool or finish.`
+      })
+    }
+  }
+
+  await push('note', 'Reached max grammar steps — stopping.')
+  run.status = 'done'
+  return run
+}
+
 /** Legacy keyword agent — inspects machine state, never hits external APIs. */
 export async function runAgent(prompt: string): Promise<AgentRun> {
   return runAgentLoop(prompt, { mode: 'inspect', maxRounds: 1 })
 }
 
 /**
- * OpenCode-style multi-round tool loop with local Ollama + allowlisted tools.
- * inspect: tools only (fast heuristics + optional LLM)
- * plan/build: LLM decides tools until FINAL
+ * OpenCode-style multi-round tool loop + Cline-slim grammar for build.
+ * inspect/plan (text): tools + FINAL
+ * build (grammar): JSON one-tool loop with checkpoints / stuck / sandbox run
  */
 export async function runAgentLoop(prompt: string, opts: AgentLoopOpts = {}): Promise<AgentRun> {
   const mode = opts.mode ?? 'inspect'
@@ -166,10 +501,20 @@ export async function runAgentLoop(prompt: string, opts: AgentLoopOpts = {}): Pr
     run.steps.push(await step(kind, text))
   }
 
-  await push('thought', `${mode} agent · working locally on: ${prompt.slice(0, 200)}`)
+  const useGrammar =
+    opts.protocol === 'grammar' ||
+    (opts.protocol !== 'text' && mode === 'build')
+
+  await push(
+    'thought',
+    `${mode} agent · ${useGrammar ? 'Cline grammar' : 'text tools'} · ${prompt.slice(0, 200)}`
+  )
+
+  if (useGrammar) {
+    return runGrammarLoop(prompt, { ...opts, mode }, run)
+  }
 
   try {
-    // Fast path for inspect: keyword tools first, then optional LLM summary
     if (mode === 'inspect') {
       const q = prompt.toLowerCase()
       if (q.includes('cpu') || q.includes('ram') || q.includes('gpu') || q.includes('load')) {
@@ -185,11 +530,25 @@ export async function runAgentLoop(prompt: string, opts: AgentLoopOpts = {}): Pr
       } else if (q.includes('hash')) {
         await push('tool', await execTool('hash', { text: prompt }))
       } else if (q.includes('list') || q.includes('files') || q.includes('dir')) {
-        await push('tool', await execTool('list_dir', {}))
+        await push('tool', await execTool('list_dir', { path: workspaceRoot() }))
+      } else if (q.includes('checkpoint')) {
+        const items = listCheckpoints()
+        await push(
+          'tool',
+          items.length
+            ? items.map((m) => `${m.id} ${m.label}`).join('\n')
+            : 'No checkpoints yet.'
+        )
       } else {
         await push('tool', await execTool('system_sample', {}))
         await push('tool', await execTool('ollama_status', {}))
       }
+    }
+
+    if (mode === 'plan') {
+      ensureRulesFile()
+      const rules = loadRulesText()
+      await push('note', `Loaded .tri-cass-rules (${rules.split('\n').length} lines)`)
     }
 
     const status = await ollamaStatus()
@@ -229,9 +588,10 @@ export async function runAgentLoop(prompt: string, opts: AgentLoopOpts = {}): Pr
       AGENTS_MD,
       TOOL_CATALOG,
       `Mode: ${mode}.`,
-      mode === 'plan' ? 'Read-only — do not propose WRITE.' : '',
+      mode === 'plan' ? 'Read-only — do not propose WRITE. Prefer a markdown checklist FINAL.' : '',
       mode === 'build' ? 'You may propose one WRITE at the end after tools.' : '',
-      mode === 'inspect' ? 'Be concise. Prefer FINAL with a short summary of tool data.' : ''
+      mode === 'inspect' ? 'Be concise. Prefer FINAL with a short summary of tool data.' : '',
+      mode === 'plan' ? `Rules:\n${loadRulesText().slice(0, 1500)}` : ''
     ]
       .filter(Boolean)
       .join('\n\n')
@@ -252,6 +612,11 @@ export async function runAgentLoop(prompt: string, opts: AgentLoopOpts = {}): Pr
         const finalText = reply.replace(/^[\s\S]*?\bFINAL\b\s*/i, '').trim() || reply
         await push('result', finalText)
 
+        if (mode === 'plan') {
+          savePlanText(`# Plan\n\n${finalText}\n`)
+          await push('note', 'Saved plan to workspace/.tri-cass/plan.md')
+        }
+
         if (mode === 'build') {
           const proposed = parseWriteProposal(reply)
           if (proposed) {
@@ -260,7 +625,8 @@ export async function runAgentLoop(prompt: string, opts: AgentLoopOpts = {}): Pr
               JSON.stringify({
                 path: proposed.path,
                 content: proposed.content,
-                preview: proposed.content.slice(0, 400)
+                preview: proposed.content.slice(0, 400),
+                openEditor: true
               })
             )
           }
@@ -271,8 +637,10 @@ export async function runAgentLoop(prompt: string, opts: AgentLoopOpts = {}): Pr
 
       const tool = parseToolCall(reply)
       if (!tool) {
-        // Model answered without FINAL — treat as result
         await push('result', reply)
+        if (mode === 'plan') {
+          savePlanText(`# Plan\n\n${reply}\n`)
+        }
         if (mode === 'build') {
           const proposed = parseWriteProposal(reply)
           if (proposed) {
@@ -281,7 +649,8 @@ export async function runAgentLoop(prompt: string, opts: AgentLoopOpts = {}): Pr
               JSON.stringify({
                 path: proposed.path,
                 content: proposed.content,
-                preview: proposed.content.slice(0, 400)
+                preview: proposed.content.slice(0, 400),
+                openEditor: true
               })
             )
           }
@@ -319,6 +688,17 @@ export async function runAgentLoop(prompt: string, opts: AgentLoopOpts = {}): Pr
 
 /** Apply an approved write from a permission step (build mode). */
 export async function applyAgentWrite(path: string, content: string): Promise<void> {
-  const resolved = path.startsWith('~') ? join(homedir(), path.slice(1)) : path
+  const resolved = path.startsWith('~') ? join(homedir(), path.slice(1)) : resolveWorkspacePath(path)
+  mkdirSync(dirname(resolved), { recursive: true })
   await writeTextFile(resolved, content)
+  createCheckpoint('after-approve-write')
+}
+
+export {
+  listCheckpoints,
+  createCheckpoint,
+  restoreCheckpoint,
+  ensureRulesFile,
+  loadRulesText,
+  loadPlanText
 }

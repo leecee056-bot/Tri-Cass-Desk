@@ -37,6 +37,9 @@ const api: DeskApi = {
 
   agentRun: (prompt) => ipcRenderer.invoke(IPC.agentRun, prompt),
   agentLoop: (prompt, opts) => ipcRenderer.invoke(IPC.agentLoop, prompt, opts),
+  agentCheckpointsList: () => ipcRenderer.invoke(IPC.agentCheckpointsList),
+  agentCheckpointCreate: (label) => ipcRenderer.invoke(IPC.agentCheckpointCreate, label),
+  agentCheckpointRestore: (id) => ipcRenderer.invoke(IPC.agentCheckpointRestore, id),
 
   listDir: (dirPath) => ipcRenderer.invoke(IPC.listDir, dirPath),
   readTextFile: (filePath) => ipcRenderer.invoke(IPC.readTextFile, filePath),
