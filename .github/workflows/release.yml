@@ -1,0 +1,91 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - name: Build Windows x64 + ia32 (NSIS + portable)
+        run: npm run pack:win -- --publish never
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/Tri-Cass-Desk-*-win-*.exe
+          generate_release_notes: true
+          draft: false
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: sudo apt-get update && sudo apt-get install -y rpm
+      - run: npm ci
+      - run: npm run typecheck
+      - name: Build Linux x64 AppImage + deb
+        run: npm run pack:linux -- --publish never
+      # electron-builder names x64 as x86_64 (AppImage) / amd64 (deb) — normalize for site URLs
+      - name: Normalize linux x64 artifact names
+        run: |
+          cd release
+          for f in Tri-Cass-Desk-*-linux-x86_64.AppImage; do
+            [ -f "$f" ] && mv "$f" "${f/-linux-x86_64./-linux-x64.}"
+          done
+          for f in Tri-Cass-Desk-*-linux-amd64.deb; do
+            [ -f "$f" ] && mv "$f" "${f/-linux-amd64./-linux-x64.}"
+          done
+          ls -la Tri-Cass-Desk-*-linux-*
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/Tri-Cass-Desk-*-linux-x64.AppImage
+            release/Tri-Cass-Desk-*-linux-x64.deb
+          generate_release_notes: true
+          draft: false
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Pi 4/5 + aarch64 Linux / many ARM TV boxes
+  linux-arm64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - name: Build Linux arm64 AppImage
+        run: npm run pack:linux:arm64 -- --publish never
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/Tri-Cass-Desk-*-linux-arm64.AppImage
+          generate_release_notes: true
+          draft: false
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

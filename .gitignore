@@ -8,3 +8,11 @@ release/
 .env
 .env.*
 !.env.example
+mobile/node_modules/
+mobile/dist/
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/android/build/
+mobile/android/local.properties
+*.apk
+*.aab
